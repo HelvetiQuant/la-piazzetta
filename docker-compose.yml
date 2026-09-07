@@ -1,0 +1,22 @@
+# Postgres locale per far girare il backend su un portatile, senza servizi
+# esterni. Avvio: `docker compose up -d`. Dati persistiti nel volume `pgdata`.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: piazzetta
+      POSTGRES_PASSWORD: piazzetta
+      POSTGRES_DB: lapiazzetta
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U piazzetta"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

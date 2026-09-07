@@ -1,0 +1,418 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		000000000000000000000002 /* PiazzettaOwnerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000001 /* PiazzettaOwnerApp.swift */; };
+		000000000000000000000004 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000003 /* ContentView.swift */; };
+		000000000000000000000006 /* GlassSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000005 /* GlassSupport.swift */; };
+		000000000000000000000008 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000007 /* Models.swift */; };
+		00000000000000000000000A /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000009 /* APIClient.swift */; };
+		00000000000000000000000C /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000B /* LoginView.swift */; };
+		00000000000000000000000E /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000D /* DashboardView.swift */; };
+		000000000000000000000010 /* OrdersBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000F /* OrdersBoardView.swift */; };
+		000000000000000000000012 /* PrepTimeStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000011 /* PrepTimeStatsView.swift */; };
+		000000000000000000000014 /* MarketingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000013 /* MarketingView.swift */; };
+		000000000000000000000016 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000015 /* MenuView.swift */; };
+		000000000000000000000018 /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000017 /* InventoryView.swift */; };
+		00000000000000000000001A /* SuppliersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000019 /* SuppliersView.swift */; };
+		00000000000000000000001C /* PurchaseOrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001B /* PurchaseOrdersView.swift */; };
+		00000000000000000000001E /* ShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001D /* ShiftsView.swift */; };
+		000000000000000000000020 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000001F /* ScheduleView.swift */; };
+		000000000000000000000022 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000021 /* ChatView.swift */; };
+		000000000000000000000024 /* PayrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000023 /* PayrollView.swift */; };
+		000000000000000000000026 /* CreditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000025 /* CreditView.swift */; };
+		000000000000000000000028 /* AccountingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000027 /* AccountingView.swift */; };
+		000000000000000000000041 /* ServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000040 /* ServerManager.swift */; };
+		000000000000000000000043 /* ServerStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000042 /* ServerStatusView.swift */; };
+		000000000000000000000045 /* AIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000044 /* AIConfig.swift */; };
+		000000000000000000000047 /* AIAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000046 /* AIAssistant.swift */; };
+		000000000000000000000049 /* AIChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000048 /* AIChatView.swift */; };
+		00000000000000000000004B /* MenuAddOnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004A /* MenuAddOnsView.swift */; };
+		00000000000000000000004D /* StaffNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000004C /* StaffNotesView.swift */; };
+		00000000000000000000002A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000029 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000001 /* PiazzettaOwnerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiazzettaOwnerApp.swift; sourceTree = "<group>"; };
+		000000000000000000000003 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		000000000000000000000005 /* GlassSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassSupport.swift; sourceTree = "<group>"; };
+		000000000000000000000007 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		000000000000000000000009 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		00000000000000000000000B /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		00000000000000000000000D /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		00000000000000000000000F /* OrdersBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersBoardView.swift; sourceTree = "<group>"; };
+		000000000000000000000011 /* PrepTimeStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrepTimeStatsView.swift; sourceTree = "<group>"; };
+		000000000000000000000013 /* MarketingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketingView.swift; sourceTree = "<group>"; };
+		000000000000000000000015 /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
+		000000000000000000000017 /* InventoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryView.swift; sourceTree = "<group>"; };
+		000000000000000000000019 /* SuppliersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuppliersView.swift; sourceTree = "<group>"; };
+		00000000000000000000001B /* PurchaseOrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseOrdersView.swift; sourceTree = "<group>"; };
+		00000000000000000000001D /* ShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftsView.swift; sourceTree = "<group>"; };
+		00000000000000000000001F /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		000000000000000000000021 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		000000000000000000000023 /* PayrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayrollView.swift; sourceTree = "<group>"; };
+		000000000000000000000025 /* CreditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditView.swift; sourceTree = "<group>"; };
+		000000000000000000000027 /* AccountingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountingView.swift; sourceTree = "<group>"; };
+		000000000000000000000040 /* ServerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerManager.swift; sourceTree = "<group>"; };
+		000000000000000000000042 /* ServerStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerStatusView.swift; sourceTree = "<group>"; };
+		000000000000000000000044 /* AIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConfig.swift; sourceTree = "<group>"; };
+		000000000000000000000046 /* AIAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAssistant.swift; sourceTree = "<group>"; };
+		000000000000000000000048 /* AIChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatView.swift; sourceTree = "<group>"; };
+		00000000000000000000004A /* MenuAddOnsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuAddOnsView.swift; sourceTree = "<group>"; };
+		00000000000000000000004C /* StaffNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffNotesView.swift; sourceTree = "<group>"; };
+		000000000000000000000029 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		00000000000000000000002B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00000000000000000000002C /* PiazzettaOwner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PiazzettaOwner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		000000000000000000000031 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00000000000000000000002E = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000001 /* PiazzettaOwnerApp.swift */,
+				000000000000000000000003 /* ContentView.swift */,
+				000000000000000000000005 /* GlassSupport.swift */,
+				000000000000000000000007 /* Models.swift */,
+				000000000000000000000009 /* APIClient.swift */,
+				00000000000000000000000B /* LoginView.swift */,
+				00000000000000000000000D /* DashboardView.swift */,
+				00000000000000000000000F /* OrdersBoardView.swift */,
+				000000000000000000000011 /* PrepTimeStatsView.swift */,
+				000000000000000000000013 /* MarketingView.swift */,
+				000000000000000000000015 /* MenuView.swift */,
+				000000000000000000000017 /* InventoryView.swift */,
+				000000000000000000000019 /* SuppliersView.swift */,
+				00000000000000000000001B /* PurchaseOrdersView.swift */,
+				00000000000000000000001D /* ShiftsView.swift */,
+				00000000000000000000001F /* ScheduleView.swift */,
+				000000000000000000000021 /* ChatView.swift */,
+				000000000000000000000023 /* PayrollView.swift */,
+				000000000000000000000025 /* CreditView.swift */,
+				000000000000000000000027 /* AccountingView.swift */,
+				000000000000000000000040 /* ServerManager.swift */,
+				000000000000000000000042 /* ServerStatusView.swift */,
+				000000000000000000000044 /* AIConfig.swift */,
+				000000000000000000000046 /* AIAssistant.swift */,
+				000000000000000000000048 /* AIChatView.swift */,
+				00000000000000000000004A /* MenuAddOnsView.swift */,
+				00000000000000000000004C /* StaffNotesView.swift */,
+				000000000000000000000029 /* Assets.xcassets */,
+				00000000000000000000002B /* Info.plist */,
+				00000000000000000000002F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		00000000000000000000002F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000002C /* PiazzettaOwner.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000030 /* PiazzettaOwner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000000000039 /* Build configuration list for PBXNativeTarget "PiazzettaOwner" */;
+			buildPhases = (
+				000000000000000000000033 /* Sources */,
+				000000000000000000000031 /* Frameworks */,
+				000000000000000000000032 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PiazzettaOwner;
+			productName = PiazzettaOwner;
+			productReference = 00000000000000000000002C /* PiazzettaOwner.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		00000000000000000000002D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+			};
+			buildConfigurationList = 000000000000000000000038 /* Build configuration list for PBXProject "PiazzettaOwner" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = it;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				it,
+				Base,
+			);
+			mainGroup = 00000000000000000000002E;
+			productRefGroup = 00000000000000000000002F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000030 /* PiazzettaOwner */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000032 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00000000000000000000002A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		000000000000000000000033 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000002 /* PiazzettaOwnerApp.swift in Sources */,
+				000000000000000000000004 /* ContentView.swift in Sources */,
+				000000000000000000000006 /* GlassSupport.swift in Sources */,
+				000000000000000000000008 /* Models.swift in Sources */,
+				00000000000000000000000A /* APIClient.swift in Sources */,
+				00000000000000000000000C /* LoginView.swift in Sources */,
+				00000000000000000000000E /* DashboardView.swift in Sources */,
+				000000000000000000000010 /* OrdersBoardView.swift in Sources */,
+				000000000000000000000012 /* PrepTimeStatsView.swift in Sources */,
+				000000000000000000000014 /* MarketingView.swift in Sources */,
+				000000000000000000000016 /* MenuView.swift in Sources */,
+				000000000000000000000018 /* InventoryView.swift in Sources */,
+				00000000000000000000001A /* SuppliersView.swift in Sources */,
+				00000000000000000000001C /* PurchaseOrdersView.swift in Sources */,
+				00000000000000000000001E /* ShiftsView.swift in Sources */,
+				000000000000000000000020 /* ScheduleView.swift in Sources */,
+				000000000000000000000022 /* ChatView.swift in Sources */,
+				000000000000000000000024 /* PayrollView.swift in Sources */,
+				000000000000000000000026 /* CreditView.swift in Sources */,
+				000000000000000000000028 /* AccountingView.swift in Sources */,
+				000000000000000000000041 /* ServerManager.swift in Sources */,
+				000000000000000000000043 /* ServerStatusView.swift in Sources */,
+				000000000000000000000045 /* AIConfig.swift in Sources */,
+				000000000000000000000047 /* AIAssistant.swift in Sources */,
+				000000000000000000000049 /* AIChatView.swift in Sources */,
+				00000000000000000000004B /* MenuAddOnsView.swift in Sources */,
+				00000000000000000000004D /* StaffNotesView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		000000000000000000000034 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		000000000000000000000035 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		000000000000000000000036 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.piazzetta.owner.macos;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		000000000000000000000037 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.piazzetta.owner.macos;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		000000000000000000000038 /* Build configuration list for PBXProject "PiazzettaOwner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000034 /* Debug */,
+				000000000000000000000035 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		000000000000000000000039 /* Build configuration list for PBXNativeTarget "PiazzettaOwner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000036 /* Debug */,
+				000000000000000000000037 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 00000000000000000000002D /* Project object */;
+}

@@ -1,0 +1,879 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Venue {
+  id        String   @id @default(cuid())
+  name      String
+  plan      String   @default("PRO")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tables    Table[]
+  users     User[]
+  products  Product[]
+  customers Customer[]
+  suppliers Supplier[]
+  addons    VenueAddon[]
+  shifts    Shift[]
+  payrollEntries PayrollEntry[]
+  mediaAssets MediaAsset[]
+  socialAccounts SocialAccount[]
+  socialPosts SocialPost[]
+  socialComments SocialComment[]
+  campaigns Campaign[]
+  socialAnalytics SocialAnalytics[]
+  staffAvailability StaffAvailability[]
+  scheduledShifts ScheduledShift[]
+  chatRooms StaffChatRoom[]
+  chatMessages StaffChatMessage[]
+  chartOfAccounts ChartOfAccount[]
+  supplierInvoices SupplierInvoice[]
+  journalEntries JournalEntry[]
+  journalLines JournalLine[]
+  vatReturns VatReturn[]
+  costCenters CostCenter[]
+  aiPreference AiPreference?
+  aiInteractions AiInteraction[]
+  menuAddOns MenuAddOn[]
+  staffNotes StaffNote[]
+}
+
+// Add-on attivi per venue (entitlement/packaging). L'attivazione/pagamento
+// (Stripe Billing) è a monte; qui persiste solo lo stato.
+model VenueAddon {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  addonId   String   // es. "ai-suite", "marketing"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([venueId, addonId])
+  @@index([venueId])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  venueId      String
+  venue        Venue    @relation(fields: [venueId], references: [id])
+  email        String
+  name         String
+  roles        String[] @default(["WAITER"])
+  pin          String?  // hash scrypt del PIN (device condivisi)
+  passwordHash String?  // hash scrypt della password (login email)
+  hourlyRateCents Int   @default(0) // stipendio orario in centesimi
+  refreshTokens RefreshToken[]
+  shifts       Shift[]
+  payrollEntries PayrollEntry[]
+  availability StaffAvailability[]
+  scheduledShifts ScheduledShift[]
+  chatMessages StaffChatMessage[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([venueId, email])
+}
+
+// Refresh token: memorizzato SOLO come hash SHA-256; supporta rotazione e revoca.
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+model Table {
+  id        String    @id @default(cuid())
+  venueId   String
+  venue     Venue     @relation(fields: [venueId], references: [id])
+  code      String
+  name      String
+  area      String    @default("indoor")
+  seats     Int       @default(4)
+  state     String    @default("FREE")
+  sessions  TableSession[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([venueId, code])
+}
+
+model TableSession {
+  id        String   @id @default(cuid())
+  tableId   String
+  table     Table    @relation(fields: [tableId], references: [id])
+  guests    Int      @default(1)
+  state     String   @default("OPEN")
+  orders    Order[]
+  createdAt DateTime @default(now())
+  closedAt  DateTime?
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  sessionId     String
+  session       TableSession @relation(fields: [sessionId], references: [id])
+  clientOrderId String?     @unique
+  status        String      @default("DRAFT")
+  totalCents    Int         @default(0)
+  items         OrderItem[]
+
+  // --- Ciclo di vita: timestamp per statistiche tempi (ordine -> consegna al tavolo) ---
+  placedAt      DateTime    @default(now()) // comanda registrata al tavolo dal cameriere
+  sentAt        DateTime?                    // inviata a bar/cucina
+  servedAt      DateTime?                    // interamente consegnata al tavolo
+  paidAt        DateTime?                    // conto pagato
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([sessionId])
+  @@index([status])
+  @@index([placedAt])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitCents   Int
+  notes       String? // note/modifiche richieste dal cliente (es. "senza cipolla", "ben cotta")
+  status      String  @default("PENDING")
+
+  // Postazione derivata dalla category del prodotto e denormalizzata alla creazione
+  // (BAR | TAVOLA_CALDA) cosi' le statistiche restano stabili anche se in futuro
+  // cambiano le mappature category->station.
+  station     String  @default("BAR")
+
+  // --- Timestamp del ciclo per tipologia di piatto/cocktail ---
+  sentAt      DateTime? // riga inviata alla postazione
+  startedAt   DateTime? // presa in preparazione
+  readyAt     DateTime? // pronta al pass
+  servedAt    DateTime? // consegnata al tavolo
+
+  @@index([orderId])
+  @@index([station])
+  @@index([status])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  code        String
+  name        String
+  category    String   @default("generic")
+  priceCents  Int
+  unit        String   @default("pz") // unità base di consumo: pz, cl, g, ml...
+  preparation String?  // istruzioni di preparazione (cocktail, piatti) — testo libero
+  stock       StockItem?
+  orderItems  OrderItem[]
+  recipeItems RecipeItem[] @relation("Recipe")
+  usedIn      RecipeItem[] @relation("UsedIn")
+  movements   StockMovement[]
+  listings    SupplierProduct[]
+  menuAddOns  MenuAddOn[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([venueId, code])
+}
+
+model StockItem {
+  id            String  @id @default(cuid())
+  productId     String  @unique
+  product       Product @relation(fields: [productId], references: [id])
+  quantity      Int     @default(0) // in unità base del prodotto
+  reorderLevel  Int     @default(0) // soglia che fa scattare la proposta di riordino
+  parLevel      Int     @default(0) // livello target a cui riportare la giacenza (0 = usa reorderLevel)
+}
+
+// Storico dei movimenti di magazzino: audit trail + base per report sprechi/consumi.
+model StockMovement {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  // LOAD (carico) | WASTE (scarto) | RETURN (reso) | PHYSICAL (rettifica inventario)
+  // | SALE (scarico da vendita) | RECEIPT (ricezione ordine fornitore)
+  type       String
+  qtyDelta   Int      // variazione (può essere negativa: scarico/scarto)
+  qtyAfter   Int      // giacenza risultante (audit)
+  reason     String?
+  orderId    String?  // se generato da una vendita
+  createdBy  String?  // operatore
+  createdAt  DateTime @default(now())
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ===================================================================
+//  Fornitori e listini (riordino)
+// ===================================================================
+
+model Supplier {
+  id         String   @id @default(cuid())
+  venueId    String
+  venue      Venue    @relation(fields: [venueId], references: [id])
+  name       String
+  email      String?
+  phone      String?
+  notes      String?
+  active     Boolean  @default(true)
+  listings   SupplierProduct[]
+  purchaseOrders PurchaseOrder[]
+  supplierInvoices SupplierInvoice[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([venueId])
+}
+
+// ===================================================================
+//  Ordini d'acquisto (ciclo: bozza -> inviato -> ricevuto)
+// ===================================================================
+
+model PurchaseOrder {
+  id         String   @id @default(cuid())
+  venueId    String
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  // DRAFT (bozza) | SENT (inviato al fornitore) | PARTIAL (ricevuto in parte)
+  // | RECEIVED (ricevuto completo) | CANCELLED
+  status     String   @default("DRAFT")
+  totalCents Int      @default(0)
+  note       String?
+  createdBy  String?
+  items      PurchaseOrderItem[]
+  sentAt     DateTime?
+  receivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([venueId])
+  @@index([supplierId])
+  @@index([status])
+}
+
+model PurchaseOrderItem {
+  id             String  @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder  PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  productId      String
+  packSize       Int     @default(1) // unità base per confezione (snapshot dal listino)
+  packsOrdered   Int             // confezioni ordinate
+  packsReceived  Int     @default(0) // confezioni già ricevute
+  packPriceCents Int     @default(0)
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+}
+
+// Listino: cosa vende un fornitore e a quali condizioni.
+model SupplierProduct {
+  id            String   @id @default(cuid())
+  supplierId    String
+  supplier      Supplier @relation(fields: [supplierId], references: [id])
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  supplierSku   String?  // codice articolo del fornitore
+  // Una confezione d'acquisto contiene `packSize` unità BASE del prodotto
+  // (es. 1 bottiglia = 75 cl -> packSize=75). Default 1 = acquisto per unità.
+  packSize      Int      @default(1)
+  packPriceCents Int     @default(0) // prezzo per confezione
+  leadTimeDays  Int      @default(2)
+  preferred     Boolean  @default(false) // fornitore preferito per questo prodotto
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([supplierId, productId])
+  @@index([productId])
+}
+
+model RecipeItem {
+  id           String  @id @default(cuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], name: "Recipe")
+  ingredientId String
+  ingredient   Product @relation(fields: [ingredientId], references: [id], name: "UsedIn")
+  amount       Int
+}
+
+// ===================================================================
+//  Crediti clienti (conti aperti) — gestione manuale in cassa
+// ===================================================================
+
+model Customer {
+  id            String   @id @default(cuid())
+  venueId       String
+  venue         Venue    @relation(fields: [venueId], references: [id])
+  name          String
+  phone         String?
+  email         String?
+  notes         String?
+
+  // Contabilita' del credito. balanceCents > 0 = il cliente DEVE al locale.
+  balanceCents  Int      @default(0)
+  limitCents    Int      @default(0) // 0 = nessun limite
+  active        Boolean  @default(true)
+
+  transactions  CreditTransaction[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([venueId])
+  @@index([venueId, name])
+}
+
+model CreditTransaction {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+
+  // CHARGE = addebito (conto messo a credito) -> aumenta balance
+  // PAYMENT = incasso (rientro del credito)   -> diminuisce balance
+  // ADJUST  = rettifica manuale (+/-)
+  type        String
+  amountCents Int      // sempre positivo; il segno lo determina `type`
+  balanceAfterCents Int // saldo dopo la transazione (audit trail)
+
+  orderId     String?  // opzionale: addebito collegato a un ordine
+  method      String?  // per i PAYMENT: CASH | POS
+  note        String?
+  createdBy   String?  // userId dell'operatore in cassa
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+// Turno di lavoro: clock-in / clock-out di un dipendente
+model Shift {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  venueId      String
+  venue        Venue    @relation(fields: [venueId], references: [id])
+  startedAt    DateTime
+  endedAt      DateTime? // null = turno ancora aperto
+  breakMinutes Int      @default(0) // pausa in minuti
+  shiftRole    String?  // ruolo durante il turno: WAITER | BARMAN | COOK (null = usa ruolo default)
+  note         String?
+  status       String   @default("OPEN") // OPEN | CLOSED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([venueId, startedAt])
+}
+
+// Voce stipendio: calcolata da turni + hourly rate + bonus/deduzioni
+model PayrollEntry {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  venueId         String
+  venue           Venue    @relation(fields: [venueId], references: [id])
+  periodStart     DateTime
+  periodEnd       DateTime
+  totalHours      Float    @default(0)
+  hourlyRateCents Int      @default(0)
+  basePayCents    Int      @default(0)
+  bonusCents      Int      @default(0)
+  deductionCents  Int      @default(0)
+  netPayCents     Int      @default(0)
+  status          String   @default("DRAFT") // DRAFT | APPROVED | PAID
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, periodStart])
+  @@index([venueId, status])
+}
+
+// ============ MARKETING AVANZATO ============
+
+// Asset media (foto/video caricati o generati da AI/Canva/Gamma)
+model MediaAsset {
+  id           String   @id @default(cuid())
+  venueId      String
+  venue        Venue    @relation(fields: [venueId], references: [id])
+  type         String   @default("IMAGE") // IMAGE | VIDEO | DESIGN
+  source       String   @default("UPLOAD") // UPLOAD | AI_GENERATED | CANVA | GAMMA
+  url          String
+  thumbnailUrl String?
+  mimeType     String?
+  sizeBytes    Int?
+  width        Int?
+  height       Int?
+  altText      String?
+  meta         Json?
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  posts        SocialPost[]
+
+  @@index([venueId])
+}
+
+// Account social connessi (OAuth tokens)
+model SocialAccount {
+  id             String   @id @default(cuid())
+  venueId        String
+  venue          Venue    @relation(fields: [venueId], references: [id])
+  platform       String // instagram | facebook | whatsapp | tiktok
+  accountId      String
+  username       String?
+  displayName    String?
+  avatarUrl      String?
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  scopes         String[]
+  connectedAt    DateTime @default(now())
+  lastSyncAt     DateTime?
+  active         Boolean  @default(true)
+  analytics      SocialAnalytics[]
+
+  @@unique([venueId, platform, accountId])
+  @@index([venueId])
+}
+
+// Post social (bozze, programmati, pubblicati)
+model SocialPost {
+  id            String   @id @default(cuid())
+  venueId       String
+  venue         Venue    @relation(fields: [venueId], references: [id])
+  campaignId    String?
+  campaign      Campaign? @relation(fields: [campaignId], references: [id])
+  mediaAssetId  String?
+  mediaAsset    MediaAsset? @relation(fields: [mediaAssetId], references: [id])
+  caption       String
+  hashtags      String[] @default([])
+  platforms     String[] @default([])
+  status        String   @default("DRAFT") // DRAFT | SCHEDULED | PUBLISHING | PUBLISHED | FAILED
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  aiGenerated   Boolean  @default(false)
+  aiPrompt      String?
+  canvaDesignId String?
+  gammaDocId    String?
+  perPlatform   Json?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  comments      SocialComment[]
+  analytics     SocialAnalytics[]
+
+  @@index([venueId, status])
+  @@index([venueId, scheduledAt])
+}
+
+// Commenti social (sync da piattaforme)
+model SocialComment {
+  id                  String   @id @default(cuid())
+  venueId             String
+  venue               Venue    @relation(fields: [venueId], references: [id])
+  socialPostId        String?
+  socialPost          SocialPost? @relation(fields: [socialPostId], references: [id])
+  platform            String
+  platformCommentId   String
+  authorName          String?
+  authorAvatarUrl     String?
+  text                String
+  likesCount          Int      @default(0)
+  repliedAt           DateTime?
+  replyText           String?
+  aiAutoReplied       Boolean  @default(false)
+  needsReply          Boolean  @default(true)
+  receivedAt          DateTime @default(now())
+  createdAt           DateTime @default(now())
+
+  @@unique([venueId, platform, platformCommentId])
+  @@index([venueId, needsReply])
+  @@index([socialPostId])
+}
+
+// Campagne marketing
+model Campaign {
+  id          String   @id @default(cuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  name        String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  budgetCents Int      @default(0)
+  status      String   @default("ACTIVE") // DRAFT | ACTIVE | PAUSED | COMPLETED
+  posts       SocialPost[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([venueId])
+}
+
+// Analytics social (snapshot giornaliero)
+model SocialAnalytics {
+  id              String   @id @default(cuid())
+  venueId         String
+  venue           Venue    @relation(fields: [venueId], references: [id])
+  socialPostId    String?
+  socialPost      SocialPost? @relation(fields: [socialPostId], references: [id])
+  socialAccountId String?
+  socialAccount   SocialAccount? @relation(fields: [socialAccountId], references: [id])
+  platform        String
+  date            DateTime @db.Date
+  impressions     Int      @default(0)
+  reach           Int      @default(0)
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  shares          Int      @default(0)
+  saves           Int      @default(0)
+  profileVisits   Int      @default(0)
+  websiteClicks   Int      @default(0)
+  followerCount   Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([venueId, date])
+  @@index([socialPostId])
+}
+
+// ============ GESTIONE ORARI DIPENDENTI ============
+
+// Disponibilità settimanale dipendente (template ricorrente)
+model StaffAvailability {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  dayOfWeek   Int      // 0=Domenica, 1=Lunedì, ..., 6=Sabato
+  startHour   Int      // 0-23
+  endHour     Int      // 1-24
+  preference  String   @default("AVAILABLE") // AVAILABLE | PREFERRED | UNAVAILABLE
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([venueId, dayOfWeek])
+}
+
+// Turno programmato (schedulato, non ancora iniziato)
+model ScheduledShift {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  date        DateTime @db.Date
+  startHour   Int      // 0-23
+  endHour     Int      // 1-24
+  role        String?  // ruolo assegnato per il turno
+  station     String?  // BAR | TAVOLA_CALDA | GENERALE
+  status      String   @default("SCHEDULED") // SCHEDULED | CONFIRMED | STARTED | COMPLETED | CANCELLED
+  aiSuggested Boolean  @default(false)
+  aiConfidence Float?
+  shiftId     String?  // link al turno effettivo quando clock-in
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([venueId, date])
+  @@index([userId, date])
+}
+
+// Chat room per venue
+model StaffChatRoom {
+  id           String   @id @default(cuid())
+  venueId      String
+  venue        Venue    @relation(fields: [venueId], references: [id])
+  name         String   @default("Staff Generale")
+  // COLLECTIVE (tutti) | DEPARTMENT (reparto) | PERSONAL (1:1 owner-dipendente) | DIRECT_TO_OWNER (dipendente → owner)
+  type         String   @default("COLLECTIVE")
+  department   String?  // KITCHEN | BAR | WAITER | BAR_WAITER (per DEPARTMENT)
+  targetUserId String?  // userId del dipendente (per PERSONAL e DIRECT_TO_OWNER)
+  createdBy    String?  // userId di chi ha creato la room
+  // ALL (tutti vedono) | OWNER_ONLY (solo owner) | DEPARTMENT (solo reparto) | MEMBERS (solo membri)
+  visibility   String   @default("ALL")
+  members      String[] @default([]) // userIds dei membri (per PERSONAL)
+  messages     StaffChatMessage[]
+  createdAt    DateTime @default(now())
+
+  @@index([venueId])
+  @@index([type])
+}
+
+// Messaggi chat staff
+model StaffChatMessage {
+  id          String   @id @default(cuid())
+  roomId      String
+  room        StaffChatRoom @relation(fields: [roomId], references: [id])
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  text        String
+  type        String   @default("TEXT") // TEXT | AI_SUGGESTION | SYSTEM | SHIFT_SWAP
+  aiGenerated Boolean  @default(false)
+  meta        Json?
+  readBy      String[] @default([])
+  createdAt   DateTime @default(now())
+
+  @@index([roomId, createdAt])
+  @@index([venueId])
+}
+
+// ============ CONTABILITÀ ============
+
+// Piano dei conti (chart of accounts) — categorie civilistiche italiane
+model ChartOfAccount {
+  id          String   @id @default(cuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  code        String   // es. "1.01", "4.01.01"
+  name        String
+  category    String   // ATTIVO | PASSIVO | COSTO | RICAVO | CONTRO
+  subcategory String?  // es. "Immobilizzazioni", "Liquidità", "Acquisti", "Ricavi"
+  type        String   @default("DETTAGLIO") // MAESTRO | DETTAGLIO
+  parentId    String?
+  parent      ChartOfAccount? @relation("AccountHierarchy", fields: [parentId], references: [id])
+  children    ChartOfAccount[] @relation("AccountHierarchy")
+  vatRate     Float?   // aliquota IVA default
+  deductible  Boolean  @default(true)
+  active      Boolean  @default(true)
+  journalLines JournalLine[]
+  createdAt   DateTime @default(now())
+
+  @@unique([venueId, code])
+  @@index([venueId, category])
+}
+
+// Fattura fornitore
+model SupplierInvoice {
+  id              String   @id @default(cuid())
+  venueId         String
+  venue           Venue    @relation(fields: [venueId], references: [id])
+  supplierId      String?
+  supplier        Supplier? @relation(fields: [supplierId], references: [id])
+  supplierName    String
+  supplierVat     String?  // partita IVA
+  invoiceNumber   String
+  invoiceDate     DateTime @db.Date
+  dueDate         DateTime? @db.Date
+  description     String?
+  netAmountCents  Int      @default(0) // imponibile
+  vatRate         Float    @default(22)
+  vatAmountCents  Int      @default(0) // IVA
+  totalAmountCents Int     @default(0) // totale
+  withholdingRate Float    @default(0) // ritenuta d'acconto %
+  withholdingCents Int     @default(0)
+  status          String   @default("RECEIVED") // RECEIVED | RECORDED | PAID | ARCHIVED
+  filePath        String?
+  fileMimeType    String?
+  ocrData         Json?
+  recordedAt      DateTime?
+  paidAt          DateTime?
+  paymentMethod   String?  // BONIFICO | CONTANTI | POS | ASSEGNO
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([venueId, status])
+  @@index([venueId, invoiceDate])
+}
+
+// Registrazione contabile (journal entry) — partita doppia
+model JournalEntry {
+  id          String   @id @default(cuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  date        DateTime @db.Date
+  description String
+  reference   String?  // numero fattura/riferimento
+  sourceType  String   @default("MANUAL") // MANUAL | SUPPLIER_INVOICE | SALE | PAYMENT | VAT | CLOSURE
+  sourceId    String?
+  status      String   @default("DRAFT") // DRAFT | POSTED | REVERSED
+  lines       JournalLine[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([venueId, date])
+  @@index([venueId, status])
+}
+
+// Riga registrazione (debito/credito)
+model JournalLine {
+  id            String   @id @default(cuid())
+  journalEntryId String
+  journalEntry  JournalEntry @relation(fields: [journalEntryId], references: [id])
+  venueId       String
+  venue         Venue    @relation(fields: [venueId], references: [id])
+  accountId     String
+  account       ChartOfAccount @relation(fields: [accountId], references: [id])
+  debitCents    Int      @default(0)
+  creditCents   Int      @default(0)
+  description   String?
+  createdAt     DateTime @default(now())
+
+  @@index([journalEntryId])
+  @@index([venueId, accountId])
+}
+
+// Liquidazione IVA periodica
+model VatReturn {
+  id                String   @id @default(cuid())
+  venueId           String
+  venue             Venue    @relation(fields: [venueId], references: [id])
+  period            String   // "2026-08" o "2026-T3"
+  periodType        String   @default("MONTHLY")
+  vatCollectedCents Int      @default(0) // IVA a debito
+  vatPaidCents      Int      @default(0) // IVA a credito
+  vatDueCents       Int      @default(0) // da versare
+  status            String   @default("DRAFT") // DRAFT | FILED | PAID
+  filedAt           DateTime?
+  createdAt         DateTime @default(now())
+
+  @@unique([venueId, period])
+  @@index([venueId])
+}
+
+// Centro di costo
+model CostCenter {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  name      String
+  code      String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([venueId])
+}
+
+// Preferenze AI — impara dall'uso, si adatta all'owner
+model AiPreference {
+  id              String   @id @default(cuid())
+  venueId         String
+  venue           Venue    @relation(fields: [venueId], references: [id])
+  // Quali sezioni l'owner usa di più (peso adattivo)
+  sectionWeights  Json     @default("{}") // { "dashboard": 0.9, "marketing": 0.7, ... }
+  // Stile di comunicazione preferito
+  tonePreference  String   @default("friendly") // friendly | formal | concise | detailed
+  // Lingua preferita
+  language        String   @default("it")
+  // Frequenza suggerimenti (l'AI non è invadente)
+  suggestionFrequency String @default("medium") // low | medium | high
+  // Ultimo suggerimento mostrato (per non ripetere)
+  lastSuggestionAt DateTime?
+  // Contatore interazioni per adattare il livello
+  interactionCount Int     @default(0)
+  // Feedback positivo/negativo per suggerimenti
+  positiveFeedback Int     @default(0)
+  negativeFeedback Int     @default(0)
+  // Argomenti preferiti (impara cosa interessa)
+  preferredTopics Json     @default("[]") // ["vendite", "menu", "turni", "marketing"]
+  // Cose da evitare (impara cosa non serve)
+  avoidedTopics   Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([venueId])
+}
+
+// Interazioni AI log — per imparare dal comportamento owner
+model AiInteraction {
+  id          String   @id @default(cuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  section     String   // in quale sezione era l'owner
+  prompt      String   // cosa ha chiesto
+  response    String?  // risposta dell'AI
+  feedback    Int?     // 1 = utile, -1 = non utile, null = nessun feedback
+  modelUsed   String   // modello AI usato
+  tokensUsed  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([venueId, createdAt])
+  @@index([venueId, section])
+}
+
+// Add-on menu — consigli dell'owner da promuovere tramite staff
+model MenuAddOn {
+  id              String   @id @default(cuid())
+  venueId         String
+  venue           Venue    @relation(fields: [venueId], references: [id])
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  // Titolo della promozione
+  title           String
+  // Descrizione per lo staff (come proporlo al cliente)
+  staffScript     String   // es. "Vuole aggiungere un caffè? Solo 1 euro in più"
+  // Target: chi deve promuoverlo
+  targetRoles     Json     @default("[\"WAITER\",\"BARMAN\"]") // ruoli staff
+  // Quando attivarlo
+  activeFrom      DateTime?
+  activeTo        DateTime?
+  // Fascia oraria (es. "11:00-14:00" per pranzo)
+  timeWindow      String?  // null = sempre
+  // Giorni della settimana (1=lun, 7=dom)
+  weekDays        Json     @default("[1,2,3,4,5,6,7]")
+  // Priorità (1=alta, 5=bassa)
+  priority        Int      @default(3)
+  // Sconto applicato (percentuale)
+  discountPct     Int      @default(0)
+  // Stato
+  status          String   @default("ACTIVE") // ACTIVE | PAUSED | EXPIRED
+  // Stats
+  timesProposed   Int      @default(0)
+  timesAccepted   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([venueId, status])
+  @@index([venueId, productId])
+}
+
+// Note/Rules dello staff — messaggi importanti dall'owner
+// Il dipendente ha notifica lampeggiante e deve rispondere obbligatoriamente
+model StaffNote {
+  id            String   @id @default(cuid())
+  venueId       String
+  venue         Venue    @relation(fields: [venueId], references: [id])
+  senderId      String
+  // Destinatario: "ALL", "KITCHEN", "BAR", "WAITERS", o userId specifico
+  targetScope   String
+  targetValue   String
+  // Tipo di nota
+  type          String   @default("NOTE")
+  priority      Int      @default(3)
+  // Titolo e contenuto
+  title         String
+  body          String
+  dueDate       DateTime?
+  // Conferma ricezione obbligatoria
+  requiresAck   Boolean  @default(true)
+  acknowledgedBy Json    @default("[]")
+  responses     Json     @default("[]")
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([venueId, status])
+  @@index([venueId, targetScope, targetValue])
+  @@index([venueId, type])
+}
