@@ -2,6 +2,32 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.14.1] — 2026-09-08
+
+Ambiente di prova: seed dimostrativo, script di avvio unico, guida al
+collaudo per il personale, piano di implementazione in 4 lotti.
+
+### Added
+- `apps/api/prisma/seed-demo.ts` + script `db:seed:demo`: ambiente di
+  prova con 4 utenti (titolare, banco, sala, cucina), password comune
+  `Prova2026!`, tavoli nelle tre aree (5 interni, 5 dehors, 6 esterni),
+  3 fornitori, 3 clienti a credito e giacenze con prodotti sotto soglia.
+- `scripts/prova.sh`: avvia tutto con un comando (database, migrazioni,
+  seed, build web app, server) e stampa gli indirizzi LAN.
+- Target `make prova` / `prova-reset` / `prova-stop`.
+- `GUIDA_PROVA.md`: guida al collaudo per il personale del locale.
+- `PROMPT_IMPLEMENTAZIONE.md`: piano completo in 4 lotti con decisioni
+  hardware (EDO PLUS II RT, POS Worldline A920 Pro), IVA al 10%,
+  coperto 1,50/1,80 €, turni di cassa.
+
+### Known gaps
+- Numero dei tavoli esterni da confermare (`TAVOLI_ESTERNI` nel seed).
+- Montaggio `/owner` e area `dehors` non ancora integrati in
+  `index.ts` e `web-waiter` (rimandati a Lotto 2).
+- Da chiedere a Worldline: attivazione scambio importo, documentazione
+  ECR, IP statico per A920 Pro.
+- Da chiedere ad AP.esse: manuale protocollo EDO PLUS II e porta TCP.
+
 ## [0.14.0] — 2026-09-08
 
 Lotto 1 — Monorepo e componenti condivisi: npm workspaces, pacchetti

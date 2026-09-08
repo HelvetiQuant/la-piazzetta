@@ -4,7 +4,7 @@
 COMPOSE_CI := docker compose -f docker-compose.ci.yml
 
 .DEFAULT_GOAL := help
-.PHONY: help ci ci-api ci-web ci-logic ci-build ci-shell ci-clean dev db db-stop fix-imports
+.PHONY: help ci ci-api ci-web ci-logic ci-build ci-shell ci-clean dev db db-stop fix-imports prova prova-reset prova-stop
 
 help: ## Mostra questo elenco
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -34,6 +34,15 @@ ci-clean: ## Rimuove container, volumi e node_modules della CI
 	$(COMPOSE_CI) down -v
 
 ## ─── sviluppo ──────────────────────────────────────────────────────────────
+
+prova: ## Avvia l'ambiente di prova completo (database, seed, web app, server)
+	@bash scripts/prova.sh
+
+prova-reset: ## Azzera il database di prova e riparte da zero
+	@bash scripts/prova.sh reset
+
+prova-stop: ## Ferma il database di prova
+	@bash scripts/prova.sh stop
 
 db: ## Avvia il Postgres di sviluppo
 	docker compose up -d
