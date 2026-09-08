@@ -4,7 +4,7 @@
  * espone `.env.example` come riferimento.
  */
 
-import { parseProvider, ALL_TASKS, type AiProvider, type AiTask } from './ai.logic';
+import { parseProvider, ALL_TASKS, type AiProvider, type AiTask } from './ai.logic.js';
 
 export interface ProviderConfig {
   apiKey: string | null;

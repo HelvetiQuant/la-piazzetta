@@ -8,8 +8,8 @@
  * il retry/fallback all'orchestratore.
  */
 
-import type { ProviderConfig } from './ai.config';
-import type { ChatMessages } from './ai.logic';
+import type { ProviderConfig } from './ai.config.js';
+import type { ChatMessages } from './ai.logic.js';
 
 export interface CompletionResult {
   text: string;

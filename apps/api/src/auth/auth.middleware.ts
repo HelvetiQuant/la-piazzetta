@@ -8,9 +8,9 @@
  */
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { DevUser } from '../http';
-import { parseBearer } from './jwt.util';
-import type { AuthService } from './auth.service';
+import type { DevUser } from '../http.js';
+import { parseBearer } from './jwt.util.js';
+import type { AuthService } from './auth.service.js';
 
 export function makeAuthMiddleware(auth: AuthService, opts: { allowDevHeaders?: boolean } = {}): RequestHandler {
   const allowDev = opts.allowDevHeaders ?? process.env.NODE_ENV !== 'production';

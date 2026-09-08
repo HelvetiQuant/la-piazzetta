@@ -28,8 +28,8 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { getAiService } from '../ai/ai.service';
+import { currentUser, type RouteDeps } from '../http.js';
+import { getAiService } from '../ai/ai.service.js';
 
 const STAFF_ROLES = ['OWNER', 'MANAGER'];
 const ALL_STAFF_ROLES = ['OWNER', 'MANAGER', 'WAITER', 'BARMAN', 'COOK'];
@@ -615,10 +615,10 @@ Rispondi SOLO con JSON: {"suggestions": ["suggerimento1", "suggerimento2", "sugg
         if (variant) {
           // Prova a parsare JSON, fallback a testo
           try {
-            const parsed = JSON.parse(variant.headline + variant.body);
+            const parsed = JSON.parse(variant.text + variant.text);
             suggestions = parsed.suggestions ?? [];
           } catch {
-            suggestions = [variant.headline, variant.body].filter(Boolean);
+            suggestions = [variant.text, variant.text].filter(Boolean);
           }
         }
       } catch {}

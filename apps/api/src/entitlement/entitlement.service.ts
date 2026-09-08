@@ -6,8 +6,8 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { resolveEntitlements, type Entitlements } from './entitlement.logic';
-import { InMemoryCache, resolveCache, type Cache } from './cache';
+import { resolveEntitlements, type Entitlements } from './entitlement.logic.js';
+import { InMemoryCache, resolveCache, type Cache } from './cache.js';
 
 export class EntitlementService {
   private readonly prisma: PrismaClient;

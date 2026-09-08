@@ -5,8 +5,8 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { signJwt, verifyJwt, verifyJwtMulti, loadSecretKeys, type JwtClaims, type SecretKey } from './jwt.util';
-import { verifySecret, sha256Hex, randomToken } from './password.util';
+import { signJwt, verifyJwt, verifyJwtMulti, loadSecretKeys, type JwtClaims, type SecretKey } from './jwt.util.js';
+import { verifySecret, sha256Hex, randomToken } from './password.util.js';
 
 export interface AuthConfig {
   secret: string;

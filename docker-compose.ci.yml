@@ -1,0 +1,61 @@
+# Pipeline di CI in Docker — sostituisce le GitHub Actions.
+#
+#   docker compose -f docker-compose.ci.yml run --rm ci
+#   docker compose -f docker-compose.ci.yml run --rm ci api
+#   docker compose -f docker-compose.ci.yml run --rm ci web
+#   docker compose -f docker-compose.ci.yml run --rm ci logic
+#   docker compose -f docker-compose.ci.yml down -v          # pulizia
+#
+# Il Postgres di CI è EFFIMERO (nessun volume): ogni giro parte da un database
+# vuoto e verifica che le migration si applichino davvero da zero. È su una
+# porta diversa (5433) per non collidere con il Postgres di sviluppo del
+# docker-compose.yml principale.
+
+services:
+  ci-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: piazzetta
+      POSTGRES_PASSWORD: piazzetta
+      POSTGRES_DB: lapiazzetta_ci
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U piazzetta -d lapiazzetta_ci"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  ci:
+    build:
+      context: .
+      dockerfile: docker/ci.Dockerfile
+    depends_on:
+      ci-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://piazzetta:piazzetta@ci-db:5432/lapiazzetta_ci?schema=public
+      # Segreti fittizi: la CI non deve mai toccare provider reali.
+      JWT_SECRET: ci-only-secret-not-for-production
+      NODE_ENV: development
+      CORS_ORIGIN: "*"
+    volumes:
+      - .:/repo
+      # I node_modules restano in volumi dedicati: non inquinano la working copy
+      # dell'host e sopravvivono tra un giro e l'altro (installazioni veloci).
+      - ci-node-api:/repo/apps/api/node_modules
+      - ci-node-owner:/repo/apps/web-owner/node_modules
+      - ci-node-waiter:/repo/apps/web-waiter/node_modules
+      - ci-node-kds-bar:/repo/apps/web-kds-bar/node_modules
+      - ci-node-kds-kitchen:/repo/apps/web-kds-kitchen/node_modules
+      - ci-npm-cache:/root/.npm
+
+volumes:
+  ci-node-api:
+  ci-node-owner:
+  ci-node-waiter:
+  ci-node-kds-bar:
+  ci-node-kds-kitchen:
+  ci-npm-cache:

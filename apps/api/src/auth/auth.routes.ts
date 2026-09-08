@@ -6,7 +6,7 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { AuthService, AuthError } from './auth.service';
+import { AuthService, AuthError } from './auth.service.js';
 
 export function registerAuthRoutes(app: Express, prisma: PrismaClient, auth: AuthService = new AuthService(prisma)): void {
   const loginSchema = z.object({ venueId: z.string().min(1), email: z.string().email(), password: z.string().min(1) });

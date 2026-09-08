@@ -43,14 +43,14 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
+import { currentUser, type RouteDeps } from '../http.js';
 import {
   getMarketingConfig, createCanvaDesign, createGammaDoc,
   publishToInstagram, publishToFacebook, publishToWhatsApp,
   fetchSocialComments, replyToComment, fetchInstagramInsights,
   generateAiReply, generateAiPost,
-} from './marketing.service';
-import { getAiService } from '../ai/ai.service';
+} from './marketing.service.js';
+import { getAiService } from '../ai/ai.service.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -291,7 +291,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
         ...(body.mediaAssetId !== undefined ? { mediaAssetId: body.mediaAssetId } : {}),
         ...(body.scheduledAt !== undefined ? { scheduledAt: new Date(body.scheduledAt as string), status: 'SCHEDULED' } : {}),
         ...(body.status !== undefined ? { status: body.status } : {}),
-      },
+      } as any,
     });
     res.json(updated);
   });
@@ -727,7 +727,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
         ...(body.description !== undefined ? { description: body.description } : {}),
         ...(body.status !== undefined ? { status: body.status } : {}),
         ...(body.budgetCents !== undefined ? { budgetCents: body.budgetCents } : {}),
-      },
+      } as any,
     });
     res.json(updated);
   });

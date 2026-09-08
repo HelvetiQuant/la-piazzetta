@@ -5,7 +5,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { CATALOG, VENUE_ID, VENUE_NAME } from './menu.data';
+import { CATALOG, VENUE_ID, VENUE_NAME } from './menu.data.js';
 
 const prisma = new PrismaClient();
 

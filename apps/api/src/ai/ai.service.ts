@@ -12,7 +12,7 @@
  * conosce il dettaglio HTTP, solo l'interfaccia `CompletionResult`.
  */
 
-import { loadAiConfig, hasAnyProvider, type AiConfig } from './ai.config';
+import { loadAiConfig, hasAnyProvider, type AiConfig } from './ai.config.js';
 import {
   providerChain,
   backoffDelays,
@@ -23,8 +23,8 @@ import {
   CACHEABLE_TASKS,
   type AiProvider,
   type AiTask,
-} from './ai.logic';
-import { callOpenAI, callAnthropic, ProviderError, type CompletionResult, type CallOptions } from './ai.provider';
+} from './ai.logic.js';
+import { callOpenAI, callAnthropic, ProviderError, type CompletionResult, type CallOptions } from './ai.provider.js';
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 

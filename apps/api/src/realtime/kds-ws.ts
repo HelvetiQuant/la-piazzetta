@@ -19,8 +19,8 @@
  */
 
 import type { Server } from 'http';
-import type { AuthService } from '../auth/auth.service';
-import type { Station } from '../stations/stations';
+import type { AuthService } from '../auth/auth.service.js';
+import type { Station } from '../stations/stations.js';
 
 type WebSocket = any; // ws.WebSocket (tipizzato loose per non forzare l'import type)
 
@@ -100,7 +100,7 @@ export class KdsWebSocketServer {
 
   /** Notifica generica a tutti i client di un venue (es. nuovo ordine). */
   notifyVenue(venueId: string, payload: unknown): void {
-    const msg = JSON.stringify({ type: 'notification', ...payload });
+    const msg = JSON.stringify({ type: 'notification', ...(payload as any) });
     for (const c of this.clients) {
       // Isolamento tenant: invia SOLO ai client del venue target.
       if (c.venueId === venueId && c.ws.readyState === 1) {

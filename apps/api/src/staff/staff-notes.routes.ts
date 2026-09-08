@@ -7,7 +7,7 @@
 
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
-import type { RouteDeps } from '../http';
+import type { RouteDeps } from '../http.js';
 import { z } from 'zod';
 
 const createNoteSchema = z.object({

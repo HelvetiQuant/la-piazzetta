@@ -10,8 +10,8 @@
  *   await tryEnableBullmq();
  */
 
-import type { Queue, JobHandler, EnqueueOptions } from './queue';
-import { setQueue } from './queue';
+import type { Queue, JobHandler, EnqueueOptions } from './queue.js';
+import { setQueue } from './queue.js';
 
 export async function tryEnableBullmq(redisUrl = process.env.REDIS_URL): Promise<boolean> {
   if (!redisUrl) return false;

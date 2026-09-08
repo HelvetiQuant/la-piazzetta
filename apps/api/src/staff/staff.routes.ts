@@ -23,7 +23,7 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
+import { currentUser, type RouteDeps } from '../http.js';
 
 const STAFF_ROLES = ['OWNER', 'MANAGER'];
 const ALL_STAFF_ROLES = ['OWNER', 'MANAGER', 'WAITER', 'BARMAN', 'COOK'];

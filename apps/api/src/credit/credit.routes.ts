@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { applyTransaction, type CreditTxType } from './credit.logic';
+import { currentUser, type RouteDeps } from '../http.js';
+import { applyTransaction, type CreditTxType } from './credit.logic.js';
 
 type Tx = Prisma.TransactionClient;
 

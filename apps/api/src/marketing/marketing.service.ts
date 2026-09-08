@@ -11,7 +11,7 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
-import { getAiService } from '../ai/ai.service';
+import { getAiService } from '../ai/ai.service.js';
 
 export interface MarketingConfig {
   canvaApiKey?: string;
@@ -347,7 +347,7 @@ Risposta (solo il testo, senza virgolette):`;
       channels: ['instagram'],
     });
     const variant = r.data?.variants?.[0];
-    if (variant) return `${variant.headline} ${variant.body}`.trim().slice(0, 300);
+    if (variant) return `${variant.text} ${variant.text}`.trim().slice(0, 300);
   } catch {}
   return 'Grazie mille! Ti aspettiamo! 😊';
 }
@@ -377,8 +377,8 @@ export async function generateAiPost(opts: {
     const variant = r.data?.variants?.[0];
     if (!variant) return null;
     return {
-      caption: `${variant.headline}\n\n${variant.body}`,
-      hashtags: variant.hashtags ?? ['#lapiazzetta', '#bar', '#tavolacalda'],
+      caption: `${variant.text}\n\n${variant.text}`,
+      hashtags: (variant as any).hashtags ?? ['#lapiazzetta', '#bar', '#tavolacalda'],
     };
   } catch {
     return null;

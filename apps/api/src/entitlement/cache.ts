@@ -68,7 +68,7 @@ export class RedisCache<V> implements Cache<V> {
 
   /** Crea un'istanza da REDIS_URL con caricamento lazy di ioredis. */
   static async fromUrl(redisUrl: string, defaultTtlMs = 5 * 60 * 1000, prefix = 'ent:'): Promise<RedisCache<any>> {
-    const Redis = (await import('ioredis')).default;
+    const Redis = (await import('ioredis')).default as any;
     const client = new Redis(redisUrl, { maxRetriesPerRequest: 2, lazyConnect: false });
     // Listener 'error' obbligatorio: senza di esso un errore di connessione
     // EventEmitter fa terminare il processo Node (unhandled error).

@@ -1,9 +1,9 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { stationForCategory, ALL_STATIONS, type Station } from '../stations/stations';
-import { recordMovement } from '../inventory/inventory.service';
+import { currentUser, type RouteDeps } from '../http.js';
+import { stationForCategory, ALL_STATIONS, type Station } from '../stations/stations.js';
+import { recordMovement } from '../inventory/inventory.service.js';
 
 type Tx = Prisma.TransactionClient;
 

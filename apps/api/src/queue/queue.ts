@@ -7,7 +7,7 @@
  * senza toccare i produttori/consumatori: stessa interfaccia `Queue`.
  */
 
-import { backoffDelays } from '../ai/ai.logic';
+import { backoffDelays } from '../ai/ai.logic.js';
 
 export type JobHandler<T = unknown> = (data: T) => Promise<void> | void;
 

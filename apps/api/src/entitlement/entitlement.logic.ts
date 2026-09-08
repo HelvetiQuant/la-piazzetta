@@ -4,7 +4,7 @@
  * RIFIUTATO e non abilita nulla). Nessuna I/O.
  */
 
-import { PLANS, ADDONS, DEFAULT_PLAN, type ModuleId } from './plans.config';
+import { PLANS, ADDONS, DEFAULT_PLAN, type ModuleId } from './plans.config.js';
 
 export interface Entitlements {
   plan: string;

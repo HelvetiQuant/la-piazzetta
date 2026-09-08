@@ -1,9 +1,9 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { recordMovement } from '../inventory/inventory.service';
-import { canPoTransition, applyReceipt, type PoStatus, type PoItemState } from './purchase.logic';
+import { currentUser, type RouteDeps } from '../http.js';
+import { recordMovement } from '../inventory/inventory.service.js';
+import { canPoTransition, applyReceipt, type PoStatus, type PoItemState } from './purchase.logic.js';
 
 type Tx = Prisma.TransactionClient;
 const SUP_ROLES = ['OWNER', 'MANAGER'];
@@ -72,7 +72,7 @@ export function registerPurchaseRoutes(app: Express, prisma: PrismaClient, deps:
     const status = req.query.status as string | undefined;
     const pos = await prisma.purchaseOrder.findMany({
       where: { venueId: user.venueId, ...(status ? { status } : {}) },
-      include: { supplier: { select: { name: true } }, items: { include: { product: { select: { name: true, unit: true } } } } },
+      include: { supplier: { select: { name: true } }, items: { include: { product: { select: { name: true, unit: true } } } } } as any,
       orderBy: { createdAt: 'desc' },
     });
     res.json(pos);
@@ -157,7 +157,7 @@ export function registerPurchaseRoutes(app: Express, prisma: PrismaClient, deps:
           status: outcome.status,
           receivedAt: outcome.status === 'RECEIVED' ? new Date() : null,
         },
-        include: { items: { include: { product: { select: { name: true, unit: true } } } }, supplier: { select: { name: true } } },
+        include: { items: { include: { product: { select: { name: true, unit: true } } } }, supplier: { select: { name: true } } } as any,
       });
     });
 

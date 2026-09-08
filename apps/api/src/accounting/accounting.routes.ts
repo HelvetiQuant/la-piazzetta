@@ -37,8 +37,8 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { ITALIAN_CHART_OF_ACCOUNTS } from './chart-of-accounts';
+import { currentUser, type RouteDeps } from '../http.js';
+import { ITALIAN_CHART_OF_ACCOUNTS } from './chart-of-accounts.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -114,7 +114,7 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
         ...(body.subcategory !== undefined ? { subcategory: body.subcategory } : {}),
         ...(body.vatRate !== undefined ? { vatRate: body.vatRate } : {}),
         ...(body.active !== undefined ? { active: body.active } : {}),
-      },
+      } as any,
     });
     res.json(updated);
   });

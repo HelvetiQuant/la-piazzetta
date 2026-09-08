@@ -1,6 +1,6 @@
 {
   "name": "@la-piazzetta/api",
-  "version": "0.10.0",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "description": "API La Piazzetta — Express + Prisma. Include AiService (OpenAI + Anthropic).",
@@ -16,7 +16,9 @@
     "db:import:menu:sql": "psql \"$DATABASE_URL\" -f prisma/seed/menu_prices.sql",
     "gen:menu:sql": "node --experimental-strip-types prisma/gen-menu-sql.mts",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types ../../tests/ai.test.mts && node --experimental-strip-types ../../tests/auth-queue-entitlement.test.mts"
+    "test": "node --experimental-strip-types --import ../../tests/register-ts-resolve.mjs ../../tests/ai.test.mts && node --experimental-strip-types --import ../../tests/register-ts-resolve.mjs ../../tests/auth-queue-entitlement.test.mts",
+    "test:logic": "node ../../tests/verify.mjs && node ../../tests/verify-inventory.mjs && node ../../tests/verify-purchase.mjs",
+    "ci": "npm run prisma:generate && npm run typecheck && npm run build && npm run test:logic && npm test"
   },
   "dependencies": {
     "@prisma/client": "^5.19.0",

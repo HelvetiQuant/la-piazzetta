@@ -7,7 +7,7 @@
 
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
-import type { RouteDeps } from '../http';
+import type { RouteDeps } from '../http.js';
 
 export function registerAiPreferenceRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps) {
   // GET /api/v1/ai-preferences — leggi preferenze attuali

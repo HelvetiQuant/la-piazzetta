@@ -8,10 +8,10 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { getAiService, AiDisabledError, AiBudgetExceededError, type AiService } from './ai.service';
-import { computeReorder } from '../suppliers/reorder.logic';
-import { forecastTargetLevel } from './ai.logic';
+import { currentUser, type RouteDeps } from '../http.js';
+import { getAiService, AiDisabledError, AiBudgetExceededError, type AiService } from './ai.service.js';
+import { computeReorder } from '../suppliers/reorder.logic.js';
+import { forecastTargetLevel } from './ai.logic.js';
 
 const AI_ROLES = ['OWNER', 'MANAGER'];
 

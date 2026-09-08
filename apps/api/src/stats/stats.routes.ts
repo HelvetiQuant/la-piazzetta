@@ -1,9 +1,9 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { ALL_STATIONS, type Station } from '../stations/stations';
-import { aggregateItems, aggregateDelivery, type ItemTiming, type OrderTiming, type GroupBy } from './prep-time';
+import { currentUser, type RouteDeps } from '../http.js';
+import { ALL_STATIONS, type Station } from '../stations/stations.js';
+import { aggregateItems, aggregateDelivery, type ItemTiming, type OrderTiming, type GroupBy } from './prep-time.js';
 
 const querySchema = z.object({
   from: z.string().datetime().optional(),

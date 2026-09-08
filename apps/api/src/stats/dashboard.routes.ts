@@ -16,7 +16,7 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
+import { currentUser, type RouteDeps } from '../http.js';
 
 const rangeSchema = z.object({
   range: z.enum(['today', 'yesterday', 'week', 'month', 'custom']).default('today'),

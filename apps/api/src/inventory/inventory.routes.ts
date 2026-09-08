@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { recordMovement, effectiveParLevel, InventoryError, type MovementType } from './inventory.service';
+import { currentUser, type RouteDeps } from '../http.js';
+import { recordMovement, effectiveParLevel, InventoryError, type MovementType } from './inventory.service.js';
 
 type Tx = Prisma.TransactionClient;
 

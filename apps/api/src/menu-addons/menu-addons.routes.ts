@@ -7,7 +7,7 @@
 
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
-import type { RouteDeps } from '../http';
+import type { RouteDeps } from '../http.js';
 import { z } from 'zod';
 
 const createAddOnSchema = z.object({
@@ -94,7 +94,7 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
 
       const targetRoles = a.targetRoles as string[];
       const userRoles = user.roles;
-      const hasRole = userRoles.some(r => targetRoles.includes(r) || r === 'OWNER');
+      const hasRole = userRoles.some((r: string) => targetRoles.includes(r) || r === 'OWNER');
       if (!hasRole) return false;
 
       return true;

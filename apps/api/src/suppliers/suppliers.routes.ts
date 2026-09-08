@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { currentUser, type RouteDeps } from '../http';
-import { computeReorder } from './reorder.logic';
+import { currentUser, type RouteDeps } from '../http.js';
+import { computeReorder } from './reorder.logic.js';
 
 const SUP_ROLES = ['OWNER', 'MANAGER'];
 

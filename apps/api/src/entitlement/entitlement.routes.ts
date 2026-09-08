@@ -5,10 +5,10 @@
 
 import type { Express, Request, Response, NextFunction, RequestHandler } from 'express';
 import type { PrismaClient } from '@prisma/client';
-import { currentUser, type RouteDeps } from '../http';
-import { EntitlementService } from './entitlement.service';
-import { hasModule } from './entitlement.logic';
-import type { ModuleId } from './plans.config';
+import { currentUser, type RouteDeps } from '../http.js';
+import { EntitlementService } from './entitlement.service.js';
+import { hasModule } from './entitlement.logic.js';
+import type { ModuleId } from './plans.config.js';
 
 /**
  * Gate per-modulo: risponde 403 `{ upgradeRequired, module }` se il piano del

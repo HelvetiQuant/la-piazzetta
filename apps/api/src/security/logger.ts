@@ -130,7 +130,7 @@ export function requestLogger(log: Logger = getLogger()): RequestHandler {
  * rumoreare l'osservabilità con errori client (400/401/403/404/409).
  */
 export function errorLogger(log: Logger = getLogger()): RequestHandler {
-  return (err: any, _req: Request, _res: Response, next: NextFunction) => {
+  return ((err: any, _req: Request, _res: Response, next: NextFunction) => {
     const isClientError =
       err?.name === 'ZodError' ||
       err?.name === 'AuthError' ||
@@ -144,5 +144,5 @@ export function errorLogger(log: Logger = getLogger()): RequestHandler {
       ...(isClientError ? {} : { stack: err?.stack }),
     });
     next(err);
-  };
+  }) as any;
 }

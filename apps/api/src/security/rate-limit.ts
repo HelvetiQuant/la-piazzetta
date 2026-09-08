@@ -68,7 +68,7 @@ export class RedisRateLimitStore implements RateLimitStore {
   }
 
   static async fromUrl(redisUrl: string): Promise<RedisRateLimitStore> {
-    const Redis = (await import('ioredis')).default;
+    const Redis = (await import('ioredis')).default as any;
     const client = new Redis(redisUrl, { maxRetriesPerRequest: 2 });
     // Listener 'error' obbligatorio: senza di esso un errore di connessione
     // EventEmitter fa terminare il processo Node (unhandled error).
