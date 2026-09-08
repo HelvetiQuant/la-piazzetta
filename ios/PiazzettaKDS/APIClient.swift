@@ -27,7 +27,7 @@ enum APIError: LocalizedError {
 final class APIClient: ObservableObject {
     static let shared = APIClient()
 
-    var baseURL = URL(string: "http://192.168.1.69:3000/api/v1")!
+    var baseURL = URL(string: "http://192.168.1.203:3000/api/v1")!
 
     @Published var session: Session?
 

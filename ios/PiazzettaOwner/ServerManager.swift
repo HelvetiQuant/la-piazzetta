@@ -136,7 +136,7 @@ class ServerManager: ObservableObject {
     @Published var isOnline: Bool = false
     @Published var isChecking: Bool = false
     @Published var lastError: String?
-    @Published var lanIP: String = "192.168.1.69"
+    @Published var lanIP: String = "192.168.1.203"
     @Published var port: Int = 3000
 
     var serverURL: String { "http://\(lanIP):\(port)" }

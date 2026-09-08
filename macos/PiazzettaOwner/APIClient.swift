@@ -32,7 +32,7 @@ final class APIClient: ObservableObject {
     #if os(macOS)
     var baseURL = URL(string: "http://localhost:3000/api/v1")!
     #else
-    var baseURL = URL(string: "http://192.168.1.69:3000/api/v1")!
+    var baseURL = URL(string: "http://192.168.1.203:3000/api/v1")!
     #endif
 
     @Published var session: Session?
