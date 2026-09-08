@@ -31,6 +31,15 @@ interface ClientInfo {
   userId: string;
 }
 
+/** Payload di una notifica generica inviata ai client WebSocket di un venue.
+ *  I campi vengono sparsi nel messaggio JSON accanto a `type: 'notification'`. */
+interface NotificationPayload {
+  message?: string;
+  orderId?: string;
+  station?: Station;
+  [key: string]: unknown;
+}
+
 export class KdsWebSocketServer {
   private clients = new Set<ClientInfo>();
   private wss: any = null;
@@ -99,8 +108,8 @@ export class KdsWebSocketServer {
   }
 
   /** Notifica generica a tutti i client di un venue (es. nuovo ordine). */
-  notifyVenue(venueId: string, payload: unknown): void {
-    const msg = JSON.stringify({ type: 'notification', ...(payload as any) });
+  notifyVenue(venueId: string, payload: NotificationPayload): void {
+    const msg = JSON.stringify({ type: 'notification', ...payload });
     for (const c of this.clients) {
       // Isolamento tenant: invia SOLO ai client del venue target.
       if (c.venueId === venueId && c.ws.readyState === 1) {

@@ -35,7 +35,7 @@
  */
 
 import type { Express, Request, Response } from 'express';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { currentUser, type RouteDeps } from '../http.js';
 import { ITALIAN_CHART_OF_ACCOUNTS } from './chart-of-accounts.js';
@@ -107,14 +107,14 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
     const account = await prisma.chartOfAccount.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
     if (!account) { res.status(404).json({ error: 'Conto non trovato' }); return; }
     const body = req.body as Record<string, unknown>;
+    const data: Prisma.ChartOfAccountUpdateInput = {};
+    if (body.name !== undefined) data.name = body.name as string;
+    if (body.subcategory !== undefined) data.subcategory = body.subcategory as string;
+    if (body.vatRate !== undefined) data.vatRate = body.vatRate as number;
+    if (body.active !== undefined) data.active = body.active as boolean;
     const updated = await prisma.chartOfAccount.update({
       where: { id: account.id },
-      data: {
-        ...(body.name !== undefined ? { name: body.name } : {}),
-        ...(body.subcategory !== undefined ? { subcategory: body.subcategory } : {}),
-        ...(body.vatRate !== undefined ? { vatRate: body.vatRate } : {}),
-        ...(body.active !== undefined ? { active: body.active } : {}),
-      } as any,
+      data,
     });
     res.json(updated);
   });

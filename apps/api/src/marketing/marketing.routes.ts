@@ -41,7 +41,7 @@
  */
 
 import type { Express, Request, Response } from 'express';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { currentUser, type RouteDeps } from '../http.js';
 import {
@@ -282,16 +282,19 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     const post = await prisma.socialPost.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
     if (!post) { res.status(404).json({ error: 'Post non trovato' }); return; }
     const body = req.body as Record<string, unknown>;
+    const data: Prisma.SocialPostUpdateInput = {};
+    if (body.caption !== undefined) data.caption = body.caption as string;
+    if (body.hashtags !== undefined) data.hashtags = body.hashtags as string[];
+    if (body.platforms !== undefined) data.platforms = body.platforms as string[];
+    if (body.mediaAssetId !== undefined) data.mediaAsset = { connect: { id: body.mediaAssetId as string } };
+    if (body.scheduledAt !== undefined) {
+      data.scheduledAt = new Date(body.scheduledAt as string);
+      data.status = 'SCHEDULED';
+    }
+    if (body.status !== undefined) data.status = body.status as string;
     const updated = await prisma.socialPost.update({
       where: { id: post.id },
-      data: {
-        ...(body.caption !== undefined ? { caption: body.caption } : {}),
-        ...(body.hashtags !== undefined ? { hashtags: body.hashtags } : {}),
-        ...(body.platforms !== undefined ? { platforms: body.platforms } : {}),
-        ...(body.mediaAssetId !== undefined ? { mediaAssetId: body.mediaAssetId } : {}),
-        ...(body.scheduledAt !== undefined ? { scheduledAt: new Date(body.scheduledAt as string), status: 'SCHEDULED' } : {}),
-        ...(body.status !== undefined ? { status: body.status } : {}),
-      } as any,
+      data,
     });
     res.json(updated);
   });
@@ -720,14 +723,14 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     const campaign = await prisma.campaign.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
     if (!campaign) { res.status(404).json({ error: 'Campagna non trovata' }); return; }
     const body = req.body as Record<string, unknown>;
+    const data: Prisma.CampaignUpdateInput = {};
+    if (body.name !== undefined) data.name = body.name as string;
+    if (body.description !== undefined) data.description = body.description as string;
+    if (body.status !== undefined) data.status = body.status as string;
+    if (body.budgetCents !== undefined) data.budgetCents = body.budgetCents as number;
     const updated = await prisma.campaign.update({
       where: { id: campaign.id },
-      data: {
-        ...(body.name !== undefined ? { name: body.name } : {}),
-        ...(body.description !== undefined ? { description: body.description } : {}),
-        ...(body.status !== undefined ? { status: body.status } : {}),
-        ...(body.budgetCents !== undefined ? { budgetCents: body.budgetCents } : {}),
-      } as any,
+      data,
     });
     res.json(updated);
   });

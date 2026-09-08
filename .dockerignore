@@ -1,0 +1,49 @@
+# Dipendenze
+node_modules
+**/node_modules
+
+# Build output
+dist
+build
+*.app
+*.ipa
+DerivedData
+
+# Git
+.git
+.gitignore
+
+# App native (non servono al build Docker del backend/web)
+ios
+macos
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Log
+*.log
+npm-debug.log*
+
+# Environment (mai nel contesto di build)
+.env
+.env.*
+!.env.example
+
+# CI locale (non serve nel build di produzione)
+docker-compose.ci.yml
+docker/ci.Dockerfile
+scripts/ci.sh
+.any-budget
+
+# Test
+tests
+
+# Documentazione (non serve al runtime)
+*.md

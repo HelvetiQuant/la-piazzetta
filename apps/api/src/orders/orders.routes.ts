@@ -106,7 +106,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
     }
 
     const session = await prisma.tableSession.findFirst({
-      where: { id: body.sessionId, state: 'OPEN', table: { venueId: user.venueId } },
+      where: { id: body.sessionId, state: 'OPEN', venueId: user.venueId },
     });
     if (!session) {
       res.status(400).json({ error: 'Invalid or closed session' });
@@ -125,6 +125,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
       let total = 0;
       const created = await tx.order.create({
         data: {
+          venueId: user.venueId,
           sessionId: body.sessionId,
           clientOrderId: body.clientOrderId,
           status: 'SENT',
@@ -202,7 +203,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
     const now = new Date();
 
     const order = await prisma.order.findFirst({
-      where: { id, session: { table: { venueId: user.venueId } } },
+      where: { id, venueId: user.venueId },
     });
     if (!order) {
       res.status(404).json({ error: 'Order not found' });
@@ -250,7 +251,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
     const now = new Date();
 
     const item = await prisma.orderItem.findFirst({
-      where: { id, order: { session: { table: { venueId: user.venueId } } } },
+      where: { id, order: { venueId: user.venueId } },
     });
     if (!item) {
       res.status(404).json({ error: 'Order item not found' });
@@ -278,7 +279,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
 
     const orders = await prisma.order.findMany({
       where: {
-        session: { table: { venueId: user.venueId } },
+        venueId: user.venueId,
         status: { in: ['SENT', 'IN_PREPARATION', 'READY'] },
         ...(station ? { items: { some: { station } } } : {}),
       },

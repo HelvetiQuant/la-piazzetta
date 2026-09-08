@@ -232,17 +232,18 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
       return;
     }
     const session = await prisma.$transaction(async (tx: Tx) => {
-      const s = await tx.tableSession.create({ data: { tableId: id, guests } });
+      const s = await tx.tableSession.create({ data: { tableId: id, venueId: user.venueId, guests } });
       await tx.table.update({ where: { id }, data: { state: 'OCCUPIED' } });
       return s;
     });
     res.status(201).json(session);
   });
 
-  app.get('/api/v1/orders-tables/sessions/:id/orders', devAuth, async (req: Request, res: Response) => {
+  app.get('/api/v1/orders-tables/sessions/:id/orders', devAuth, requireRoles('OWNER', 'MANAGER', 'WAITER', 'CASHIER'), async (req: Request, res: Response) => {
     const id = req.params.id as string;
+    const user = (req as any).devUser as DevUser;
     const orders = await prisma.order.findMany({
-      where: { sessionId: id },
+      where: { sessionId: id, venueId: user.venueId },
       include: { items: { include: { product: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -253,7 +254,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
     const user = (req as any).devUser as DevUser;
     const status = (req.query.status as string | undefined) ?? undefined;
     const orders = await prisma.order.findMany({
-      where: { session: { table: { venueId: user.venueId } }, ...(status ? { status } : {}) },
+      where: { venueId: user.venueId, ...(status ? { status } : {}) },
       include: { items: { include: { product: true } }, session: { include: { table: true } } },
       orderBy: { createdAt: 'desc' },
     });

@@ -4,6 +4,8 @@
  * da innestare in produzione senza cambiare i chiamanti.
  */
 
+import type { Redis as RedisClient } from 'ioredis';
+
 export interface Cache<V> {
   get(key: string): Promise<V | undefined>;
   set(key: string, value: V, ttlMs?: number): Promise<void>;
@@ -56,11 +58,11 @@ export class InMemoryCache<V> implements Cache<V> {
  * l'EntitlementService ricade sul DB — il sistema non si blocca.
  */
 export class RedisCache<V> implements Cache<V> {
-  private readonly client: any;
+  private readonly client: RedisClient;
   private readonly defaultTtlMs: number;
   private readonly prefix: string;
 
-  constructor(client: any, defaultTtlMs = 5 * 60 * 1000, prefix = 'ent:') {
+  constructor(client: RedisClient, defaultTtlMs = 5 * 60 * 1000, prefix = 'ent:') {
     this.client = client;
     this.defaultTtlMs = defaultTtlMs;
     this.prefix = prefix;
@@ -68,8 +70,8 @@ export class RedisCache<V> implements Cache<V> {
 
   /** Crea un'istanza da REDIS_URL con caricamento lazy di ioredis. */
   static async fromUrl(redisUrl: string, defaultTtlMs = 5 * 60 * 1000, prefix = 'ent:'): Promise<RedisCache<any>> {
-    const Redis = (await import('ioredis')).default as any;
-    const client = new Redis(redisUrl, { maxRetriesPerRequest: 2, lazyConnect: false });
+    const { Redis: RedisCtor } = await import('ioredis');
+    const client = new RedisCtor(redisUrl, { maxRetriesPerRequest: 2, lazyConnect: false });
     // Listener 'error' obbligatorio: senza di esso un errore di connessione
     // EventEmitter fa terminare il processo Node (unhandled error).
     client.on('error', (err: unknown) => console.warn('[cache:redis] errore:', (err as Error)?.message ?? err));

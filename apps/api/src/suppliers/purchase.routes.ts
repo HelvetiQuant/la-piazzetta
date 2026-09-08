@@ -72,7 +72,7 @@ export function registerPurchaseRoutes(app: Express, prisma: PrismaClient, deps:
     const status = req.query.status as string | undefined;
     const pos = await prisma.purchaseOrder.findMany({
       where: { venueId: user.venueId, ...(status ? { status } : {}) },
-      include: { supplier: { select: { name: true } }, items: { include: { product: { select: { name: true, unit: true } } } } } as any,
+      include: { supplier: { select: { name: true } }, items: true },
       orderBy: { createdAt: 'desc' },
     });
     res.json(pos);
@@ -157,7 +157,7 @@ export function registerPurchaseRoutes(app: Express, prisma: PrismaClient, deps:
           status: outcome.status,
           receivedAt: outcome.status === 'RECEIVED' ? new Date() : null,
         },
-        include: { items: { include: { product: { select: { name: true, unit: true } } } }, supplier: { select: { name: true } } } as any,
+        include: { items: true, supplier: { select: { name: true } } },
       });
     });
 

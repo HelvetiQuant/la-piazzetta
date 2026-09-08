@@ -143,8 +143,10 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
       return;
     }
     const data = parsed.data;
+    const existing = await prisma.menuAddOn.findFirst({ where: { id: req.params.id, venueId } });
+    if (!existing) { res.status(404).json({ error: 'Add-on non trovato' }); return; }
     const addon = await prisma.menuAddOn.update({
-      where: { id: req.params.id, venueId },
+      where: { id: existing.id },
       data: {
         ...(data.productId && { productId: data.productId }),
         ...(data.title && { title: data.title }),
@@ -168,7 +170,9 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
   // DELETE /api/v1/menu-addons/:id — elimina add-on
   app.delete('/api/v1/menu-addons/:id', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
     const venueId = (req as any).devUser.venueId;
-    await prisma.menuAddOn.delete({ where: { id: req.params.id, venueId } });
+    const existing = await prisma.menuAddOn.findFirst({ where: { id: req.params.id, venueId } });
+    if (!existing) { res.status(404).json({ error: 'Add-on non trovato' }); return; }
+    await prisma.menuAddOn.delete({ where: { id: existing.id } });
     res.json({ ok: true });
   });
 
@@ -176,8 +180,10 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
   app.post('/api/v1/menu-addons/:id/track', deps.devAuth, async (req: Request, res: Response) => {
     const venueId = (req as any).devUser.venueId;
     const { accepted } = req.body; // true = cliente ha accettato, false = solo proposto
+    const existing = await prisma.menuAddOn.findFirst({ where: { id: req.params.id, venueId } });
+    if (!existing) { res.status(404).json({ error: 'Add-on non trovato' }); return; }
     const addon = await prisma.menuAddOn.update({
-      where: { id: req.params.id, venueId },
+      where: { id: existing.id },
       data: {
         timesProposed: { increment: 1 },
         ...(accepted && { timesAccepted: { increment: 1 } }),

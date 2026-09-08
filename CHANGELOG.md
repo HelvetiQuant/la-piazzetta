@@ -2,6 +2,86 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.13.1] — 2026-09-08
+
+Lotto 0 — Hardening: chiusura della falla di sicurezza cross-tenant,
+denormalizzazione venueId, rimozione cast `as any`, ratchet sui tipi,
+igiene del repository. Nessuna funzionalità nuova.
+
+### Fixed — Sicurezza cross-tenant
+- `GET /api/v1/orders-tables/sessions/:id/orders` filtrava solo per
+  `sessionId` senza controllo `venueId` né `requireRoles`: un utente
+  autenticato di qualsiasi venue poteva leggere comande e importi di
+  un altro locale conoscendo un sessionId. Corretto con filtro
+  `venueId` diretto e `requireRoles('OWNER','MANAGER','WAITER','CASHIER')`.
+- `PATCH /api/v1/staff/:userId/rate` aggiornava un `User` per id senza
+  verificare l'appartenenza al venue. Corretto con pattern
+  guard-then-update (`findFirst` + `update`).
+- `staff-notes` (4 rotte): `findUnique`/`update`/`delete` con
+  `where: { id, venueId }` non erano validi come filtro di sicurezza
+  perché `StaffNote` non ha `@@unique([id, venueId])`. Corrette con
+  `findFirst` + `update`/`delete` per id.
+- `menu-addons` (3 rotte): stesso problema di `staff-notes`. Corrette
+  con `findFirst` + `update`/`delete` per id.
+- Audit completo di tutte le 140 rotte: 9 vulnerabili, tutte corrette.
+
+### Changed — Denormalizzazione venueId
+- `TableSession` e `Order` ora hanno `venueId` diretto (era
+  `session → table → venueId`, 3 hop di join per ogni query).
+- Migration `20260908_venue_denorm`: aggiunge colonna, backfill dai
+  dati esistenti, FK verso `Venue`, indici `@@index([venueId, createdAt])`.
+- 8 query aggiornate per usare `venueId` diretto invece del join a
+  3 livelli (`index.ts`, `orders.routes.ts`, `stats/stats.routes.ts`,
+  `stats/dashboard.routes.ts`).
+- `schema.prisma` e `prisma/seed/schema_supabase.sql` allineati.
+
+### Fixed — Rimozione cast `as any` (10 cast)
+- `suppliers/purchase.routes.ts` (2): rimosso `product` dall'include
+  (relazione inesistente) e cast `as any`.
+- `security/logger.ts` (1): error handler tipato con
+  `ErrorRequestHandler` di Express invece di `as any`.
+- `entitlement/cache.ts` (1): import dinamico ioredis tipato con
+  `import type { Redis }` invece di `as any`.
+- `security/rate-limit.ts` (1): stesso fix di `cache.ts`; il cast
+  nascondeva un bug latente (`pipeline.exec()` nullable), corretto
+  con guard esplicito.
+- `accounting/accounting.routes.ts` (1): payload update tipato con
+  `Prisma.ChartOfAccountUpdateInput`.
+- `marketing/marketing.routes.ts` (2): payload update tipati con
+  `Prisma.SocialPostUpdateInput` e `Prisma.CampaignUpdateInput`.
+- `marketing/marketing.service.ts` (1): definito `MarketingVariant`
+  con `hashtags?: string[]` invece di `(variant as any).hashtags`.
+- `realtime/kds-ws.ts` (1): definito `NotificationPayload` esplicito
+  invece di `...(payload as any)`.
+
+### Added — Ratchet sugli `as any`
+- Step `ci_any_ratchet` in `scripts/ci.sh`: conta le occorrenze di
+  `as any` in `apps/api/src` e fallisce se superano il budget in
+  `.any-budget` (57). Il budget si aggiorna solo verso il basso.
+- File `.any-budget` in radice con valore iniziale 57.
+
+### Changed — Igiene repository
+- `.gitignore`: stringato a `.env*` con eccezioni per `.env.example`
+  e `.env.*.example`.
+- `.env.ci` rimosso (ridondante con `docker-compose.ci.yml`).
+- `LICENSE`: aggiunta licenza proprietaria (Copyright Riccardo Gaetti,
+  tutti i diritti riservati). Il software è vendibile a moduli separati.
+- `.dockerignore`: aggiunto per accelerare il contesto di build.
+- `apps/employee-mobile/` spostato in `archive/employee-mobile/` con
+  README che spiega la scelta delle web app per i dipendenti.
+
+### Verified
+- Pipeline CI: 9/10 step passati (working tree pulito richiede commit).
+- Test logica pura: 33/33, 14/14, 12/12 verdi.
+- Suite AI: 36/36. Suite Auth/Queue/Entitlement: 38/38.
+- Typecheck: 0 errori. Prisma validate: OK.
+- `as any` count: 57 (erano 67, ridotti di 10).
+
+### Known gaps
+- 57 cast `as any` residui (non introdotti in questo lotto): per lo
+  più `(req as any).devUser`, `await resp.json() as any`, campi JSON
+  `meta`/`perPlatform`. Da ridurre nei lotti successivi.
+
 ## [0.13.0] — 2026-09-01
 
 App macOS nativa per l'owner con design Liquid Glass (WWDC 2026), assistente AI

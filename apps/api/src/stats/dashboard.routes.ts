@@ -60,7 +60,7 @@ export function registerDashboardRoutes(app: Express, prisma: PrismaClient, deps
     // Tutti gli ordini nel range
     const orders = await prisma.order.findMany({
       where: {
-        session: { table: { venueId: user.venueId } },
+        venueId: user.venueId,
         placedAt: { gte: from, lte: to },
       },
       include: {
@@ -148,7 +148,7 @@ export function registerDashboardRoutes(app: Express, prisma: PrismaClient, deps
     const prevFrom = new Date(from.getTime() - prevRangeMs);
     const prevOrders = await prisma.order.findMany({
       where: {
-        session: { table: { venueId: user.venueId } },
+        venueId: user.venueId,
         placedAt: { gte: prevFrom, lt: from },
       },
       select: { totalCents: true, session: { select: { guests: true } } },

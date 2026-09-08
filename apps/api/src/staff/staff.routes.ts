@@ -46,8 +46,13 @@ export function registerStaffRoutes(app: Express, prisma: PrismaClient, deps: Ro
   app.patch('/api/v1/staff/:userId/rate', devAuth, requireRoles(...STAFF_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const { hourlyRateCents } = rateSchema.parse(req.body);
+    const target = await prisma.user.findFirst({
+      where: { id: req.params.userId, venueId: user.venueId },
+      select: { id: true },
+    });
+    if (!target) { res.status(404).json({ error: 'Non trovato' }); return; }
     const updated = await prisma.user.update({
-      where: { id: req.params.userId },
+      where: { id: target.id },
       data: { hourlyRateCents },
       select: { id: true, name: true, hourlyRateCents: true },
     });

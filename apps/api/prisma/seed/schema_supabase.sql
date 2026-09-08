@@ -111,15 +111,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Table_venueId_code_key" ON "Table"("venueId",
 
 CREATE TABLE IF NOT EXISTS "TableSession" (
   "id"        text PRIMARY KEY,
+  "venueId"   text NOT NULL,
   "tableId"   text NOT NULL,
   "guests"    integer NOT NULL DEFAULT 1,
   "state"     text NOT NULL DEFAULT 'OPEN',
   "createdAt" timestamp(3) NOT NULL DEFAULT now(),
   "closedAt"  timestamp(3)
 );
+CREATE INDEX IF NOT EXISTS "TableSession_venueId_createdAt_idx" ON "TableSession"("venueId","createdAt");
 
 CREATE TABLE IF NOT EXISTS "Order" (
   "id"            text PRIMARY KEY,
+  "venueId"       text NOT NULL,
   "sessionId"     text NOT NULL,
   "clientOrderId" text,
   "status"        text NOT NULL DEFAULT 'DRAFT',
@@ -132,6 +135,7 @@ CREATE TABLE IF NOT EXISTS "Order" (
   "updatedAt"     timestamp(3) NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "Order_clientOrderId_key" ON "Order"("clientOrderId");
+CREATE INDEX IF NOT EXISTS "Order_venueId_createdAt_idx" ON "Order"("venueId","createdAt");
 CREATE INDEX IF NOT EXISTS "Order_sessionId_idx" ON "Order"("sessionId");
 CREATE INDEX IF NOT EXISTS "Order_status_idx"    ON "Order"("status");
 CREATE INDEX IF NOT EXISTS "Order_placedAt_idx"  ON "Order"("placedAt");

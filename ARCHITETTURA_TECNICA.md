@@ -1,6 +1,6 @@
 # La Piazzetta — Architettura tecnica (dettaglio)
 
-Documento di riferimento tecnico completo del sistema al **2026-09-01 (v0.13.0)**.
+Documento di riferimento tecnico completo del sistema al **2026-09-08 (v0.13.1)**.
 Copre stack, struttura, backend, modello dati, flussi, sicurezza, API, frontend,
 deployment e debito tecnico. Fonte di verità del codice: `apps/` + `macos/`.
 
@@ -675,3 +675,28 @@ Add-on menu creati dall'owner. Campi: `productId` (FK), `title`,
 - `GET /kds-bar` — web app KDS bar
 - `GET /kds-kitchen` — web app KDS cucina
 - SPA fallback: qualsiasi route non di API serve `index.html`
+
+---
+
+## 17. Hardening v0.13.1 (Lotto 0)
+
+### 17.1 Sicurezza cross-tenant
+Audit completo di tutte le 140 rotte: 9 vulnerabili, tutte corrette
+con il pattern guard-then-update (`findFirst` con `venueId` + `update`
+per id). La rotta `GET /sessions/:id/orders` ora filtra per `venueId`
+diretto e richiede `requireRoles`.
+
+### 17.2 Denormalizzazione venueId
+`TableSession` e `Order` ora hanno `venueId` diretto invece del join
+a 3 livelli `session → table → venueId`. Migration `20260908_venue_denorm`
+additiva e idempotente, con backfill dai dati esistenti e indici
+`@@index([venueId, createdAt])` su entrambi i modelli.
+
+### 17.3 Ratchet sugli `as any`
+Step CI `ci_any_ratchet` conta le occorrenze di `as any` in
+`apps/api/src` e fallisce se superano il budget in `.any-budget` (57).
+Il budget si aggiorna solo verso il basso.
+
+### 17.4 Licenza
+Software proprietario di Riccardo Gaetti, tutti i diritti riservati.
+Vendibile a moduli separati previa autorizzazione.

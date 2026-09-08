@@ -115,6 +115,28 @@ ci_clean_tree() {
   fi
 }
 
+# Ratchet sugli `as any`: il numero non può crescere.
+# Il budget è in .any-budget in radice e si aggiorna solo verso il basso.
+ci_any_ratchet() {
+  local budget_file=".any-budget"
+  if [[ ! -f "$budget_file" ]]; then
+    echo "File $budget_file mancante: crealo con il conteggio attuale di 'as any' in apps/api/src."
+    return 1
+  fi
+  local budget
+  budget="$(cat "$budget_file" | tr -d '[:space:]')"
+  local actual
+  actual="$(grep -r 'as any' apps/api/src --include='*.ts' | wc -l | tr -d '[:space:]')"
+  echo "Budget: $budget · Attuale: $actual"
+  if (( actual > budget )); then
+    echo "Troppi 'as any' ($actual > $budget). Riducili o, se è proprio necessario alzarlo, discuti il design."
+    return 1
+  fi
+  if (( actual < budget )); then
+    echo "Ottimo: hai ridotto gli 'as any' ($actual < $budget). Aggiorna .any-budget a $actual."
+  fi
+}
+
 # ─── orchestrazione ────────────────────────────────────────────────────────
 TARGET="${1:-all}"
 
@@ -139,6 +161,7 @@ case "$TARGET" in
     run "typecheck (api)"       ci_api_typecheck
     run "build (api)"           ci_api_build
     run "test (api)"            ci_api_test
+    run "ratchet as any"        ci_any_ratchet
     ;;
 
   web)
@@ -154,6 +177,7 @@ case "$TARGET" in
     run "typecheck (api)"       ci_api_typecheck
     run "build (api)"           ci_api_build
     run "test (api)"            ci_api_test
+    run "ratchet as any"        ci_any_ratchet
     run "typecheck + build (web)" ci_web
     if [[ -n "${DATABASE_URL:-}" ]]; then
       run "prisma migrate deploy" ci_migrate

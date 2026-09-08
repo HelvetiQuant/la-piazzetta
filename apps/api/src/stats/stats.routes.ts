@@ -36,7 +36,7 @@ export function registerStatsRoutes(app: Express, prisma: PrismaClient, deps: Ro
 
     const orders = await prisma.order.findMany({
       where: {
-        session: { table: { venueId: user.venueId } },
+        venueId: user.venueId,
         placedAt: { gte: from, lte: to },
         status: { in: ['READY', 'SERVED', 'PAID'] },
       },

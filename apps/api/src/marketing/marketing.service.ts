@@ -13,6 +13,14 @@
 import type { PrismaClient } from '@prisma/client';
 import { getAiService } from '../ai/ai.service.js';
 
+/** Variante di copy marketing generata dall'AI; `hashtags` è opzionale
+ *  perché non tutti i provider lo restituiscono nel payload. */
+interface MarketingVariant {
+  channel: string;
+  text: string;
+  hashtags?: string[];
+}
+
 export interface MarketingConfig {
   canvaApiKey?: string;
   gammaApiKey?: string;
@@ -374,11 +382,11 @@ export async function generateAiPost(opts: {
       tone: opts.tone,
       channels: opts.channels,
     });
-    const variant = r.data?.variants?.[0];
+    const variant = r.data?.variants?.[0] as MarketingVariant | undefined;
     if (!variant) return null;
     return {
       caption: `${variant.text}\n\n${variant.text}`,
-      hashtags: (variant as any).hashtags ?? ['#lapiazzetta', '#bar', '#tavolacalda'],
+      hashtags: variant.hashtags ?? ['#lapiazzetta', '#bar', '#tavolacalda'],
     };
   } catch {
     return null;

@@ -9,6 +9,7 @@
  */
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import type { Redis as RedisClient } from 'ioredis';
 
 export interface RateLimitOptions {
   /** Finestra temporale in millisecondi. */
@@ -62,14 +63,14 @@ export class InMemoryRateLimitStore implements RateLimitStore {
 // ---- Driver Redis (lazy, opzionale) ----
 
 export class RedisRateLimitStore implements RateLimitStore {
-  private readonly client: any;
-  constructor(client: any) {
+  private readonly client: RedisClient;
+  constructor(client: RedisClient) {
     this.client = client;
   }
 
   static async fromUrl(redisUrl: string): Promise<RedisRateLimitStore> {
-    const Redis = (await import('ioredis')).default as any;
-    const client = new Redis(redisUrl, { maxRetriesPerRequest: 2 });
+    const { Redis: RedisCtor } = await import('ioredis');
+    const client = new RedisCtor(redisUrl, { maxRetriesPerRequest: 2 });
     // Listener 'error' obbligatorio: senza di esso un errore di connessione
     // EventEmitter fa terminare il processo Node (unhandled error).
     client.on('error', (err: unknown) => console.warn('[rate-limit:redis] errore:', (err as Error)?.message ?? err));
@@ -87,6 +88,7 @@ export class RedisRateLimitStore implements RateLimitStore {
     // ioredis non supporta PEXPIRE NX direttamente in pipeline, quindi usiamo
     // un pattern: dopo INCR, se count === 1 impostiamo il TTL.
     const results = await pipeline.exec();
+    if (!results) throw new Error('Redis pipeline exec fallito');
     const count = Number(results[0][1]);
     if (count === 1) {
       await this.client.pexpire(redisKey, windowMs);

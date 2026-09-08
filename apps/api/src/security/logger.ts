@@ -14,7 +14,7 @@
  * Nessuna dipendenza esterna: usa `console` con formattazione JSON.
  */
 
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import type { Request, Response, NextFunction, RequestHandler, ErrorRequestHandler } from 'express';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -129,20 +129,21 @@ export function requestLogger(log: Logger = getLogger()): RequestHandler {
  * AuthError, HttpError con status < 500) sono degradati a `warn` per non
  * rumoreare l'osservabilità con errori client (400/401/403/404/409).
  */
-export function errorLogger(log: Logger = getLogger()): RequestHandler {
-  return ((err: any, _req: Request, _res: Response, next: NextFunction) => {
+export function errorLogger(log: Logger = getLogger()): ErrorRequestHandler {
+  return (err: unknown, _req: Request, _res: Response, next: NextFunction) => {
+    const e = err as { name?: string; code?: string; status?: number; message?: string; stack?: string };
     const isClientError =
-      err?.name === 'ZodError' ||
-      err?.name === 'AuthError' ||
-      err?.name === 'HttpError' ||
-      (err?.code && typeof err.code === 'string' && err.code.startsWith('P')) || // Prisma
-      (typeof err?.status === 'number' && err.status < 500);
+      e?.name === 'ZodError' ||
+      e?.name === 'AuthError' ||
+      e?.name === 'HttpError' ||
+      (e?.code && typeof e.code === 'string' && e.code.startsWith('P')) || // Prisma
+      (typeof e?.status === 'number' && e.status < 500);
     const level = isClientError ? 'warn' : 'error';
     log[level]('request-error', {
-      error: err?.message ?? String(err),
-      name: err?.name,
-      ...(isClientError ? {} : { stack: err?.stack }),
+      error: e?.message ?? String(err),
+      name: e?.name,
+      ...(isClientError ? {} : { stack: e?.stack }),
     });
     next(err);
-  }) as any;
+  };
 }
