@@ -124,6 +124,43 @@ export const api = {
     }),
 };
 
+// ---- Staff Notes (disposizioni owner → dipendenti con ack) ----
+export interface StaffNote {
+  id: string;
+  senderId: string;
+  targetScope: 'ALL' | 'DEPARTMENT' | 'INDIVIDUAL';
+  targetValue: string;
+  type: 'NOTE' | 'TASK' | 'WARNING' | 'RULE' | 'SUGGESTION';
+  priority: number;
+  title: string;
+  body: string;
+  dueDate: string | null;
+  requiresAck: boolean;
+  acknowledgedBy: string[];
+  responses: Array<{ userId: string; text: string; at: string }>;
+  status: string;
+  createdAt: string;
+}
+
+export const notesApi = {
+  list: (status?: string) =>
+    req<StaffNote[]>(`/staff-notes${status ? `?status=${status}` : ''}`),
+  create: (body: {
+    targetScope: 'ALL' | 'DEPARTMENT' | 'INDIVIDUAL';
+    targetValue: string;
+    type?: string;
+    priority?: number;
+    title: string;
+    body: string;
+    dueDate?: string;
+    requiresAck?: boolean;
+  }) => req<StaffNote>('/staff-notes', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id: string, body: Record<string, unknown>) =>
+    req<StaffNote>(`/staff-notes/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  remove: (id: string) =>
+    req<{ ok: boolean }>(`/staff-notes/${id}`, { method: 'DELETE' }),
+};
+
 // ---- Magazzino ----
 export interface StockRow {
   productId: string;

@@ -14,10 +14,11 @@ import Payroll from './components/Payroll';
 import Accounting from './components/Accounting';
 import DailyClose from './components/DailyClose';
 import MenuManagement from './components/MenuManagement';
+import OwnerNotes from './components/OwnerNotes';
 import Login from './pages/Login';
 import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 
-type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting' | 'dailyclose';
+type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting' | 'dailyclose' | 'notes';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -30,7 +31,8 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'purchases', label: 'Acquisti', icon: '🧾' },
   { id: 'staff', label: 'Presenze', icon: '🕐' },
   { id: 'schedule', label: 'Orari', icon: '📅' },
-  { id: 'chat', label: 'Chat', icon: '�' },
+  { id: 'chat', label: 'Chat', icon: '💬' },
+  { id: 'notes', label: 'Disposizioni', icon: '📌' },
   { id: 'payroll', label: 'Stipendi', icon: '💰' },
   { id: 'credit', label: 'Crediti', icon: '💳' },
   { id: 'accounting', label: 'Contabilità', icon: '📒' },
@@ -118,6 +120,7 @@ export default function App() {
         {tab === 'staff' && <StaffShifts />}
         {tab === 'schedule' && <StaffSchedule />}
         {tab === 'chat' && <StaffChat />}
+        {tab === 'notes' && <OwnerNotes />}
         {tab === 'payroll' && <Payroll />}
         {tab === 'accounting' && <Accounting />}
         {tab === 'credit' && <CreditManagement />}
