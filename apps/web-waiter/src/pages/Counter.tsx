@@ -9,6 +9,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { api, cashierApi, fmtEuro, type Product, type PaymentMethod } from '../api';
+import CreditDialog from './CreditDialog';
 
 interface CartLine {
   product: Product;
@@ -22,6 +23,7 @@ export default function Counter() {
   const [paying, setPaying] = useState(false);
   const [lastResult, setLastResult] = useState<{ orderId: string; totalCents: number; changeCents: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCredit, setShowCredit] = useState(false);
 
   useEffect(() => {
     api.products().then(setProducts).catch((e) => setError(String(e.message ?? e)));
@@ -155,6 +157,13 @@ export default function Counter() {
                 💳 Carta
               </button>
               <button
+                onClick={() => setShowCredit(true)}
+                disabled={paying}
+                style={{ flex: 1, padding: '14px', fontSize: 16, fontWeight: 700, background: '#6a1b9a', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}
+              >
+                📋 Credito
+              </button>
+              <button
                 onClick={() => setCart([])}
                 style={{ padding: '14px 16px', fontSize: 14, background: '#f5f5f5', border: 'none', borderRadius: 12, cursor: 'pointer' }}
               >
@@ -163,6 +172,18 @@ export default function Counter() {
             </div>
           </div>
         </div>
+      )}
+
+      {showCredit && (
+        <CreditDialog
+          defaultAmountCents={totalCents}
+          onClose={() => setShowCredit(false)}
+          onCharged={() => {
+            setShowCredit(false);
+            setCart([]);
+            setLastResult({ orderId: 'credito', totalCents, changeCents: 0 });
+          }}
+        />
       )}
     </div>
   );

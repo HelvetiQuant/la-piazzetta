@@ -292,3 +292,25 @@ export const cashierApi = {
   dailyReport: (date?: string) =>
     apiFetch<DailyReport>(`/cashier/daily-report${date ? `?date=${date}` : ''}`),
 };
+
+// ---- Credito clienti (staff sala/banco) ----
+export interface CreditCustomer {
+  id: string;
+  name: string;
+  surname?: string | null;
+  phone?: string | null;
+  balanceCents: number;
+  limitCents: number;
+}
+
+export const creditApi = {
+  /** Ricerca cliente per telefono (per verificare se esiste già). */
+  lookup: (phone: string) =>
+    apiFetch<{ customer: CreditCustomer | null }>(`/credit/lookup?phone=${encodeURIComponent(phone)}`),
+  /** Registra consumazione a credito: crea o trova cliente, addebita. */
+  staffCharge: (input: { name: string; surname?: string; phone: string; amountCents: number; note?: string; orderId?: string }) =>
+    apiFetch<{ customer: CreditCustomer; transaction: { id: string; type: string; amountCents: number; balanceAfterCents: number } }>(
+      '/credit/staff-charge',
+      { method: 'POST', body: JSON.stringify(input) },
+    ),
+};

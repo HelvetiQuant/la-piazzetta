@@ -374,6 +374,7 @@ model Customer {
   venueId       String
   venue         Venue    @relation(fields: [venueId], references: [id])
   name          String
+  surname       String?
   phone         String?
   email         String?
   notes         String?

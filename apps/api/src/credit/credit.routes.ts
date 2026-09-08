@@ -8,6 +8,8 @@ type Tx = Prisma.TransactionClient;
 
 // Ruoli abilitati alla gestione crediti in cassa.
 const CASSA_ROLES = ['OWNER', 'MANAGER', 'CASHIER'];
+// Ruoli che possono inserire consumazioni a credito (sala e banco).
+const STAFF_CREDIT_ROLES = ['OWNER', 'MANAGER', 'CASHIER', 'BARMAN', 'WAITER'];
 
 export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps): void {
   const { devAuth, requireRoles } = deps;
@@ -15,6 +17,7 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
   // ---- Anagrafica: inserimento manuale del cliente creditore in cassa ----
   const createCustomerSchema = z.object({
     name: z.string().min(1),
+    surname: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email().optional(),
     notes: z.string().optional(),
@@ -31,6 +34,7 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
         data: {
           venueId: user.venueId,
           name: body.name,
+          surname: body.surname,
           phone: body.phone,
           email: body.email,
           notes: body.notes,
@@ -151,6 +155,7 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
   // ---- Aggiorna anagrafica / limite / disattiva ----
   const updateSchema = z.object({
     name: z.string().min(1).optional(),
+    surname: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email().optional(),
     notes: z.string().optional(),
@@ -169,6 +174,92 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
     }
     const updated = await prisma.customer.update({ where: { id }, data: body });
     res.json(updated);
+  });
+
+  // ---- Endpoint staff (BARMAN/WAITER): registra consumazione a credito ----
+  // Crea o trova il cliente per telefono, addebita l'importo in una sola chiamata.
+  // Il fido viene controllato: se il cliente ha un limite e lo supera, rifiuta.
+  const staffChargeSchema = z.object({
+    name: z.string().min(1, 'Nome obbligatorio'),
+    surname: z.string().optional(),
+    phone: z.string().min(1, 'Telefono obbligatorio per il credito'),
+    amountCents: z.number().int().positive('Importo deve essere positivo'),
+    note: z.string().optional(),
+    orderId: z.string().optional(),
+  });
+
+  app.post('/api/v1/credit/staff-charge', devAuth, requireRoles(...STAFF_CREDIT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const body = staffChargeSchema.parse(req.body);
+
+    try {
+      const result = await prisma.$transaction(async (tx: Tx) => {
+        // Cerca cliente per telefono (se esiste), altrimenti lo crea
+        let customer = await tx.customer.findFirst({
+          where: { venueId: user.venueId, phone: body.phone },
+        });
+        if (!customer) {
+          customer = await tx.customer.create({
+            data: {
+              venueId: user.venueId,
+              name: body.name,
+              surname: body.surname,
+              phone: body.phone,
+              notes: `Cliente registrato da ${user.userId} (${new Date().toISOString().slice(0, 10)})`,
+            },
+          });
+        }
+
+        // Applica l'addebito con controllo fido
+        const applied = applyTransaction({
+          currentBalanceCents: customer.balanceCents,
+          limitCents: customer.limitCents,
+          type: 'CHARGE',
+          amountCents: body.amountCents,
+        });
+        if (!applied.ok) {
+          throw new HttpError(409, applied.error ?? 'Operazione non consentita');
+        }
+
+        const transaction = await tx.creditTransaction.create({
+          data: {
+            customerId: customer.id,
+            type: 'CHARGE',
+            amountCents: body.amountCents,
+            balanceAfterCents: applied.newBalanceCents,
+            orderId: body.orderId,
+            note: body.note ?? `Consumazione a credito registrata da ${user.userId}`,
+            createdBy: user.userId,
+          },
+        });
+        const updated = await tx.customer.update({
+          where: { id: customer.id },
+          data: { balanceCents: applied.newBalanceCents },
+        });
+        return { customer: updated, transaction };
+      });
+      res.status(201).json(result);
+    } catch (e) {
+      if (e instanceof HttpError) {
+        res.status(e.status).json({ error: e.message });
+        return;
+      }
+      throw e;
+    }
+  });
+
+  // ---- Ricerca clienti per telefono (per staff sala/banco) ----
+  app.get('/api/v1/credit/lookup', devAuth, requireRoles(...STAFF_CREDIT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const phone = (req.query.phone as string | undefined)?.trim();
+    if (!phone) {
+      res.status(400).json({ error: 'Parametro phone obbligatorio' });
+      return;
+    }
+    const customer = await prisma.customer.findFirst({
+      where: { venueId: user.venueId, phone },
+    });
+    res.json({ customer });
   });
 }
 

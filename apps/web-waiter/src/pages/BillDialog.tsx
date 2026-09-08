@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { cashierApi, fmtEuro, type BillResponse, type PaymentMethod } from '../api';
 import { colors } from '@la-piazzetta/ui';
+import CreditDialog from './CreditDialog';
 
 export default function BillDialog({
   sessionId,
@@ -20,6 +21,7 @@ export default function BillDialog({
   const [paying, setPaying] = useState(false);
   const [splitParts, setSplitParts] = useState(1);
   const [tenderedCents, setTenderedCents] = useState<number | ''>('');
+  const [showCreditDialog, setShowCreditDialog] = useState(false);
 
   useEffect(() => {
     cashierApi.bill(sessionId).then(setBill).catch((e) => setError(e.message ?? String(e)));
@@ -145,15 +147,25 @@ export default function BillDialog({
               💳 Carta
             </button>
             <button
-              onClick={() => pay('CREDIT', perPerson)}
+              onClick={() => setShowCreditDialog(true)}
               disabled={paying}
-              style={{ flex: 1, padding: '14px', fontSize: 16, fontWeight: 700, background: '#666', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}
+              style={{ flex: 1, padding: '14px', fontSize: 16, fontWeight: 700, background: '#6a1b9a', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer' }}
             >
               📋 Credito
             </button>
           </div>
         </div>
       </div>
+      {showCreditDialog && (
+        <CreditDialog
+          defaultAmountCents={perPerson}
+          onClose={() => setShowCreditDialog(false)}
+          onCharged={() => {
+            setShowCreditDialog(false);
+            cashierApi.closeSession(sessionId).then(() => onPaid()).catch(() => onPaid());
+          }}
+        />
+      )}
     </Overlay>
   );
 }

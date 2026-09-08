@@ -228,6 +228,7 @@ CREATE TABLE IF NOT EXISTS "Customer" (
   "id"           text PRIMARY KEY,
   "venueId"      text NOT NULL,
   "name"         text NOT NULL,
+  "surname"      text,
   "phone"        text,
   "email"        text,
   "notes"        text,

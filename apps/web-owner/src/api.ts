@@ -72,6 +72,7 @@ export interface PrepStats {
 export interface Customer {
   id: string;
   name: string;
+  surname?: string | null;
   phone?: string | null;
   email?: string | null;
   notes?: string | null;
