@@ -7,7 +7,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 import UniformTypeIdentifiers
 
 private enum MarketingTab: String, CaseIterable, Identifiable {
@@ -69,6 +71,9 @@ private struct CreatePostTab: View {
     @State private var isBusy = false
     @State private var statusMessage: String?
     @State private var errorMessage: String?
+    #if os(iOS)
+    @State private var showFilePicker = false
+    #endif
 
     private let tones = [("amichevole", "Amichevole"), ("elegante", "Elegante"), ("divertente", "Divertente"), ("informativo", "Informativo")]
     private let allChannels = [("instagram", "Instagram"), ("facebook", "Facebook"), ("tiktok", "TikTok")]
@@ -170,6 +175,14 @@ private struct CreatePostTab: View {
             }
             .padding()
         }
+        #if os(iOS)
+        .sheet(isPresented: $showFilePicker) {
+            FilePickerSheet(onPick: { url in
+                handlePickedFile(url)
+                showFilePicker = false
+            })
+        }
+        #endif
     }
 
     private func generate() async {
@@ -201,6 +214,7 @@ private struct CreatePostTab: View {
     }
 
     private func uploadMedia() {
+        #if os(macOS)
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.image, .movie]
         panel.allowsMultipleSelection = false
@@ -215,7 +229,25 @@ private struct CreatePostTab: View {
                 statusMessage = "Media caricato."
             } catch { errorMessage = error.localizedDescription }
         }
+        #else
+        showFilePicker = true
+        #endif
     }
+
+    #if os(iOS)
+    func handlePickedFile(_ url: URL) {
+        Task {
+            isBusy = true; defer { isBusy = false }
+            do {
+                let data = try Data(contentsOf: url)
+                let mime = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream"
+                let asset = try await api.uploadMedia(base64: data.base64EncodedString(), mimeType: mime, altText: url.lastPathComponent)
+                media = asset
+                statusMessage = "Media caricato."
+            } catch { errorMessage = error.localizedDescription }
+        }
+    }
+    #endif
 
     private func publish() async {
         isBusy = true; defer { isBusy = false }
@@ -728,3 +760,33 @@ private struct NewCampaignSheet: View {
 #Preview {
     NavigationStack { MarketingView() }.environmentObject(APIClient.shared)
 }
+
+// MARK: - File Picker (iOS)
+
+#if os(iOS)
+import UIKit
+
+struct FilePickerSheet: UIViewControllerRepresentable {
+    let onPick: (URL) -> Void
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.image, .movie])
+        picker.allowsMultipleSelection = false
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
+
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onPick: (URL) -> Void
+        init(onPick: @escaping (URL) -> Void) { self.onPick = onPick }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            if let url = urls.first { onPick(url) }
+        }
+    }
+}
+#endif

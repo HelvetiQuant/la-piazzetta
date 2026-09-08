@@ -1,13 +1,15 @@
 //
 //  LoginView.swift
-//  PiazzettaOwner
+//  PiazzettaShared
+//
+//  Schermata di login. Credenziali demo rimosse (inserimento manuale).
+//  iOS: keyboardType(.emailAddress), textInputAutocapitalization(.never).
 //
 
 import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject private var api: APIClient
-
     @State private var venueId = ""
     @State private var email = ""
     @State private var password = ""
@@ -15,62 +17,53 @@ struct LoginView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        ZStack {
-            Brand.background.ignoresSafeArea()
+        VStack(spacing: 24) {
+            Image(systemName: "fork.knife.circle.fill")
+                .font(.system(size: 64))
+                .foregroundStyle(Brand.accent)
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    VStack(spacing: 8) {
-                        Image(systemName: "storefront.fill")
-                            .font(.system(size: 48))
-                            .foregroundStyle(Brand.accent)
-                        Text("La Piazzetta")
-                            .font(.largeTitle.bold())
-                        Text("Dashboard proprietario")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.top, 60)
+            Text("La Piazzetta — Owner")
+                .font(.largeTitle.bold())
 
-                    VStack(spacing: 14) {
-                        TextField("ID locale (venueId)", text: $venueId)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                        TextField("Email", text: $email)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .keyboardType(.emailAddress)
-                        SecureField("Password", text: $password)
-                    }
+            VStack(spacing: 14) {
+                TextField("Venue ID", text: $venueId)
                     .textFieldStyle(.roundedBorder)
-                    .padding(20)
-                    .glassCard(cornerRadius: 24)
-
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    Button {
-                        Task { await login() }
-                    } label: {
-                        HStack {
-                            if isLoading { ProgressView().tint(.white) }
-                            Text("Accedi")
-                                .font(.headline)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                    }
-                    .adaptiveGlassProminentButton()
-                    .tint(Brand.accent)
-                    .disabled(isLoading || venueId.isEmpty || email.isEmpty || password.isEmpty)
-                }
-                .padding(.horizontal, 24)
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                TextField("Email", text: $email)
+                    .textFieldStyle(.roundedBorder)
+                    #if os(iOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
+                SecureField("Password", text: $password)
+                    .textFieldStyle(.roundedBorder)
             }
+            .frame(maxWidth: 320)
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .foregroundStyle(.red)
+                    .font(.caption)
+            }
+
+            Button {
+                Task { await login() }
+            } label: {
+                if isLoading {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Text("Accedi").frame(minWidth: 120)
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isLoading || venueId.isEmpty || email.isEmpty || password.isEmpty)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Brand.background)
     }
 
     private func login() async {

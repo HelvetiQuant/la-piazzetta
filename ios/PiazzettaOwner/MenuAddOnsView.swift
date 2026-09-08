@@ -39,7 +39,7 @@ struct MenuAddOnsView: View {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 200)
             } else if addOns.isEmpty && !isLoading {
                 GlassEmptyState(icon: "sparkles.rectangle.stack", title: "Nessun add-on configurato",
-                                subtitle: "Crea un consiglio da far proporre allo staff, es. \"Vuole aggiungere un caffè?\"")
+                                message: "Crea un consiglio da far proporre allo staff, es. \"Vuole aggiungere un caffè?\"")
             } else {
                 addOnsTable
             }
@@ -172,7 +172,7 @@ struct AddOnCard: View {
         }
         .padding(14)
         .glassCard(cornerRadius: 16)
-        .hoverHighlight()
+        .hoverHighlight(cornerRadius: 16)
     }
 
     private func categoryIcon(_ category: String?) -> String {

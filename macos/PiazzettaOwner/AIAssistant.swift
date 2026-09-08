@@ -9,7 +9,9 @@
 
 import Foundation
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 import AuthenticationServices
 
 // MARK: - Modello messaggi
@@ -429,6 +431,12 @@ final class AIAssistant: NSObject, ObservableObject {
 
 extension AIAssistant: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        NSApp.keyWindow ?? NSApp.windows.first ?? ASPresentationAnchor()
+        #if os(macOS)
+        return NSApp.keyWindow ?? NSApp.windows.first ?? ASPresentationAnchor()
+        #else
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first as? UIWindowScene
+        return windowScene?.windows.first { $0.isKeyWindow } ?? windowScene?.windows.first ?? ASPresentationAnchor()
+        #endif
     }
 }

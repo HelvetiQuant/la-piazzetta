@@ -30,7 +30,7 @@ struct CreditView: View {
             }
             Section("Clienti") {
                 if customers.isEmpty && !isLoading {
-                    GlassEmptyState(icon: "person.crop.circle.badge.questionmark", title: "Nessun cliente registrato", subtitle: "Crea un nuovo cliente a credito")
+                    GlassEmptyState(icon: "person.crop.circle.badge.questionmark", title: "Nessun cliente registrato")
                 }
                 ForEach(customers) { customer in
                     Button {

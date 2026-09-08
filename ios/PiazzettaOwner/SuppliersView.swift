@@ -94,10 +94,10 @@ struct SuppliersView: View {
                             }
                             .padding(14)
                             .glassCard(cornerRadius: 14)
-                            .hoverHighlight()
+                            .hoverHighlight(cornerRadius: 14)
                         }
                     } else {
-                        GlassEmptyState(icon: "checkmark.seal", title: "Nessuna proposta al momento", subtitle: "Il magazzino è sopra le soglie di riordino.")
+                        GlassEmptyState(icon: "checkmark.seal", title: "Nessuna proposta al momento", message: "Il magazzino è sopra le soglie di riordino.")
                     }
                 }
                 .padding()

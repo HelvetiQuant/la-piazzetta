@@ -28,7 +28,12 @@ final class APIClient: ObservableObject {
     static let shared = APIClient()
 
     /// Base URL dell'API (apps/api). Configurabile per test/staging.
+    /// macOS usa localhost; iOS usa l'IP LAN del server di sviluppo.
+    #if os(macOS)
+    var baseURL = URL(string: "http://localhost:3000/api/v1")!
+    #else
     var baseURL = URL(string: "http://192.168.1.69:3000/api/v1")!
+    #endif
 
     @Published var session: Session?
     @Published var isReady: Bool = false

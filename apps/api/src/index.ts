@@ -144,6 +144,7 @@ async function bootstrap(): Promise<void> {
   const path = await import('path');
   const fs = await import('fs');
   const webApps = [
+    { mount: '/owner', dir: '../web-owner/dist' },
     { mount: '/waiter', dir: '../web-waiter/dist' },
     { mount: '/kds-bar', dir: '../web-kds-bar/dist' },
     { mount: '/kds-kitchen', dir: '../web-kds-kitchen/dist' },

@@ -29,7 +29,7 @@ struct InventoryView: View {
             }
             Section("Giacenze") {
                 if let stock, stock.items.isEmpty {
-                    GlassEmptyState(icon: "shippingbox", title: "Nessun articolo in magazzino", subtitle: "Aggiungi prodotti al magazzino")
+                    GlassEmptyState(icon: "shippingbox", title: "Nessun articolo in magazzino")
                 }
                 ForEach(stock?.items ?? []) { item in
                     HStack {

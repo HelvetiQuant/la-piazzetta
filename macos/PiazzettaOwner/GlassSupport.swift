@@ -1,12 +1,15 @@
 //
 //  GlassSupport.swift
-//  PiazzettaOwner (macOS)
+//  PiazzettaShared
 //
-//  Helper per il design "Liquid Glass" (macOS 26 / Tahoe).
-//  Fallback a Material su macOS 14-25.
+//  Helper per il design "Liquid Glass" (macOS 26 / iOS 26 / Tahoe).
+//  Fallback a Material su versioni precedenti.
+//  Unificato da versioni macOS e iOS.
 //
 
 import SwiftUI
+
+// MARK: - Brand Colors (ristorante italiano)
 
 /// Palette calda e professionale per un ristorante italiano: rosso pomodoro,
 /// oro/ambra, verde oliva — coerente su KPI, azioni e header di tutte le view.
@@ -55,11 +58,18 @@ struct GlassCard: ViewModifier {
     var interactive: Bool = true
 
     func body(content: Content) -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
+            #if os(macOS)
             content.glassEffect(
                 interactive ? .regular.interactive() : .regular,
                 in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             )
+            #else
+            content.glassEffect(
+                .regular,
+                in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            )
+            #endif
         } else {
             content.background(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -80,7 +90,7 @@ extension View {
 
     @ViewBuilder
     func adaptiveGlassButton() -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             self.buttonStyle(.glass)
         } else {
             self.buttonStyle(.bordered)
@@ -89,16 +99,21 @@ extension View {
 
     @ViewBuilder
     func adaptiveGlassProminentButton() -> some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             self.buttonStyle(.glassProminent)
         } else {
             self.buttonStyle(.borderedProminent)
         }
     }
 
-    /// Riga di lista che si illumina leggermente al passaggio del mouse.
-    func hoverHighlight(cornerRadius: CGFloat = 10) -> some View {
+    /// Riga di lista che si illumina leggermente al passaggio del mouse (macOS).
+    /// Su iOS è un no-op (nessun hover disponibile).
+    func hoverHighlight(cornerRadius: CGFloat = 12) -> some View {
+        #if os(macOS)
         modifier(HoverHighlight(cornerRadius: cornerRadius))
+        #else
+        self
+        #endif
     }
 
     /// Transizione di ingresso standard per card/righe che appaiono in lista.
@@ -113,7 +128,7 @@ struct GlassGroup<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             GlassEffectContainer { content }
         } else {
             content
@@ -121,6 +136,7 @@ struct GlassGroup<Content: View>: View {
     }
 }
 
+#if os(macOS)
 private struct HoverHighlight: ViewModifier {
     var cornerRadius: CGFloat
     @State private var hovering = false
@@ -135,25 +151,39 @@ private struct HoverHighlight: ViewModifier {
             .animation(.easeOut(duration: 0.15), value: hovering)
     }
 }
+#endif
 
 // MARK: - KPI delta indicator
 
 /// Freccia + percentuale colorata per confrontare un KPI col periodo precedente.
+/// Unificazione: `value:suffix:` (iOS) come API principale, `percent:` (macOS) come alias.
 struct DeltaBadge: View {
-    let percent: Double?
+    let value: Double?
+    var suffix: String = "%"
 
-    private var isPositive: Bool { (percent ?? 0) >= 0 }
+    private var isPositive: Bool { (value ?? 0) >= 0 }
 
     var body: some View {
-        if let percent {
+        if let value {
             HStack(spacing: 3) {
                 Image(systemName: isPositive ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
                     .symbolEffect(.pulse, options: .repeating, isActive: true)
-                Text("\(abs(percent), specifier: "%.1f")%")
+                Text(String(format: "%+.1f%@", value, suffix))
                     .font(.caption.bold())
             }
             .foregroundStyle(isPositive ? Brand.success : Brand.danger)
         }
+    }
+
+    /// Alias per compatibilità con la versione macOS che usava `percent:`.
+    init(percent: Double?) {
+        self.value = percent
+    }
+
+    /// Inizializzatore principale (versione iOS).
+    init(value: Double?, suffix: String = "%") {
+        self.value = value
+        self.suffix = suffix
     }
 }
 

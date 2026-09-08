@@ -64,7 +64,7 @@ struct StaffNotesView: View {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 200)
             } else if filteredNotes.isEmpty && !isLoading {
                 GlassEmptyState(icon: "note.text.badge.plus", title: "Nessuna nota",
-                                subtitle: "Crea una nota, un task o un avviso da inviare allo staff.")
+                                message: "Crea una nota, un task o un avviso da inviare allo staff.")
             } else {
                 notesTable
             }

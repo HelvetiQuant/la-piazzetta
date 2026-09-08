@@ -49,7 +49,7 @@ struct ShiftsView: View {
                 }
             }
         }
-        .navigationTitle("Turni")
+        .navigationTitle("Presenze")
         .overlay { if isLoading && shifts.isEmpty { ProgressView() } }
         .task { await load() }
         .refreshable { await load() }

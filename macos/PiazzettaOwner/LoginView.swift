@@ -1,15 +1,18 @@
 //
 //  LoginView.swift
-//  PiazzettaOwner (macOS)
+//  PiazzettaShared
+//
+//  Schermata di login. Credenziali demo rimosse (inserimento manuale).
+//  iOS: keyboardType(.emailAddress), textInputAutocapitalization(.never).
 //
 
 import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject private var api: APIClient
-    @State private var venueId = "venue_piazzetta"
-    @State private var email = "owner@piazzetta.it"
-    @State private var password = "owner123"
+    @State private var venueId = ""
+    @State private var email = ""
+    @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
 
@@ -25,8 +28,17 @@ struct LoginView: View {
             VStack(spacing: 14) {
                 TextField("Venue ID", text: $venueId)
                     .textFieldStyle(.roundedBorder)
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
                 TextField("Email", text: $email)
                     .textFieldStyle(.roundedBorder)
+                    #if os(iOS)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    #endif
                 SecureField("Password", text: $password)
                     .textFieldStyle(.roundedBorder)
             }
@@ -48,7 +60,7 @@ struct LoginView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(isLoading)
+            .disabled(isLoading || venueId.isEmpty || email.isEmpty || password.isEmpty)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Brand.background)
@@ -64,4 +76,8 @@ struct LoginView: View {
             errorMessage = error.localizedDescription
         }
     }
+}
+
+#Preview {
+    LoginView().environmentObject(APIClient.shared)
 }

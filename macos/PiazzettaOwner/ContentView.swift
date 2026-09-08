@@ -1,8 +1,9 @@
 //
 //  ContentView.swift
-//  PiazzettaOwner (macOS)
+//  PiazzettaShared
 //
-//  Root view con NavigationSplitView stile macOS (Liquid Glass sidebar).
+//  Root view con NavigationSplitView (Liquid Glass sidebar).
+//  Basato sulla versione macOS (più completa, con AI banner, floating button, SidebarItem).
 //
 
 import SwiftUI
@@ -88,7 +89,9 @@ struct ContentView: View {
                     .symbolEffect(.bounce, value: selectedItem == item)
             }
             .navigationTitle("La Piazzetta")
+            #if os(macOS)
             .frame(minWidth: 200)
+            #endif
         } detail: {
             ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
@@ -106,9 +109,15 @@ struct ContentView: View {
                 }
             }
         }
+        #if os(macOS)
         .popover(isPresented: $showFloatingChat, arrowEdge: .trailing) {
             AIChatView(activeSection: selectedItem?.rawValue ?? "Dashboard")
         }
+        #else
+        .sheet(isPresented: $showFloatingChat) {
+            AIChatView(activeSection: selectedItem?.rawValue ?? "Dashboard")
+        }
+        #endif
         .task {
             await assistant.loadPreferences(api: api)
         }

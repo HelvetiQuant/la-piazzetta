@@ -7,6 +7,9 @@
 //
 
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 import UniformTypeIdentifiers
 
 private enum MarketingTab: String, CaseIterable, Identifiable {
@@ -68,7 +71,9 @@ private struct CreatePostTab: View {
     @State private var isBusy = false
     @State private var statusMessage: String?
     @State private var errorMessage: String?
+    #if os(iOS)
     @State private var showFilePicker = false
+    #endif
 
     private let tones = [("amichevole", "Amichevole"), ("elegante", "Elegante"), ("divertente", "Divertente"), ("informativo", "Informativo")]
     private let allChannels = [("instagram", "Instagram"), ("facebook", "Facebook"), ("tiktok", "TikTok")]
@@ -170,12 +175,14 @@ private struct CreatePostTab: View {
             }
             .padding()
         }
+        #if os(iOS)
         .sheet(isPresented: $showFilePicker) {
             FilePickerSheet(onPick: { url in
                 handlePickedFile(url)
                 showFilePicker = false
             })
         }
+        #endif
     }
 
     private func generate() async {
@@ -207,11 +214,27 @@ private struct CreatePostTab: View {
     }
 
     private func uploadMedia() {
-        // iOS: usa documentPicker via UIViewControllerRepresentable
-        // Per semplicità, usiamo un sheet con file importer
+        #if os(macOS)
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image, .movie]
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task {
+            isBusy = true; defer { isBusy = false }
+            do {
+                let data = try Data(contentsOf: url)
+                let mime = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream"
+                let asset = try await api.uploadMedia(base64: data.base64EncodedString(), mimeType: mime, altText: url.lastPathComponent)
+                media = asset
+                statusMessage = "Media caricato."
+            } catch { errorMessage = error.localizedDescription }
+        }
+        #else
         showFilePicker = true
+        #endif
     }
 
+    #if os(iOS)
     func handlePickedFile(_ url: URL) {
         Task {
             isBusy = true; defer { isBusy = false }
@@ -224,6 +247,7 @@ private struct CreatePostTab: View {
             } catch { errorMessage = error.localizedDescription }
         }
     }
+    #endif
 
     private func publish() async {
         isBusy = true; defer { isBusy = false }
@@ -253,7 +277,7 @@ private struct PostsTab: View {
                 GlassErrorState(message: errorMessage) { Task { await load() } }
             }
             if posts.isEmpty && !isLoading {
-                GlassEmptyState(icon: "square.and.arrow.up", title: "Nessun post ancora", subtitle: "Crea il primo post")
+                GlassEmptyState(icon: "square.and.arrow.up", title: "Nessun post ancora")
             }
             ForEach(posts) { post in
                 VStack(alignment: .leading, spacing: 6) {
@@ -386,7 +410,7 @@ private struct CommentsTab: View {
                 .disabled(isSyncing)
             }
             if comments.isEmpty && !isLoading {
-                GlassEmptyState(icon: "bubble.left.and.bubble.right", title: "Nessun commento", subtitle: "Sincronizza i social per vedere i commenti")
+                GlassEmptyState(icon: "bubble.left.and.bubble.right", title: "Nessun commento")
             }
             ForEach(comments) { comment in
                 VStack(alignment: .leading, spacing: 6) {
@@ -493,12 +517,12 @@ private struct AnalyticsTab: View {
                         }
                         .padding(10)
                         .glassCard(cornerRadius: 10)
-                        .hoverHighlight()
+                        .hoverHighlight(cornerRadius: 10)
                     }
                 } else if isLoading {
                     ProgressView().frame(maxWidth: .infinity, minHeight: 160)
                 } else {
-                    GlassEmptyState(icon: "chart.bar", title: "Nessun dato di analytics", subtitle: "Sincronizza per vedere le metriche")
+                    GlassEmptyState(icon: "chart.bar", title: "Nessun dato di analytics")
                 }
             }
             .padding()
@@ -545,7 +569,7 @@ private struct AccountsTab: View {
         List {
             if let errorMessage { GlassErrorState(message: errorMessage) { Task { await load() } } }
             if accounts.isEmpty && !isLoading {
-                GlassEmptyState(icon: "person.2.circle", title: "Nessun account collegato", subtitle: "Connetti i tuoi social")
+                GlassEmptyState(icon: "person.2.circle", title: "Nessun account collegato")
             }
             ForEach(accounts) { account in
                 HStack {
@@ -645,7 +669,7 @@ private struct CampaignsTab: View {
         List {
             if let errorMessage { GlassErrorState(message: errorMessage) { Task { await load() } } }
             if campaigns.isEmpty && !isLoading {
-                GlassEmptyState(icon: "megaphone", title: "Nessuna campagna", subtitle: "Crea la prima campagna")
+                GlassEmptyState(icon: "megaphone", title: "Nessuna campagna")
             }
             ForEach(campaigns) { campaign in
                 HStack {
@@ -739,7 +763,8 @@ private struct NewCampaignSheet: View {
 
 // MARK: - File Picker (iOS)
 
-import UniformTypeIdentifiers
+#if os(iOS)
+import UIKit
 
 struct FilePickerSheet: UIViewControllerRepresentable {
     let onPick: (URL) -> Void
@@ -764,3 +789,4 @@ struct FilePickerSheet: UIViewControllerRepresentable {
         }
     }
 }
+#endif
