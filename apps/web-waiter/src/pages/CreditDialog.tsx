@@ -22,6 +22,7 @@ export default function CreditDialog({
   onCharged?: (customer: CreditCustomer) => void;
 }) {
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [amountCents, setAmountCents] = useState<number | ''>(defaultAmountCents ?? '');
@@ -54,7 +55,7 @@ export default function CreditDialog({
   async function charge() {
     const amount = typeof amountCents === 'number' ? amountCents : 0;
     if (amount <= 0) { setError('Importo obbligatorio'); return; }
-    if (!phone.trim()) { setError('Telefono obbligatorio'); return; }
+    if (!phone.trim() && !email.trim()) { setError('Inserire almeno un telefono o email per le notifiche'); return; }
     if (!found && !name.trim()) { setError('Nome obbligatorio per nuovo cliente'); return; }
 
     setLoading(true);
@@ -111,7 +112,7 @@ export default function CreditDialog({
 
               {/* Telefono con lookup */}
               <div>
-                <label style={labelStyle}>Telefono cliente *</label>
+                <label style={labelStyle}>Telefono / WhatsApp</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input
                     type="tel"
@@ -165,6 +166,16 @@ export default function CreditDialog({
                       value={surname}
                       onChange={(e) => setSurname(e.target.value)}
                       placeholder="Cognome"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Email (alternativa al WhatsApp)</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@esempio.com"
                       style={inputStyle}
                     />
                   </div>

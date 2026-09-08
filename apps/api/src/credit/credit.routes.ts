@@ -3,6 +3,7 @@ import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { currentUser, type RouteDeps } from '../http.js';
 import { applyTransaction, type CreditTxType } from './credit.logic.js';
+import { NotificationService } from '../notifications/notification.service.js';
 
 type Tx = Prisma.TransactionClient;
 
@@ -13,6 +14,20 @@ const STAFF_CREDIT_ROLES = ['OWNER', 'MANAGER', 'CASHIER', 'BARMAN', 'WAITER'];
 
 export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps): void {
   const { devAuth, requireRoles } = deps;
+  const notifier = new NotificationService({ prisma });
+
+  /** Invia notifica al cliente del credito (WhatsApp se ha telefono, email se ha email). */
+  async function notifyCustomer(
+    customer: { id: string; name: string; surname?: string | null; phone?: string | null; email?: string | null; balanceCents: number },
+    title: string,
+    body: string,
+  ): Promise<void> {
+    const recipient: any = { name: `${customer.name} ${customer.surname ?? ''}`.trim() };
+    if (customer.phone) recipient.phone = customer.phone;
+    if (customer.email) recipient.email = customer.email;
+    if (!recipient.phone && !recipient.email) return; // nessun contatto, skip
+    await notifier.notify(recipient, { title, body, severity: 'info' }, `credit:${customer.id}:${title}`).catch(() => {});
+  }
 
   // ---- Anagrafica: inserimento manuale del cliente creditore in cassa ----
   const createCustomerSchema = z.object({
@@ -142,6 +157,11 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
         });
         return { customer: updated, transaction };
       });
+      // Invia notifica al cliente: totale aggiornato dopo ogni movimento
+      const c = result.customer as any;
+      const fullName = `${c.name} ${c.surname ?? ''}`.trim();
+      const verb = body.type === 'CHARGE' ? 'Nuova consumazione a credito' : body.type === 'PAYMENT' ? 'Pagamento ricevuto' : 'Rettifica saldo';
+      await notifyCustomer(c, verb, `${verb}: ${body.type === 'CHARGE' ? '+' : '−'}${fmtEuroCents(body.amountCents)}. Nuovo saldo: ${fmtEuroCents(c.balanceCents)}. — La Piazzetta`);
       res.status(201).json(result);
     } catch (e) {
       if (e instanceof HttpError) {
@@ -238,6 +258,9 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
         });
         return { customer: updated, transaction };
       });
+      // Invia notifica al cliente: totale aggiornato dopo consumazione a credito
+      const c = result.customer as any;
+      await notifyCustomer(c, 'Consumazione a credito', `Nuova consumazione a credito: +${fmtEuroCents(body.amountCents)}. Nuovo saldo: ${fmtEuroCents(c.balanceCents)}. — La Piazzetta`);
       res.status(201).json(result);
     } catch (e) {
       if (e instanceof HttpError) {
@@ -261,10 +284,38 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
     });
     res.json({ customer });
   });
+
+  // ---- Reminder manuale: owner invia saldo al cliente via WhatsApp o email ----
+  app.post('/api/v1/credit/customers/:id/remind', devAuth, requireRoles(...CASSA_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const customer = await prisma.customer.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
+    if (!customer) { res.status(404).json({ error: 'Cliente non trovato' }); return; }
+    if (customer.balanceCents <= 0) { res.status(400).json({ error: 'Saldo non negativo, nessun debito da ricordare' }); return; }
+
+    const fullName = `${customer.name} ${customer.surname ?? ''}`.trim();
+    const body = `Gentile ${fullName}, le ricordiamo che il suo saldo a credito presso La Piazzetta è di ${fmtEuroCents(customer.balanceCents)}. La invitiamo a regolarizzare la posizione. Grazie! — La Piazzetta`;
+    const channel = (req.body as { channel?: string })?.channel ?? 'auto'; // auto | whatsapp | email
+
+    const recipient: any = { name: fullName };
+    if (channel === 'whatsapp' || channel === 'auto') recipient.phone = customer.phone;
+    if (channel === 'email' || channel === 'auto') recipient.email = customer.email;
+
+    const result = await notifier.notify(recipient, {
+      title: 'Promemoria saldo a credito',
+      body,
+      severity: 'warning',
+    }, `credit-reminder:${customer.id}:${new Date().toISOString().slice(0, 10)}`);
+
+    res.json({ ok: result.outcome === 'SENT', channel: result.channel, error: result.error });
+  });
 }
 
 class HttpError extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
+}
+
+function fmtEuroCents(cents: number): string {
+  return '€ ' + (cents / 100).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

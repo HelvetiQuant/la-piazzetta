@@ -117,6 +117,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+  remind: (id: string, channel?: string) =>
+    req<{ ok: boolean; channel: string; error?: string }>(`/credit/customers/${id}/remind`, {
+      method: 'POST',
+      body: JSON.stringify({ channel: channel ?? 'auto' }),
+    }),
 };
 
 // ---- Magazzino ----
