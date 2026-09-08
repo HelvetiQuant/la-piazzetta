@@ -148,6 +148,50 @@ ci_any_ratchet() {
   fi
 }
 
+ci_env_docs() {
+  local used documented missing
+  used="$(grep -rhoE 'process\.env\.[A-Z_][A-Z0-9_]*' apps/api/src --include='*.ts' | sed 's/process\.env\.//' | sort -u)"
+  documented="$(grep -oE '^[A-Z_][A-Z0-9_]*=' apps/api/.env.example | sed 's/=$//' | sort -u)"
+  missing="$(comm -23 <(echo "$used") <(echo "$documented"))"
+  if [[ -n "$missing" ]]; then
+    echo "Variabili usate nel codice ma assenti da apps/api/.env.example:"
+    echo "$missing" | sed 's/^/  - /'
+    return 1
+  fi
+  echo "Tutte le variabili d'ambiente usate sono documentate in .env.example."
+}
+
+ci_jobs_wired() {
+  local rc=0
+  local schedulers
+  schedulers="$(grep -rhoE '^export function (schedule[A-Za-z]*Jobs|register[A-Za-z]*Jobs)' apps/api/src --include='jobs.ts' | awk '{print $3}')"
+  if [[ -z "$schedulers" ]]; then
+    echo "Nessuno scheduler trovato in **/jobs.ts (ok se non ce ne sono ancora)."
+    return 0
+  fi
+  while IFS= read -r fn; do
+    [[ -z "$fn" ]] && continue
+    if grep -q "$fn(" apps/api/src/index.ts; then
+      echo "  ✓ $fn chiamato in index.ts"
+    else
+      echo "  ✗ $fn ESPORTATO ma MAI chiamato in index.ts"
+      rc=1
+    fi
+  done <<< "$schedulers"
+  return $rc
+}
+
+ci_version_aligned() {
+  local pkg_version changelog_version
+  pkg_version="$(node -p "require('./package.json').version")"
+  changelog_version="$(grep -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+  echo "package.json: $pkg_version · CHANGELOG.md: $changelog_version"
+  if [[ "$pkg_version" != "$changelog_version" ]]; then
+    echo "Disallineate: aggiorna \"version\" in package.json a $changelog_version (o aggiungi la voce mancante in CHANGELOG.md)."
+    return 1
+  fi
+}
+
 # ─── orchestrazione ────────────────────────────────────────────────────────
 TARGET="${1:-all}"
 
@@ -173,6 +217,9 @@ case "$TARGET" in
     run "build (api)"           ci_api_build
     run "test (api)"            ci_api_test
     run "ratchet as any"        ci_any_ratchet
+    run "env documentate"       ci_env_docs
+    run "job schedulati wired"  ci_jobs_wired
+    run "versione allineata"    ci_version_aligned
     ;;
 
   web)
@@ -189,6 +236,9 @@ case "$TARGET" in
     run "build (api)"           ci_api_build
     run "test (api)"            ci_api_test
     run "ratchet as any"        ci_any_ratchet
+    run "env documentate"       ci_env_docs
+    run "job schedulati wired"  ci_jobs_wired
+    run "versione allineata"    ci_version_aligned
     run "typecheck + build (web)" ci_web
     if [[ -n "${DATABASE_URL:-}" ]]; then
       run "prisma migrate deploy" ci_migrate

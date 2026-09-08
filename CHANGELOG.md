@@ -2,6 +2,26 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.16.1] — 2026-09-08
+
+Audit del repo: debug mirato, hardening CI, nessuna modifica funzionale.
+
+### Fixed
+- **`agent/jobs.ts` non era mai avviato.** `registerAgentJobs`/`scheduleAgentJobs`
+  non erano chiamati in `index.ts`. La feature (chiusura 03:00, riordino 06:00,
+  regole orarie, turni lunedì, export mese) compilava e passava i test ma non
+  girava mai in produzione. Aggiunto wiring con lookup Venue/OWNER.
+- **`package.json` disallineato dal CHANGELOG** (4ª volta): radice e api fermi a
+  0.13.x con CHANGELOG già a 0.16.0. Allineati a 0.16.0.
+- **11 variabili d'ambiente usate nel codice ma assenti da `.env.example`**:
+  WhatsApp, SMTP, VAPID, Canva/Gamma, social, POS mock, PUBLIC_BASE_URL.
+  Documentate tutte.
+
+### Added — CI (`scripts/ci.sh`)
+- `ci_env_docs`: fallisce se `process.env.FOO` usata in codice non è in .env.example
+- `ci_jobs_wired`: fallisce se scheduler esportato da `jobs.ts` non è chiamato in `index.ts`
+- `ci_version_aligned`: fallisce se package.json non coincide con CHANGELOG
+
 ## [0.16.0] — 2026-09-10
 
 Lotto 3 — Agente: notifiche operative, motore di regole, job schedulati,

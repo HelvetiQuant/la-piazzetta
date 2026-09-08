@@ -21,6 +21,8 @@ import { registerMenuAddOnRoutes } from './menu-addons/menu-addons.routes.js';
 import { registerStaffNoteRoutes } from './staff/staff-notes.routes.js';
 import { registerCashierRoutes } from './cashier/cashier.routes.js';
 import { registerAgentRoutes } from './agent/agent.routes.js';
+import { registerAgentJobs, scheduleAgentJobs } from './agent/jobs.js';
+import { NotificationService } from './notifications/notification.service.js';
 import { AuthService, AuthError } from './auth/auth.service.js';
 import { makeAuthMiddleware } from './auth/auth.middleware.js';
 import { registerAuthRoutes } from './auth/auth.routes.js';
@@ -140,6 +142,38 @@ async function bootstrap(): Promise<void> {
   registerStaffNoteRoutes(app, prisma, deps); // Note/rules staff: notifiche lampeggianti con ack obbligatorio
   registerCashierRoutes(app, prisma, deps); // Cassa: pagamenti, cassetto, vendita al banco, chiusura giornaliera
   registerAgentRoutes(app, prisma, deps); // Agente: approvazione one-tap, proposte riordino
+
+  // 7a. Job schedulati dell'agente (chiusura contabile, proposte riordino,
+  //     regole di anomalia, turni, export commercialista). Finora agent/jobs.ts
+  //     era scritto ma MAI avviato: registerAgentRoutes copre solo l'approvazione
+  //     one-tap via HTTP, non il motore schedulato. Bug corretto qui (v0.16.1).
+  //     Deployment locale mono-locale: si assume un solo Venue con un OWNER.
+  try {
+    const venue = await prisma.venue.findFirst({ orderBy: { createdAt: 'asc' } });
+    const owner = venue
+      ? await prisma.user.findFirst({ where: { venueId: venue.id, roles: { has: 'OWNER' } } })
+      : null;
+    if (venue && owner) {
+      const notifier = new NotificationService({ prisma });
+      const jobCtx = {
+        prisma,
+        notifier,
+        ownerUserId: owner.id,
+        ownerVenueId: venue.id,
+        ownerPhone: process.env.OWNER_PHONE || undefined,
+        ownerEmail: owner.email,
+      };
+      registerAgentJobs(jobCtx);
+      scheduleAgentJobs(jobCtx);
+      log.info('Agent jobs scheduled', { venueId: venue.id, ownerUserId: owner.id });
+    } else {
+      log.warn('Agent jobs NOT scheduled: nessun Venue/OWNER trovato (provisioning incompleto)');
+    }
+  } catch (err) {
+    // Non deve bloccare l'avvio del server: i job automatici sono un di più,
+    // non un requisito per servire ordini/tavoli.
+    log.error('Impossibile avviare i job dell\'agente', { err: (err as Error).message });
+  }
 
   // 7b. Serve le web app dei dipendenti come file statici (build Vite).
   // Il backend diventa l'unico server: API + web app cameriere/KDS.

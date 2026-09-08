@@ -1,6 +1,6 @@
 {
   "name": "@la-piazzetta/api",
-  "version": "0.13.0",
+  "version": "0.16.1",
   "private": true,
   "type": "module",
   "description": "API La Piazzetta — Express + Prisma. Include AiService (OpenAI + Anthropic).",

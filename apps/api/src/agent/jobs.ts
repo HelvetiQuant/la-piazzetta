@@ -251,15 +251,27 @@ async function monthlyExport(ctx: JobContext): Promise<void> {
 }
 
 // ─── Scheduler helpers ────────────────────────────────────────────────────
+// Nota: setTimeout/setInterval hanno un limite di ~24.8 giorni (32-bit signed).
+// Per intervalli più lunghi usiamo un timer ricorsivo che riprogramma se stesso.
 
-function scheduleDaily(hour: number, minute: number, fn: () => void): void {
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_TIMEOUT_MS = 2 ** 31 - 1; // ~24.8 giorni, limite setTimeout
+
+function scheduleAtNext(targetHour: number, targetMinute: number, fn: () => void): void {
   const now = new Date();
   const next = new Date(now);
-  next.setHours(hour, minute, 0, 0);
+  next.setHours(targetHour, targetMinute, 0, 0);
   if (next <= now) next.setDate(next.getDate() + 1);
-  const delay = next.getTime() - now.getTime();
-  setTimeout(fn, delay);
-  setInterval(fn, 24 * 60 * 60 * 1000);
+  const delay = Math.min(next.getTime() - now.getTime(), MAX_TIMEOUT_MS);
+  setTimeout(() => {
+    fn();
+    // Riprogramma per il giorno dopo
+    scheduleAtNext(targetHour, targetMinute, fn);
+  }, delay);
+}
+
+function scheduleDaily(hour: number, minute: number, fn: () => void): void {
+  scheduleAtNext(hour, minute, fn);
 }
 
 function scheduleWeekly(dayOfWeek: number, hour: number, minute: number, fn: () => void): void {
@@ -269,17 +281,40 @@ function scheduleWeekly(dayOfWeek: number, hour: number, minute: number, fn: () 
   next.setDate(now.getDate() + diff);
   next.setHours(hour, minute, 0, 0);
   if (next <= now) next.setDate(next.getDate() + 7);
-  const delay = next.getTime() - now.getTime();
-  setTimeout(fn, delay);
-  setInterval(fn, 7 * 24 * 60 * 60 * 1000);
+  const delay = Math.min(next.getTime() - now.getTime(), MAX_TIMEOUT_MS);
+  setTimeout(() => {
+    fn();
+    // Riprogramma con timer ricorsivo settimanale
+    const weeklyTimer = () => {
+      const n = new Date();
+      const nx = new Date(n);
+      const d = (dayOfWeek - n.getDay() + 7) % 7;
+      nx.setDate(n.getDate() + (d === 0 ? 7 : d));
+      nx.setHours(hour, minute, 0, 0);
+      const dl = Math.min(nx.getTime() - n.getTime(), MAX_TIMEOUT_MS);
+      setTimeout(() => { fn(); weeklyTimer(); }, dl);
+    };
+    weeklyTimer();
+  }, delay);
 }
 
 function scheduleMonthly(day: number, hour: number, minute: number, fn: () => void): void {
   const now = new Date();
-  const next = new Date(now.getFullYear(), now.getMonth() + 1, day, hour, minute, 0, 0);
-  const delay = next.getTime() - now.getTime();
-  setTimeout(fn, delay);
-  setInterval(fn, 30 * 24 * 60 * 60 * 1000);
+  // Prossimo mese: se oggi è prima del giorno X, usa questo mese, altrimenti il prossimo
+  const next = new Date(now.getFullYear(), now.getMonth(), day, hour, minute, 0, 0);
+  if (next <= now) next.setMonth(next.getMonth() + 1);
+  const delay = Math.min(next.getTime() - now.getTime(), MAX_TIMEOUT_MS);
+  setTimeout(() => {
+    fn();
+    // Riprogramma con timer ricorsivo mensile
+    const monthlyTimer = () => {
+      const n = new Date();
+      const nx = new Date(n.getFullYear(), n.getMonth() + 1, day, hour, minute, 0, 0);
+      const dl = Math.min(nx.getTime() - n.getTime(), MAX_TIMEOUT_MS);
+      setTimeout(() => { fn(); monthlyTimer(); }, dl);
+    };
+    monthlyTimer();
+  }, delay);
 }
 
 function isServiceHour(): boolean {
