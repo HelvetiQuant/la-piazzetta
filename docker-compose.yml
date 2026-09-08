@@ -1,5 +1,5 @@
-# Postgres locale per far girare il backend su un portatile, senza servizi
-# esterni. Avvio: `docker compose up -d`. Dati persistiti nel volume `pgdata`.
+# La Piazzetta — backend API + web app + Postgres.
+# Avvio: `docker compose up -d --build`. Dati persistiti nel volume `pgdata`.
 services:
   db:
     image: postgres:16-alpine
@@ -17,6 +17,32 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql://piazzetta:piazzetta@db:5432/lapiazzetta?schema=public"
+      JWT_SECRET: "${JWT_SECRET:-prova-locale-non-per-produzione}"
+      CORS_ORIGIN: "*"
+      PORT: "3000"
+      # Notifiche (opzionali, degradano se assenti)
+      WHATSAPP_TOKEN: "${WHATSAPP_TOKEN:-}"
+      WHATSAPP_PHONE_ID: "${WHATSAPP_PHONE_ID:-}"
+      SMTP_URL: "${SMTP_URL:-}"
+      OWNER_PHONE: "${OWNER_PHONE:-}"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   pgdata:

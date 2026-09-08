@@ -13,6 +13,7 @@
     "build": "echo 'no build needed'"
   },
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vite": "^6.4.3"
   }
 }
