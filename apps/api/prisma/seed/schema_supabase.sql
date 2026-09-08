@@ -303,6 +303,23 @@ CREATE TABLE IF NOT EXISTS "CoverChargeRule" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "CoverChargeRule_venueId_key" ON "CoverChargeRule"("venueId");
 
+-- ---------- ApprovalToken (approvazione one-tap) ----------
+CREATE TABLE IF NOT EXISTS "ApprovalToken" (
+  "id"         text PRIMARY KEY,
+  "venueId"    text NOT NULL,
+  "actionType" text NOT NULL,
+  "targetId"   text NOT NULL,
+  "token"      text NOT NULL UNIQUE,
+  "createdBy"  text NOT NULL,
+  "status"     text NOT NULL DEFAULT 'PENDING',
+  "usedAt"     timestamp,
+  "usedBy"     text,
+  "expiresAt"  timestamp NOT NULL,
+  "createdAt"  timestamp NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS "ApprovalToken_venueId_status_idx" ON "ApprovalToken"("venueId", "status");
+CREATE INDEX IF NOT EXISTS "ApprovalToken_token_idx" ON "ApprovalToken"("token");
+
 -- ---------- Foreign key (guardate: rieseguibili) ----------
 DO $$ BEGIN
   ALTER TABLE "User"              ADD CONSTRAINT "User_venueId_fkey"                FOREIGN KEY ("venueId")         REFERENCES "Venue"("id")         ON DELETE RESTRICT ON UPDATE CASCADE;

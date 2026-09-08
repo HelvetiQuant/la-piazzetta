@@ -1,6 +1,6 @@
 # La Piazzetta — Architettura tecnica (dettaglio)
 
-Documento di riferimento tecnico completo del sistema al **2026-09-09 (v0.15.0)**.
+Documento di riferimento tecnico completo del sistema al **2026-09-10 (v0.16.0)**.
 Copre stack, struttura, backend, modello dati, flussi, sicurezza, API, frontend,
 deployment e debito tecnico. Fonte di verità del codice: `apps/` + `macos/`.
 
@@ -776,3 +776,32 @@ Nessun colore hard-coded nei frontend: solo token da `@la-piazzetta/ui`.
 - `BillDialog`: conto, split, pagamento. Integrato in TableOrder.
 - Chiusura giornaliera (`web-owner/DailyClose.tsx`): incassato per
   metodo, cassetto con riconciliazione.
+
+---
+
+## 20. Modulo agente (v0.16.0)
+
+### 20.1 Notifiche (`notifications/`)
+- `NotificationChannel` interface: 4 driver pluggabili.
+- `WhatsAppChannel`: riusa `publishToWhatsApp` di marketing.service.
+- `EmailChannel`: SMTP via nodemailer (lazy import).
+- `WebPushChannel`: VAPID via web-push (lazy import).
+- `InAppChannel`: crea `StaffNote` con ack obbligatorio.
+- `NotificationService`: fallback ordinato, deduplica con cooldown,
+  degradazione controllata se manca la configurazione.
+
+### 20.2 Motore di regole (`agent/rules.logic.ts`)
+- 7 regole pure: scorta critica, fido, fattura scadenza, incasso anomalo,
+  cucina ritardo, costo lavoro, cassa non quadrata.
+- `evaluateRules(ctx)`: valuta tutte le regole e ritorna i messaggi.
+
+### 20.3 Job schedulati (`agent/jobs.ts`)
+- 5 job idempotenti: chiusura contabile (03:00), riordino (06:00), regole
+  (orario), turni (lunedì 08:00), export (1° mese).
+- Scheduler con fallback in-memory (no Redis richiesto).
+
+### 20.4 Approvazione one-tap (`agent/approval-token.service.ts`)
+- `ApprovalToken`: token HMAC-SHA256 monouso, TTL breve, legato a venueId.
+- Flusso: job crea proposta → notifica owner con link firmato → owner apre
+  link → conferma one-tap → sistema genera PDF e recapita al fornitore.
+- Nessun ordine a fornitore può partire senza un'azione umana registrata.

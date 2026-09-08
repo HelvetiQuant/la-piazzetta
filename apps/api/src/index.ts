@@ -20,6 +20,7 @@ import { registerAiPreferenceRoutes } from './ai/ai-preferences.routes.js';
 import { registerMenuAddOnRoutes } from './menu-addons/menu-addons.routes.js';
 import { registerStaffNoteRoutes } from './staff/staff-notes.routes.js';
 import { registerCashierRoutes } from './cashier/cashier.routes.js';
+import { registerAgentRoutes } from './agent/agent.routes.js';
 import { AuthService, AuthError } from './auth/auth.service.js';
 import { makeAuthMiddleware } from './auth/auth.middleware.js';
 import { registerAuthRoutes } from './auth/auth.routes.js';
@@ -138,6 +139,7 @@ async function bootstrap(): Promise<void> {
   registerMenuAddOnRoutes(app, prisma, deps); // Menu add-on: consigli da promuovere via staff
   registerStaffNoteRoutes(app, prisma, deps); // Note/rules staff: notifiche lampeggianti con ack obbligatorio
   registerCashierRoutes(app, prisma, deps); // Cassa: pagamenti, cassetto, vendita al banco, chiusura giornaliera
+  registerAgentRoutes(app, prisma, deps); // Agente: approvazione one-tap, proposte riordino
 
   // 7b. Serve le web app dei dipendenti come file statici (build Vite).
   // Il backend diventa l'unico server: API + web app cameriere/KDS.

@@ -2,6 +2,55 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.16.0] — 2026-09-10
+
+Lotto 3 — Agente: notifiche operative, motore di regole, job schedulati,
+approvazione one-tap.
+
+### Added — Modulo notifiche (`notifications/`)
+- `NotificationChannel` interface: 4 driver (WhatsApp, Email, WebPush, InApp).
+- `WhatsAppChannel`: riusa `publishToWhatsApp` di marketing.service (no
+  duplicazione). Degrada se `WHATSAPP_TOKEN` assente.
+- `EmailChannel`: SMTP via nodemailer (lazy import, degrada se non installato).
+- `WebPushChannel`: VAPID via web-push (lazy import, degrada se non installato).
+- `InAppChannel`: crea `StaffNote` con ack obbligatorio (riusa modello esistente).
+- `NotificationService`: fallback ordinato (WhatsApp → Email → WebPush → InApp),
+  deduplica con cooldown, log di ogni invio.
+
+### Added — Motore di regole (`agent/rules.logic.ts`)
+- 7 regole pure: scorta critica, fido superato, fattura in scadenza, incasso
+  anomalo (±2σ), cucina in ritardo, costo lavoro alto, cassa non quadrata.
+- `evaluateRules(ctx)`: valuta tutte le regole e ritorna i messaggi da inviare.
+- 21 test in `tests/verify-rules.mjs`.
+
+### Added — Job schedulati (`agent/jobs.ts`)
+- 5 job idempotenti con scheduler (daily/weekly/monthly):
+  - 03:00 chiusura contabile (idempotenza: controlla se già chiusa per oggi).
+  - 06:00 proposte riordino (idempotenza: dedupe per data).
+  - ogni ora valutazione regole di anomalia.
+  - lunedì 08:00 proposta turni + report settimanale.
+  - 1° del mese export per il commercialista.
+- Fallback al driver in-memory (no Redis richiesto).
+
+### Added — Approvazione one-tap (`agent/approval-token.service.ts` + `agent.routes.ts`)
+- `ApprovalToken` model: token firmato HMAC-SHA256, monouso, TTL breve.
+- `GET /agent/approvals/:token`: riepilogo azione (non consuma).
+- `POST /agent/approvals/:token/approve`: conferma one-tap, consuma token.
+- `POST /agent/proposals/reorder`: genera proposta riordino manuale.
+- Invio reale PO al fornitore: PDF semplificato + email (SMTP) o WhatsApp.
+  Chiude il buco per cui `POST /purchase-orders/:id/send` cambiava solo lo stato.
+- 19 test in `tests/verify-approval.mjs`: token monouso, scadenza, firma
+  non valida, non riutilizzabile, no-auto (nessun ordine senza umano).
+
+### Schema (migration `20260910_approval_token`)
+- `ApprovalToken`: token monouso per approvazione one-tap.
+- Relazione inversa su `Venue`.
+
+### Verified
+- Typecheck API: 0 errori.
+- Test logica pura: 21 regole + 19 token = 40 test passati.
+- Prisma validate: schema valido.
+
 ## [0.15.0] — 2026-09-09
 
 Lotto 2 — Cassa e chiusura del cerchio: pagamenti, cassetto

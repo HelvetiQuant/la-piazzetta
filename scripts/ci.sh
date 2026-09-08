@@ -76,7 +76,9 @@ ci_logic() {
   node tests/verify.mjs \
     && node tests/verify-inventory.mjs \
     && node tests/verify-purchase.mjs \
-    && node tests/verify-bill.mjs
+    && node tests/verify-bill.mjs \
+    && node tests/verify-rules.mjs \
+    && node tests/verify-approval.mjs
 }
 
 ci_api_prisma()    { (cd apps/api && npx prisma generate); }

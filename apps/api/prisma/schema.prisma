@@ -46,6 +46,7 @@ model Venue {
   staffNotes StaffNote[]
   tableSessions TableSession[]
   orders Order[]
+  approvalTokens ApprovalToken[]
 }
 
 // Add-on attivi per venue (entitlement/packaging). L'attivazione/pagamento
@@ -293,6 +294,31 @@ model PurchaseOrder {
   @@index([venueId])
   @@index([supplierId])
   @@index([status])
+}
+
+// Token monouso per approvazione one-tap: link firmato a scadenza.
+// Non è un JWT di sessione: è legato a un'azione specifica (es. approvare un PO).
+model ApprovalToken {
+  id          String    @id @default(cuid())
+  venueId     String
+  venue       Venue     @relation(fields: [venueId], references: [id])
+  // Tipo di azione: APPROVE_PO | CONFIRM_SHIFT | ACK_NOTE
+  actionType  String
+  // ID della risorsa su cui agire (es. purchaseOrder.id)
+  targetId    String
+  // Token firmato (HMAC-SHA256)
+  token       String   @unique
+  // Chi ha creato il token (di solito 'system' per i job)
+  createdBy    String
+  // Stato: PENDING (in attesa) | USED (consumato) | EXPIRED (scaduto)
+  status      String   @default("PENDING")
+  usedAt      DateTime?
+  usedBy      String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([venueId, status])
+  @@index([token])
 }
 
 model PurchaseOrderItem {
