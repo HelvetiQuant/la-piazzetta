@@ -116,17 +116,24 @@ CREATE TABLE IF NOT EXISTS "TableSession" (
   "guests"    integer NOT NULL DEFAULT 1,
   "state"     text NOT NULL DEFAULT 'OPEN',
   "createdAt" timestamp(3) NOT NULL DEFAULT now(),
-  "closedAt"  timestamp(3)
+  "closedAt"  timestamp(3),
+  "closedBy"  text,
+  "totalCents" integer NOT NULL DEFAULT 0,
+  "coverChargeCentsPerGuest" integer NOT NULL DEFAULT 0,
+  "status"    text NOT NULL DEFAULT 'OPEN'
 );
 CREATE INDEX IF NOT EXISTS "TableSession_venueId_createdAt_idx" ON "TableSession"("venueId","createdAt");
 
 CREATE TABLE IF NOT EXISTS "Order" (
   "id"            text PRIMARY KEY,
   "venueId"       text NOT NULL,
-  "sessionId"     text NOT NULL,
+  "sessionId"     text,
   "clientOrderId" text,
   "status"        text NOT NULL DEFAULT 'DRAFT',
   "totalCents"    integer NOT NULL DEFAULT 0,
+  "channel"       text NOT NULL DEFAULT 'TABLE',
+  "discountCents" integer NOT NULL DEFAULT 0,
+  "coverChargeCents" integer NOT NULL DEFAULT 0,
   "placedAt"      timestamp(3) NOT NULL DEFAULT now(),
   "sentAt"        timestamp(3),
   "servedAt"      timestamp(3),
@@ -139,6 +146,7 @@ CREATE INDEX IF NOT EXISTS "Order_venueId_createdAt_idx" ON "Order"("venueId","c
 CREATE INDEX IF NOT EXISTS "Order_sessionId_idx" ON "Order"("sessionId");
 CREATE INDEX IF NOT EXISTS "Order_status_idx"    ON "Order"("status");
 CREATE INDEX IF NOT EXISTS "Order_placedAt_idx"  ON "Order"("placedAt");
+CREATE INDEX IF NOT EXISTS "Order_channel_idx"   ON "Order"("channel");
 
 CREATE TABLE IF NOT EXISTS "OrderItem" (
   "id"        text PRIMARY KEY,
@@ -246,6 +254,54 @@ CREATE TABLE IF NOT EXISTS "CreditTransaction" (
 );
 CREATE INDEX IF NOT EXISTS "CreditTransaction_customerId_idx" ON "CreditTransaction"("customerId");
 CREATE INDEX IF NOT EXISTS "CreditTransaction_createdAt_idx"  ON "CreditTransaction"("createdAt");
+
+-- ---------- Cassa e pagamenti ----------
+CREATE TABLE IF NOT EXISTS "Payment" (
+  "id"            text PRIMARY KEY,
+  "venueId"       text NOT NULL,
+  "orderId"       text,
+  "sessionId"     text,
+  "method"        text NOT NULL,
+  "amountCents"   integer NOT NULL,
+  "tipCents"      integer NOT NULL DEFAULT 0,
+  "changeCents"   integer NOT NULL DEFAULT 0,
+  "cashDrawerId"  text,
+  "customerId"    text,
+  "posTerminalId" text,
+  "posAuthCode"   text,
+  "posTxnId"      text,
+  "createdBy"     text NOT NULL,
+  "createdAt"     timestamp(3) NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS "Payment_venueId_createdAt_idx" ON "Payment"("venueId","createdAt");
+CREATE INDEX IF NOT EXISTS "Payment_orderId_idx"          ON "Payment"("orderId");
+
+CREATE TABLE IF NOT EXISTS "CashDrawer" (
+  "id"              text PRIMARY KEY,
+  "venueId"         text NOT NULL,
+  "shiftId"         text,
+  "openedBy"        text NOT NULL,
+  "openedAt"        timestamp(3) NOT NULL DEFAULT now(),
+  "openingCents"    integer NOT NULL,
+  "closedBy"        text,
+  "closedAt"        timestamp(3),
+  "countedCents"    integer,
+  "expectedCents"   integer,
+  "differenceCents" integer,
+  "note"            text,
+  "status"          text NOT NULL DEFAULT 'OPEN'
+);
+CREATE INDEX IF NOT EXISTS "CashDrawer_venueId_openedAt_idx" ON "CashDrawer"("venueId","openedAt");
+
+CREATE TABLE IF NOT EXISTS "CoverChargeRule" (
+  "id"           text PRIMARY KEY,
+  "venueId"      text NOT NULL,
+  "weekdayCents" integer NOT NULL DEFAULT 150,
+  "weekendCents" integer NOT NULL DEFAULT 180,
+  "weekendDays"  integer[] NOT NULL DEFAULT ARRAY[6, 7]::integer[],
+  "appliesTo"    text NOT NULL DEFAULT 'TABLE'
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "CoverChargeRule_venueId_key" ON "CoverChargeRule"("venueId");
 
 -- ---------- Foreign key (guardate: rieseguibili) ----------
 DO $$ BEGIN

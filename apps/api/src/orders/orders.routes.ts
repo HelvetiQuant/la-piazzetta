@@ -293,7 +293,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
     const now = Date.now();
     const board = orders.map((o) => ({
       id: o.id,
-      table: o.session.table.name,
+      table: o.session?.table.name ?? 'Banco',
       status: o.status,
       placedAt: o.placedAt,
       waitingSec: Math.round((now - new Date(o.placedAt).getTime()) / 1000),

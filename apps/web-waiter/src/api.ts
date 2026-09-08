@@ -200,3 +200,95 @@ export const addOnApi = {
   track: (id: string, accepted: boolean) =>
     apiFetch<MenuAddOn>(`/menu-addons/${id}/track`, { method: 'POST', body: JSON.stringify({ accepted }) }),
 };
+
+// ---- Cassa ----
+export type PaymentMethod = 'CASH' | 'CARD' | 'CREDIT';
+export type SalesChannel = 'TABLE' | 'COUNTER' | 'TAKEAWAY';
+
+export interface BillResponse {
+  session: {
+    id: string;
+    guests: number;
+    coverChargeCentsPerGuest: number;
+    table: { id: string; code: string; name: string };
+  };
+  bill: {
+    itemsGrossCents: number;
+    coverChargeTotalCents: number;
+    taxableCents: number;
+    vatTotalCents: number;
+    totalCents: number;
+    vatBreakdown: Array<{ vatRateCents: number; taxableCents: number; vatCents: number; totalCents: number }>;
+  };
+}
+
+export interface PaymentInput {
+  method: PaymentMethod;
+  amountCents: number;
+  customerId?: string;
+  tenderedCents?: number;
+}
+
+export interface QuickSaleInput {
+  items: Array<{ productId: string; quantity: number }>;
+  payment: PaymentInput;
+  clientOrderId?: string;
+}
+
+export interface CashDrawer {
+  id: string;
+  venueId: string;
+  shiftId: string | null;
+  openedBy: string;
+  openedAt: string;
+  openingCents: number;
+  status: 'OPEN' | 'CLOSED';
+  closedAt: string | null;
+  countedCents: number | null;
+  expectedCents: number | null;
+  differenceCents: number | null;
+}
+
+export interface DailyReport {
+  date: string;
+  totalCents: number;
+  byMethod: Record<string, { count: number; amountCents: number }>;
+  payments: number;
+  drawers: CashDrawer[];
+}
+
+export const cashierApi = {
+  bill: (sessionId: string) =>
+    apiFetch<BillResponse>(`/orders-tables/sessions/${sessionId}/bill`),
+  closeSession: (sessionId: string) =>
+    apiFetch<{ ok: boolean; totalCents: number }>(`/orders-tables/sessions/${sessionId}/close`, { method: 'POST' }),
+  pay: (orderId: string, payments: PaymentInput[], tipCents = 0) =>
+    apiFetch<{ ok: boolean; totalDue: number; paidTotal: number }>(`/cashier/orders/${orderId}/pay`, {
+      method: 'POST',
+      body: JSON.stringify({ payments, tipCents }),
+    }),
+  voidItem: (orderId: string, itemId: string, reason: string) =>
+    apiFetch<{ ok: boolean }>(`/cashier/orders/${orderId}/void-item`, {
+      method: 'POST',
+      body: JSON.stringify({ itemId, reason }),
+    }),
+  quickSale: (input: QuickSaleInput) =>
+    apiFetch<{ orderId: string; totalCents: number; changeCents: number }>('/cashier/quick-sale', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  openDrawer: (openingCents: number, shiftId?: string, note?: string) =>
+    apiFetch<CashDrawer>('/cashier/drawer/open', {
+      method: 'POST',
+      body: JSON.stringify({ openingCents, shiftId, note }),
+    }),
+  closeDrawer: (countedCents: number, note?: string) =>
+    apiFetch<{ drawer: CashDrawer; reconciliation: { expectedCents: number; countedCents: number; differenceCents: number; verdict: string } }>(
+      '/cashier/drawer/close',
+      { method: 'POST', body: JSON.stringify({ countedCents, note }) },
+    ),
+  currentDrawer: () =>
+    apiFetch<{ drawer: CashDrawer; expectedCents: number; cashInCents: number; changeOutCents: number }>('/cashier/drawer/current'),
+  dailyReport: (date?: string) =>
+    apiFetch<DailyReport>(`/cashier/daily-report${date ? `?date=${date}` : ''}`),
+};

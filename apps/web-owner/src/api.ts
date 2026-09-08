@@ -714,4 +714,33 @@ export const acct = {
   },
 };
 
+// ---- Cassa: chiusura giornaliera ----
+export interface DailyReport {
+  date: string;
+  totalCents: number;
+  byMethod: Record<string, { count: number; amountCents: number }>;
+  payments: number;
+  drawers: Array<{
+    id: string;
+    openedAt: string;
+    closedAt: string | null;
+    openingCents: number;
+    countedCents: number | null;
+    expectedCents: number | null;
+    differenceCents: number | null;
+    status: string;
+  }>;
+}
+
+export const cashierApi = {
+  dailyReport: (date?: string) =>
+    req<DailyReport>(`/cashier/daily-report${date ? `?date=${date}` : ''}`),
+  openDrawer: (openingCents: number, shiftId?: string, note?: string) =>
+    req('/cashier/drawer/open', { method: 'POST', body: JSON.stringify({ openingCents, shiftId, note }) }),
+  closeDrawer: (countedCents: number, note?: string) =>
+    req('/cashier/drawer/close', { method: 'POST', body: JSON.stringify({ countedCents, note }) }),
+  currentDrawer: () =>
+    req<{ drawer: { id: string; openingCents: number; openedAt: string; status: string }; expectedCents: number; cashInCents: number; changeOutCents: number }>('/cashier/drawer/current'),
+};
+
 

@@ -4,12 +4,13 @@ import Tables from './pages/Tables';
 import TableOrder from './pages/TableOrder';
 import Chat from './pages/Chat';
 import ClockIn from './pages/ClockIn';
+import Counter from './pages/Counter';
 import { AddOnBanner } from '@la-piazzetta/shared-components';
 import { StaffNotesBanner } from '@la-piazzetta/shared-components';
 import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 import type { TableRow } from './api';
 
-type Tab = 'tables' | 'chat' | 'shift';
+type Tab = 'tables' | 'counter' | 'chat' | 'shift';
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
@@ -51,6 +52,14 @@ export default function App() {
             }}
           >⏰ Turno</button>
           <button
+            onClick={() => setTab('counter')}
+            style={{
+              background: tab === 'counter' ? '#ffffff22' : 'transparent',
+              border: '1px solid #ffffff33', color: '#fff',
+              borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            }}
+          >☕ Banco</button>
+          <button
             onClick={() => setTab('tables')}
             style={{
               background: tab === 'tables' ? '#ffffff22' : 'transparent',
@@ -81,6 +90,7 @@ export default function App() {
       {notesBanner}
       {tab === 'tables' && <AddOnBanner />}
       {tab === 'shift' ? <ClockIn onEnterShift={() => setTab('tables')} /> :
+       tab === 'counter' ? <Counter /> :
        tab === 'tables' ? <Tables onOpenTable={setTable} /> :
        <Chat />}
     </div>

@@ -12,11 +12,12 @@ import StaffSchedule from './components/StaffSchedule';
 import StaffChat from './components/StaffChat';
 import Payroll from './components/Payroll';
 import Accounting from './components/Accounting';
+import DailyClose from './components/DailyClose';
 import MenuManagement from './components/MenuManagement';
 import Login from './pages/Login';
 import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 
-type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting';
+type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting' | 'dailyclose';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -33,6 +34,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'payroll', label: 'Stipendi', icon: '💰' },
   { id: 'credit', label: 'Crediti', icon: '💳' },
   { id: 'accounting', label: 'Contabilità', icon: '📒' },
+  { id: 'dailyclose', label: 'Chiusura', icon: '🔒' },
 ];
 
 export default function App() {
@@ -119,6 +121,7 @@ export default function App() {
         {tab === 'payroll' && <Payroll />}
         {tab === 'accounting' && <Accounting />}
         {tab === 'credit' && <CreditManagement />}
+        {tab === 'dailyclose' && <DailyClose />}
       </main>
     </div>
   );

@@ -4,6 +4,7 @@ import {
   type OrderRow, type OrderItem, type Product, type TableRow, type Station,
 } from '../api';
 import { colors } from '@la-piazzetta/ui';
+import BillDialog from './BillDialog';
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Bozza',
@@ -70,6 +71,7 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
   const [editingNotesFor, setEditingNotesFor] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState('');
   const [notifications, setNotifications] = useState<ReadyNotification[]>([]);
+  const [showBill, setShowBill] = useState(false);
 
   // Traccia stati precedenti degli item per rilevare transizioni a READY
   const prevStatuses = useRef<Map<string, string>>(new Map());
@@ -256,6 +258,12 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
           <h2 style={{ margin: 0, fontSize: 20 }}>
             {table.name} <span style={{ color: '#888', fontWeight: 400 }}>· {session.guests} coperti</span>
           </h2>
+          <button
+            onClick={() => setShowBill(true)}
+            style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: 10, border: 'none', background: colors.accent, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+          >
+            🧾 Conto
+          </button>
           {readyItems.length > 0 && (
             <span className="ready-badge-flash">
               🔔 {readyItems.length} PRONTI!
@@ -642,6 +650,13 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
           }
         }
       `}</style>
+      {showBill && session && (
+        <BillDialog
+          sessionId={session.id}
+          onClose={() => setShowBill(false)}
+          onPaid={() => { setShowBill(false); onBack(); }}
+        />
+      )}
     </div>
   );
 }

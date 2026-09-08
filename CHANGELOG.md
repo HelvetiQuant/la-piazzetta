@@ -2,6 +2,85 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.15.0] — 2026-09-09
+
+Lotto 2 — Cassa e chiusura del cerchio: pagamenti, cassetto
+portasoldi, coperto, vendita al banco, conto e split, scambio importo
+POS, chiusura giornaliera.
+
+### Added — Schema (migration `20260909_cashier_pos`)
+- `Payment`: pagamenti con metodo, importo, resto, POS, credito.
+- `CashDrawer`: cassetto portasoldi legato al turno di bar.
+- `CoverChargeRule`: regola del coperto (1,50 € feriale / 1,80 € weekend).
+- `Order.sessionId` opzionale (vendita al banco senza tavolo).
+- `Order.channel` (TABLE | COUNTER | TAKEAWAY), `discountCents`, `coverChargeCents`.
+- `TableSession.closedBy`, `totalCents`, `coverChargeCentsPerGuest`, `status`.
+- Seed Supabase aggiornato con le nuove tabelle.
+
+### Added — Logica pura (`bill.logic.ts`)
+- `computeBill`: calcolo conto con coperto (solo TABLE), IVA per aliquota,
+  sconto, totale. 50 test in `tests/verify-bill.mjs`.
+- `splitBill`: split in N parti uguali o per gruppi di righe. I resti di
+  arrotondamento sono distribuiti, mai persi.
+- `applyDiscount`: percentuale o importo fisso, clampato al totale.
+- `computeChange`: resto con carta/credito sempre 0.
+- `reconcileDrawer`: riconciliazione cassetto (OK/SHORT/OVER).
+- `coverChargeForDay`: tariffa per giorno della settimana (congelata
+  all'apertura sessione).
+
+### Added — Route cassa (`cashier.routes.ts`)
+- `GET /sessions/:id/bill`: conto aggregato con coperto e IVA.
+- `POST /sessions/:id/close`: chiude sessione, libera tavolo, 409 se
+  restano ordini non pagati o righe non servite.
+- `POST /cashier/orders/:id/pay`: pagamento misto (array di metodi),
+  scrittura contabile, controllo fido per CREDIT.
+- `POST /cashier/orders/:id/void-item`: storno riga con motivo
+  obbligatorio, movimento inverso di magazzino (RETURN).
+- `POST /cashier/quick-sale`: vendita al banco in una chiamata.
+- `POST /cashier/drawer/open` e `/close`, `GET /current`.
+- `GET /cashier/daily-report?date=`: chiusura giornaliera.
+
+### Added — Terminale POS (`terminal.port.ts` + `mock.driver.ts`)
+- Interfaccia `PaymentTerminal` astratta per lo scambio importo.
+- `MockPosDriver` con 4 modalità (approved/declined/timeout/offline)
+  controllate da `POS_MOCK_MODE`.
+- Stato `UNKNOWN` per timeout (mai `DECLINED`): evita doppi addebiti.
+- Fallback manuale sempre disponibile se il terminale non è raggiungibile.
+
+### Added — Frontend cameriere
+- Modalità Banco (`Counter.tsx`): griglia 20 prodotti, due tap per un
+  caffè (prodotto → incassa contanti).
+- `BillDialog.tsx`: conto, split in N parti, pagamento contanti/carta/credito
+  con calcolo resto. Integrato in TableOrder.
+- Tab "Banco" nella navigazione waiter.
+
+### Added — Frontend owner
+- Vista Chiusura giornaliera (`DailyClose.tsx`): incassato per metodo,
+  scontrino medio, cassetto con riconciliazione (OK/SHORT/OVER).
+- Tab "Chiusura" nella navigazione owner.
+
+### Changed
+- `Order.sessionId` da obbligatorio a opzionale (FK rilassata).
+- `scripts/ci.sh`: aggiunto `verify-bill.mjs` ai test di logica pura.
+- `apps/api/src/orders/orders.routes.ts`: `o.session` ora opzionale,
+  fallback "Banco" per il nome tavolo.
+
+### Verified
+- Typecheck API: 0 errori.
+- Typecheck web-waiter: 0 errori.
+- Typecheck web-owner: 0 errori.
+- Test logica pura: 50 passed, 0 failed (verify-bill.mjs).
+- Prisma validate: schema valido.
+
+### Known gaps
+- Endpoint `/cashier/sessions/:id/pay` per pagare l'intera sessione in
+  una volta (il BillDialog usa quick-sale come workaround).
+- Scambio importo POS reale (EcrPosDriver per PAX A920 Pro): da
+  implementare quando Worldline attiva la funzione sul contratto.
+- Scontrino fiscale telematico: Lotto 4 (interfaccia FiscalPrinter già
+  progettata, non cablata nel Lotto 2).
+- Coperto: confermare quali giorni contano come weekend con l'owner.
+
 ## [0.14.1] — 2026-09-08
 
 Ambiente di prova: seed dimostrativo, script di avvio unico, guida al

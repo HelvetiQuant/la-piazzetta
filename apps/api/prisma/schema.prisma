@@ -38,6 +38,9 @@ model Venue {
   vatReturns VatReturn[]
   costCenters CostCenter[]
   aiPreference AiPreference?
+  payments     Payment[]
+  cashDrawers  CashDrawer[]
+  coverChargeRules CoverChargeRule[]
   aiInteractions AiInteraction[]
   menuAddOns MenuAddOn[]
   staffNotes StaffNote[]
@@ -120,8 +123,15 @@ model TableSession {
   guests    Int      @default(1)
   state     String   @default("OPEN")
   orders    Order[]
+  payments  Payment[]
   createdAt DateTime @default(now())
   closedAt  DateTime?
+  closedBy  String?
+  totalCents Int     @default(0)
+  // Coperto congelato all'apertura: un tavolo che si siede venerdì alle 23:00
+  // e paga sabato alle 00:30 non cambia tariffa a metà cena.
+  coverChargeCentsPerGuest Int @default(0)
+  status    String   @default("OPEN") // OPEN | CLOSED
 
   @@index([venueId, createdAt])
 }
@@ -130,12 +140,17 @@ model Order {
   id            String      @id @default(cuid())
   venueId       String
   venue         Venue       @relation(fields: [venueId], references: [id])
-  sessionId     String
-  session       TableSession @relation(fields: [sessionId], references: [id])
+  sessionId     String?
+  session       TableSession? @relation(fields: [sessionId], references: [id])
   clientOrderId String?     @unique
   status        String      @default("DRAFT")
   totalCents    Int         @default(0)
+  // Canale di vendita: TABLE (tavolo), COUNTER (banco), TAKEAWAY (asporto).
+  channel       String      @default("TABLE")
+  discountCents Int         @default(0)
+  coverChargeCents Int      @default(0)
   items         OrderItem[]
+  payments      Payment[]
 
   // --- Ciclo di vita: timestamp per statistiche tempi (ordine -> consegna al tavolo) ---
   placedAt      DateTime    @default(now()) // comanda registrata al tavolo dal cameriere
@@ -150,6 +165,7 @@ model Order {
   @@index([sessionId])
   @@index([status])
   @@index([placedAt])
+  @@index([channel])
 }
 
 model OrderItem {
@@ -342,6 +358,7 @@ model Customer {
   active        Boolean  @default(true)
 
   transactions  CreditTransaction[]
+  payments      Payment[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -371,7 +388,72 @@ model CreditTransaction {
   @@index([createdAt])
 }
 
-// Turno di lavoro: clock-in / clock-out di un dipendente
+// ===================================================================
+//  Cassa e pagamenti
+// ===================================================================
+
+model Payment {
+  id           String   @id @default(cuid())
+  venueId      String
+  venue        Venue    @relation(fields: [venueId], references: [id])
+  orderId      String?
+  order        Order?   @relation(fields: [orderId], references: [id])
+  sessionId    String?
+  session      TableSession? @relation(fields: [sessionId], references: [id])
+  method       String   // CASH | CARD | CREDIT (buoni pasto NON accettati)
+  amountCents  Int
+  tipCents     Int      @default(0)
+  changeCents  Int      @default(0)
+  cashDrawerId String?
+  customerId   String?  // valorizzato quando method = CREDIT
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  // esito restituito dal terminale POS (scambio importo, vedi Lotto 2.7)
+  posTerminalId String?
+  posAuthCode   String?
+  posTxnId      String?
+  createdBy    String
+  createdAt    DateTime @default(now())
+
+  @@index([venueId, createdAt])
+  @@index([orderId])
+}
+
+// Cassetto portasoldi: uno per turno di bar, gestito da chi sta al banco.
+model CashDrawer {
+  id              String    @id @default(cuid())
+  venueId         String
+  venue           Venue     @relation(fields: [venueId], references: [id])
+  shiftId         String?   // turno di bar a cui il cassetto è legato
+  shift           Shift?    @relation(fields: [shiftId], references: [id])
+  openedBy        String
+  openedAt        DateTime  @default(now())
+  openingCents    Int
+  closedBy        String?
+  closedAt        DateTime?
+  countedCents    Int?      // contato a mano a fine turno
+  expectedCents   Int?      // calcolato dai movimenti
+  differenceCents Int?      // counted - expected
+  note            String?
+  status          String    @default("OPEN") // OPEN | CLOSED
+
+  @@index([venueId, openedAt])
+}
+
+// Regola del coperto: importo fisso a persona, differenziato per giorno.
+model CoverChargeRule {
+  id             String @id @default(cuid())
+  venueId        String
+  venue          Venue  @relation(fields: [venueId], references: [id])
+  weekdayCents   Int    @default(150)
+  weekendCents   Int    @default(180)
+  weekendDays    Int[]  @default([6, 7])  // ISO: 6 = sabato, 7 = domenica
+  appliesTo      String @default("TABLE") // solo servizio al tavolo
+
+  @@unique([venueId])
+}
+
+// ===================================================================
+//  Turno di lavoro: clock-in / clock-out di un dipendente
 model Shift {
   id           String   @id @default(cuid())
   userId       String
@@ -384,6 +466,7 @@ model Shift {
   shiftRole    String?  // ruolo durante il turno: WAITER | BARMAN | COOK (null = usa ruolo default)
   note         String?
   status       String   @default("OPEN") // OPEN | CLOSED
+  cashDrawers  CashDrawer[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

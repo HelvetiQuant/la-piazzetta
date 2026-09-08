@@ -75,7 +75,8 @@ ci_logic() {
   # Nessuna dipendenza: gira anche senza npm install. È il primo segnale utile.
   node tests/verify.mjs \
     && node tests/verify-inventory.mjs \
-    && node tests/verify-purchase.mjs
+    && node tests/verify-purchase.mjs \
+    && node tests/verify-bill.mjs
 }
 
 ci_api_prisma()    { (cd apps/api && npx prisma generate); }

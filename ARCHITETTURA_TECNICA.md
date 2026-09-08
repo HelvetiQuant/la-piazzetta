@@ -1,6 +1,6 @@
 # La Piazzetta — Architettura tecnica (dettaglio)
 
-Documento di riferimento tecnico completo del sistema al **2026-09-08 (v0.14.0)**.
+Documento di riferimento tecnico completo del sistema al **2026-09-09 (v0.15.0)**.
 Copre stack, struttura, backend, modello dati, flussi, sicurezza, API, frontend,
 deployment e debito tecnico. Fonte di verità del codice: `apps/` + `macos/`.
 
@@ -733,3 +733,46 @@ Token del design system allineati alle app Swift (GlassSupport.swift):
 - bg: `#F8F5F0` (sfondo caldo)
 
 Nessun colore hard-coded nei frontend: solo token da `@la-piazzetta/ui`.
+
+---
+
+## 19. Modulo cassa (v0.15.0)
+
+### 19.1 Modelli
+- `Payment`: pagamenti con metodo (CASH/CARD/CREDIT), importo, resto,
+  POS (terminalId, authCode, txnId), credito (customerId).
+- `CashDrawer`: cassetto portasoldi legato al turno di bar (`Shift`).
+  Uno per turno, chiusura con conteggio e riconciliazione.
+- `CoverChargeRule`: regola del coperto (1,50 € feriale / 1,80 € weekend).
+  Congelata all'apertura sessione (`TableSession.coverChargeCentsPerGuest`).
+- `Order.sessionId` opzionale: vendita al banco senza tavolo.
+- `Order.channel`: TABLE | COUNTER | TAKEAWAY.
+
+### 19.2 Logica pura (`cashier/bill.logic.ts`)
+- `computeBill`: calcolo conto con IVA per aliquota, coperto (solo TABLE),
+  sconto. 50 test in `tests/verify-bill.mjs`.
+- `splitBill`: split in N parti o per gruppi. Resti distribuiti, mai persi.
+- `applyDiscount`, `computeChange`, `reconcileDrawer`, `coverChargeForDay`.
+
+### 19.3 Route (`cashier/cashier.routes.ts`)
+- `registerCashierRoutes(app, prisma, deps)` espone 9 endpoint.
+- Integrazione contabilità: ogni `Payment` genera `JournalEntry` in
+  partita doppia (DARE cassa/banca/crediti, AVERE ricavi + IVA).
+- Integrazione crediti: `method=CREDIT` chiama `applyTransaction` con
+  controllo del fido. 409 se fido superato.
+- Integrazione magazzino: `void-item` storna con `recordMovement` tipo
+  RETURN (append-only, non cancella il SALE originale).
+
+### 19.4 Terminale POS (`cashier/terminal.port.ts`)
+- Interfaccia `PaymentTerminal` astratta per lo scambio importo.
+- `MockPosDriver` per CI, 4 modalità via `POS_MOCK_MODE`.
+- Stato `UNKNOWN` per timeout (mai `DECLINED`): evita doppi addebiti.
+- Fallback manuale sempre disponibile.
+- Driver reale (EcrPosDriver per PAX A920 Pro): da implementare quando
+  Worldline attiva lo scambio importo sul contratto.
+
+### 19.5 Frontend
+- Modalità Banco (`web-waiter/Counter.tsx`): due tap per un caffè.
+- `BillDialog`: conto, split, pagamento. Integrato in TableOrder.
+- Chiusura giornaliera (`web-owner/DailyClose.tsx`): incassato per
+  metodo, cassetto con riconciliazione.
