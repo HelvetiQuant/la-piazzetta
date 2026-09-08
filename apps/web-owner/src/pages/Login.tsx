@@ -40,7 +40,8 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
         onSubmit={submit}
         style={{ background: '#fff', borderRadius: 10, padding: 32, width: 320, display: 'flex', flexDirection: 'column', gap: 12 }}
       >
-        <h1 style={{ fontSize: 18, margin: 0 }}>La Piazzetta · Dashboard</h1>
+        <img src="/logo.jpg" alt="La Piazzetta" style={{ width: 120, height: 'auto', borderRadius: 8, margin: '0 auto 8px' }} />
+        <h1 style={{ fontSize: 18, margin: 0, textAlign: 'center' }}>La Piazzetta · Dashboard</h1>
         <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
           <button type="button" onClick={() => setMode('password')} style={tabStyle(mode === 'password')}>
             Email

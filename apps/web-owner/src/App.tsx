@@ -61,7 +61,7 @@ export default function App() {
         display: 'flex', alignItems: 'center', gap: 16,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ fontSize: 22 }}>🍕</span>
+          <img src="/logo.jpg" alt="Logo" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover' }} />
           <strong style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.02em' }}>La Piazzetta</strong>
         </div>
 

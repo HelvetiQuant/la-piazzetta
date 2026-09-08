@@ -40,7 +40,10 @@ export default function App() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         position: 'sticky', top: 0, zIndex: 10,
       }}>
-        <strong style={{ fontSize: 16 }}>La Piazzetta · Staff</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover' }} />
+          <strong style={{ fontSize: 16 }}>La Piazzetta · Staff</strong>
+        </div>
         <span style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
           {/* Tab navigation */}
           <button
