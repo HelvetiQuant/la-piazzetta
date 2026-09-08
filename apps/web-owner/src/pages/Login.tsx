@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { loginPassword, loginPin } from '../lib/client';
+import { loginPassword, loginPin } from '@la-piazzetta/api-client';
 
 export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
   const [mode, setMode] = useState<'password' | 'pin'>('password');

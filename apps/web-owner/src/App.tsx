@@ -14,7 +14,7 @@ import Payroll from './components/Payroll';
 import Accounting from './components/Accounting';
 import MenuManagement from './components/MenuManagement';
 import Login from './pages/Login';
-import { currentUser, isLoggedIn, logout } from './lib/client';
+import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 
 type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting';
 

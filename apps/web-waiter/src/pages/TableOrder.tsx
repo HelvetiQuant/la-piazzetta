@@ -3,6 +3,7 @@ import {
   api, fmtEuro, CATEGORY_LABELS, STATION_LABEL, stationForCategory,
   type OrderRow, type OrderItem, type Product, type TableRow, type Station,
 } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Bozza',
@@ -18,10 +19,10 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   SENT: '#1976d2',
   IN_PREPARATION: '#f57c00',
-  READY: '#2e7d32',
+  READY: colors.success,
   SERVED: '#6a1b9a',
   PAID: '#455a64',
-  CANCELLED: '#c62828',
+  CANCELLED: colors.danger,
   PENDING: '#1976d2',
 };
 
@@ -322,7 +323,7 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
                   <span style={{
                     fontSize: 10, padding: '2px 6px', borderRadius: 4,
                     background: station === 'BAR' ? '#e3f2fd' : '#fff3e0',
-                    color: station === 'BAR' ? '#1565c0' : '#e65100',
+                    color: station === 'BAR' ? colors.secondary : colors.warning,
                     fontWeight: 600,
                   }}>
                     {STATION_LABEL[station]}
@@ -358,7 +359,7 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
                         <span style={{
                           marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 3,
                           background: it.station === 'BAR' ? '#e3f2fd' : '#fff3e0',
-                          color: it.station === 'BAR' ? '#1565c0' : '#e65100',
+                          color: it.station === 'BAR' ? colors.secondary : colors.warning,
                         }}>
                           {STATION_LABEL[it.station as Station] ?? it.station}
                         </span>
@@ -373,7 +374,7 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
                       </span>
                     </div>
                     {it.notes && (
-                      <div style={{ color: '#e65100', fontSize: 12, fontStyle: 'italic', marginTop: 2, paddingLeft: 8 }}>
+                      <div style={{ color: colors.warning, fontSize: 12, fontStyle: 'italic', marginTop: 2, paddingLeft: 8 }}>
                         📝 {it.notes}
                       </div>
                     )}
@@ -382,7 +383,7 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
               </ul>
               <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
                 {o.status === 'READY' && (
-                  <button onClick={() => advance(o, 'SERVED')} style={{ ...actionBtn, background: '#ff6f00', color: '#fff', borderColor: '#ff6f00' }}>
+                  <button onClick={() => advance(o, 'SERVED')} style={{ ...actionBtn, background: colors.warning, color: '#fff', borderColor: colors.warning }}>
                     ✅ Segna servita
                   </button>
                 )}
@@ -468,12 +469,12 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
             <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Invio a:</div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
               {cartByStation.BAR.length > 0 && (
-                <span style={{ ...routeBadge, background: '#e3f2fd', color: '#1565c0' }}>
+                <span style={{ ...routeBadge, background: '#e3f2fd', color: colors.secondary }}>
                   🍸 Bar: {cartByStation.BAR.reduce((s, l) => s + l.quantity, 0)} articoli
                 </span>
               )}
               {cartByStation.TAVOLA_CALDA.length > 0 && (
-                <span style={{ ...routeBadge, background: '#fff3e0', color: '#e65100' }}>
+                <span style={{ ...routeBadge, background: '#fff3e0', color: colors.warning }}>
                   🍳 Cucina: {cartByStation.TAVOLA_CALDA.reduce((s, l) => s + l.quantity, 0)} articoli
                 </span>
               )}
@@ -542,7 +543,7 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
           animation: flashYellow 0.8s infinite;
         }
         @keyframes flashYellow {
-          0%, 49% { background: #ff6f00; box-shadow: 0 0 12px rgba(255,111,0,0.6); }
+          0%, 49% { background: ${colors.warning}; box-shadow: 0 0 12px rgba(255,111,0,0.6); }
           50%, 100% { background: #ffd600; color: #1a1a2e; box-shadow: 0 0 20px rgba(255,214,0,0.8); }
         }
 
@@ -556,16 +557,16 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
           align-items: center;
           gap: 12;
           animation: flashBanner 0.8s infinite;
-          border: 3px solid #ff6f00;
+          border: 3px solid ${colors.warning};
         }
         @keyframes flashBanner {
           0%, 49% {
             background: #ffd600;
-            border-color: #ff6f00;
+            border-color: ${colors.warning};
             box-shadow: 0 0 20px rgba(255,111,0,0.5);
           }
           50%, 100% {
-            background: #ff6f00;
+            background: ${colors.warning};
             color: #fff;
             border-color: #ffd600;
             box-shadow: 0 0 30px rgba(255,214,0,0.7);
@@ -574,12 +575,12 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
 
         /* Card ordine con articoli pronti — bordo lampeggiante */
         .order-card-ready-flash {
-          border: 3px solid #ff6f00 !important;
+          border: 3px solid ${colors.warning} !important;
           animation: flashBorder 0.8s infinite;
         }
         @keyframes flashBorder {
           0%, 49% {
-            border-color: #ff6f00;
+            border-color: ${colors.warning};
             box-shadow: 0 0 12px rgba(255,111,0,0.4);
           }
           50%, 100% {
@@ -610,13 +611,13 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
           animation: flashTag 0.8s infinite;
         }
         @keyframes flashTag {
-          0%, 49% { background: #ff6f00; color: #fff; }
+          0%, 49% { background: ${colors.warning}; color: #fff; }
           50%, 100% { background: #ffd600; color: #1a1a2e; }
         }
 
         /* Toast notification lampeggiante */
         .toast-ready-flash {
-          background: linear-gradient(135deg, #ff6f00 0%, #ffd600 100%);
+          background: linear-gradient(135deg, ${colors.warning} 0%, #ffd600 100%);
           color: #1a1a2e;
           border-radius: 16px;
           padding: 16px 20px;
@@ -630,14 +631,14 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
         }
         @keyframes flashToast {
           0%, 49% {
-            background: linear-gradient(135deg, #ff6f00 0%, #f57c00 100%);
+            background: linear-gradient(135deg, ${colors.warning} 0%, #f57c00 100%);
             color: #fff;
             border-color: #ffd600;
           }
           50%, 100% {
-            background: linear-gradient(135deg, #ffd600 0%, #ff6f00 100%);
+            background: linear-gradient(135deg, #ffd600 0%, ${colors.warning} 100%);
             color: #1a1a2e;
-            border-color: #ff6f00;
+            border-color: ${colors.warning};
           }
         }
       `}</style>
@@ -673,7 +674,7 @@ const actionBtn: React.CSSProperties = {
   cursor: 'pointer', fontSize: 13, fontWeight: 600,
 };
 const errBox: React.CSSProperties = {
-  color: '#c62828', background: '#ffebee', borderRadius: 8, padding: '8px 12px',
+  color: colors.danger, background: '#ffebee', borderRadius: 8, padding: '8px 12px',
   marginBottom: 12, fontSize: 13,
 };
 const cartLineBox: React.CSSProperties = {
@@ -684,7 +685,7 @@ const qtyBtn: React.CSSProperties = {
   cursor: 'pointer', fontSize: 16, fontWeight: 700,
 };
 const removeBtn: React.CSSProperties = {
-  border: 0, background: 'transparent', color: '#c62828', cursor: 'pointer',
+  border: 0, background: 'transparent', color: colors.danger, cursor: 'pointer',
   fontSize: 14, padding: 4,
 };
 const noteInput: React.CSSProperties = {
@@ -696,7 +697,7 @@ const noteSaveBtn: React.CSSProperties = {
 };
 const noteDisplayBtn: React.CSSProperties = {
   border: '1px solid #ffe0b2', background: '#fff8e1', borderRadius: 6, padding: '4px 8px',
-  cursor: 'pointer', fontSize: 12, color: '#e65100', fontStyle: 'italic', textAlign: 'left',
+  cursor: 'pointer', fontSize: 12, color: colors.warning, fontStyle: 'italic', textAlign: 'left',
 };
 const noteAddBtn: React.CSSProperties = {
   border: '1px dashed #bbb', background: 'transparent', borderRadius: 6, padding: '4px 8px',

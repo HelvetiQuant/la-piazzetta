@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { menu, fmtEuro, CATEGORY_LABELS, stationForCategory, type Product, type Station } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 const STATION_LABEL: Record<Station, string> = { BAR: 'Bar', TAVOLA_CALDA: 'Cucina' };
 
@@ -130,7 +131,7 @@ export default function MenuManagement() {
                     <span style={{
                       padding: '2px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600,
                       background: station === 'BAR' ? '#e3f2fd' : '#fff3e0',
-                      color: station === 'BAR' ? '#1565c0' : '#e65100',
+                      color: station === 'BAR' ? colors.secondary : colors.warning,
                     }}>
                       {STATION_LABEL[station]}
                     </span>
@@ -231,7 +232,7 @@ function ProductModal({
             <span style={{
               padding: '4px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600,
               background: stationForCategory(category) === 'BAR' ? '#e3f2fd' : '#fff3e0',
-              color: stationForCategory(category) === 'BAR' ? '#1565c0' : '#e65100',
+              color: stationForCategory(category) === 'BAR' ? colors.secondary : colors.warning,
             }}>
               → {STATION_LABEL[stationForCategory(category)]}
             </span>
@@ -301,11 +302,11 @@ const editBtn: React.CSSProperties = {
   padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600, marginRight: 4,
 };
 const delBtn: React.CSSProperties = {
-  border: '1px solid #ffcdd2', background: '#fff', color: '#c62828', borderRadius: 8,
+  border: '1px solid #ffcdd2', background: '#fff', color: colors.danger, borderRadius: 8,
   padding: '4px 10px', cursor: 'pointer', fontSize: 12, fontWeight: 600,
 };
 const errBox: React.CSSProperties = {
-  color: '#c62828', background: '#ffebee', borderRadius: 12, padding: '10px 16px',
+  color: colors.danger, background: '#ffebee', borderRadius: 12, padding: '10px 16px',
   marginBottom: 16, fontSize: 14,
 };
 const modalOverlay: React.CSSProperties = {
@@ -333,6 +334,6 @@ const saveBtn: React.CSSProperties = {
   padding: '10px 20px', cursor: 'pointer', fontSize: 15, fontWeight: 600,
 };
 const dangerBtn: React.CSSProperties = {
-  border: 0, background: '#c62828', color: '#fff', borderRadius: 12,
+  border: 0, background: colors.danger, color: '#fff', borderRadius: 12,
   padding: '10px 20px', cursor: 'pointer', fontSize: 15, fontWeight: 600,
 };

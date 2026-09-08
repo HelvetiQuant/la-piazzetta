@@ -1,0 +1,194 @@
+{
+  "": {
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/primary.swiftdeps"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIAssistant.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIChatView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIConfig.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/APIClient.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AccountingView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ChatView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ContentView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/CreditView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/DashboardView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/GlassSupport.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/InventoryView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/LoginView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MarketingView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuAddOnsView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/Models.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/OrdersBoardView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PayrollView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PiazzettaOwnerApp.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PrepTimeStatsView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PurchaseOrdersView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ScheduleView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerManager.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerStatusView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ShiftsView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/StaffNotesView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView.dia"
+  },
+  "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/SuppliersView.swift": {
+    "dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView.d",
+    "object": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView.swift.o",
+    "swiftmodule": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView~partial.swiftmodule",
+    "swift-dependencies": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView.swiftdeps",
+    "diagnostics": "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView.dia"
+  }
+}

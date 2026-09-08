@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { inv, fmtEuro, type PurchaseOrder, type PoItem } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Bozza', SENT: 'Inviato', PARTIAL: 'Ricevuto in parte', RECEIVED: 'Ricevuto', CANCELLED: 'Annullato',
 };
 const STATUS_COLOR: Record<string, string> = {
-  DRAFT: '#888', SENT: '#1565c0', PARTIAL: '#f9a825', RECEIVED: '#2e7d32', CANCELLED: '#c62828',
+  DRAFT: '#888', SENT: colors.secondary, PARTIAL: '#f9a825', RECEIVED: colors.success, CANCELLED: colors.danger,
 };
 
 // Pannello ricezione: per ogni riga si indicano le confezioni ricevute ora.
@@ -43,8 +44,8 @@ function ReceivePanel({ po, onDone }: { po: PurchaseOrder; onDone: () => void })
           ))}
         </tbody>
       </table>
-      {err && <p style={{ color: '#c62828', fontSize: 12 }}>{err}</p>}
-      <button onClick={submit} style={{ marginTop: 6, background: '#2e7d32', color: '#fff', border: 0, padding: '6px 12px', borderRadius: 6 }}>Conferma ricezione</button>
+      {err && <p style={{ color: colors.danger, fontSize: 12 }}>{err}</p>}
+      <button onClick={submit} style={{ marginTop: 6, background: colors.success, color: '#fff', border: 0, padding: '6px 12px', borderRadius: 6 }}>Conferma ricezione</button>
     </div>
   );
 }
@@ -70,7 +71,7 @@ export default function PurchaseOrders() {
     <section>
       <h2>Ordini d'acquisto</h2>
       <p style={{ color: '#888', fontSize: 13 }}>Gli ordini si generano dalle proposte di riordino (tab Fornitori) o manualmente via API.</p>
-      {error && <p style={{ color: '#c62828' }}>{error}</p>}
+      {error && <p style={{ color: colors.danger }}>{error}</p>}
       {pos.length === 0 && <p style={{ color: '#999' }}>Nessun ordine d'acquisto.</p>}
 
       {pos.map((po) => (
@@ -105,7 +106,7 @@ export default function PurchaseOrders() {
               </button>
             )}
             {(po.status === 'DRAFT' || po.status === 'SENT') && (
-              <button onClick={() => act(() => inv.cancelPurchaseOrder(po.id))} style={{ color: '#c62828' }}>Annulla</button>
+              <button onClick={() => act(() => inv.cancelPurchaseOrder(po.id))} style={{ color: colors.danger }}>Annulla</button>
             )}
           </div>
           {receiving === po.id && <ReceivePanel po={po} onDone={() => { setReceiving(null); load(); }} />}

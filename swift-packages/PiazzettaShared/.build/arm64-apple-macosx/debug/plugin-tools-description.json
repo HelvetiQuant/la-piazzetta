@@ -1,0 +1,613 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.PiazzettaShared-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/sources",
+      "importPath" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIAssistant.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIChatView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIConfig.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/APIClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AccountingView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ChatView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/CreditView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/DashboardView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/GlassSupport.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/InventoryView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/LoginView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MarketingView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuAddOnsView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/Models.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/OrdersBoardView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PayrollView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PiazzettaOwnerApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PrepTimeStatsView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PurchaseOrdersView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ScheduleView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerStatusView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ShiftsView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/StaffNotesView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/SuppliersView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "PiazzettaShared",
+      "moduleOutputPath" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/Modules/PiazzettaShared.swiftmodule",
+      "objects" : [
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView.swift.o",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/include/PiazzettaShared-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "piazzettashared"
+      ],
+      "outputFileMapPath" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIAssistant.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIChatView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AIConfig.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/APIClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/AccountingView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ChatView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/CreditView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/DashboardView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/GlassSupport.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/InventoryView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/LoginView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MarketingView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuAddOnsView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/MenuView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/Models.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/OrdersBoardView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PayrollView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PiazzettaOwnerApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PrepTimeStatsView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/PurchaseOrdersView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ScheduleView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ServerStatusView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/ShiftsView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/StaffNotesView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/SuppliersView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/Modules/PiazzettaShared.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIAssistant.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIChatView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIConfig.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/APIClient.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AccountingView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ChatView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ContentView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/CreditView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/DashboardView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/GlassSupport.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/InventoryView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/LoginView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MarketingView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuAddOnsView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/Models.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/OrdersBoardView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PayrollView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PiazzettaOwnerApp.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PrepTimeStatsView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PurchaseOrdersView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ScheduleView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerManager.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerStatusView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ShiftsView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/StaffNotesView.swift",
+        "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/SuppliersView.swift"
+      ],
+      "tempsPath" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "PiazzettaShared" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "PiazzettaShared",
+      "-package-name",
+      "piazzettashared",
+      "-c",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIAssistant.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIChatView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIConfig.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/APIClient.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AccountingView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ChatView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ContentView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/CreditView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/DashboardView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/GlassSupport.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/InventoryView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/LoginView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MarketingView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuAddOnsView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/Models.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/OrdersBoardView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PayrollView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PiazzettaOwnerApp.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PrepTimeStatsView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PurchaseOrdersView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ScheduleView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerManager.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerStatusView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ShiftsView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/StaffNotesView.swift",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/SuppliersView.swift",
+      "-I",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/include/PiazzettaShared-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "piazzettashared",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "PiazzettaShared" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIAssistant.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIChatView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AIConfig.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/APIClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/AccountingView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ChatView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/CreditView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/DashboardView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/GlassSupport.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/InventoryView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/LoginView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MarketingView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuAddOnsView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/MenuView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/Models.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/OrdersBoardView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PayrollView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PiazzettaOwnerApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PrepTimeStatsView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/PurchaseOrdersView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ScheduleView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ServerStatusView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/ShiftsView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/StaffNotesView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/Sources/PiazzettaShared/SuppliersView.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/PiazzettaShared.build/sources"
+    },
+    "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/riccardogaetti/Downloads/piazzetta-main 2/swift-packages/PiazzettaShared/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

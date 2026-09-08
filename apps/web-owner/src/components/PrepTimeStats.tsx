@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type PrepStats, type GroupStats, fmtSec } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 type GroupBy = 'category' | 'product' | 'station';
 
@@ -20,12 +21,12 @@ function StatRow({ g, max }: { g: GroupStats; max: number }) {
     <tr>
       <td style={{ padding: '6px 8px' }}>
         {g.label}
-        {g.station && <span style={{ marginLeft: 6, fontSize: 10, color: '#fff', background: g.station === 'BAR' ? '#1565c0' : '#e65100', padding: '1px 6px', borderRadius: 8 }}>{g.station === 'BAR' ? 'Bar' : 'Cucina'}</span>}
+        {g.station && <span style={{ marginLeft: 6, fontSize: 10, color: '#fff', background: g.station === 'BAR' ? colors.secondary : colors.warning, padding: '1px 6px', borderRadius: 8 }}>{g.station === 'BAR' ? 'Bar' : 'Cucina'}</span>}
       </td>
       <td style={{ padding: '6px 8px', textAlign: 'center' }}>{g.stationTotal.count}</td>
       <td style={{ padding: '6px 8px' }}><Bar sec={g.stationTotal.avgSec} max={max} color="#5c6bc0" /></td>
       <td style={{ padding: '6px 8px', textAlign: 'center', color: '#666' }}>{fmtSec(g.stationTotal.medianSec)}</td>
-      <td style={{ padding: '6px 8px', textAlign: 'center', color: '#c62828' }}>{fmtSec(g.stationTotal.p90Sec)}</td>
+      <td style={{ padding: '6px 8px', textAlign: 'center', color: colors.danger }}>{fmtSec(g.stationTotal.p90Sec)}</td>
       <td style={{ padding: '6px 8px', textAlign: 'center', color: '#888' }}>{fmtSec(g.queue.avgSec)}</td>
       <td style={{ padding: '6px 8px', textAlign: 'center', color: '#888' }}>{fmtSec(g.prep.avgSec)}</td>
     </tr>
@@ -104,7 +105,7 @@ export default function PrepTimeStats() {
         <button onClick={load}>Aggiorna</button>
       </div>
 
-      {error && <p style={{ color: '#c62828' }}>{error}</p>}
+      {error && <p style={{ color: colors.danger }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
         <KpiCard label="Ordine → consegna" value={fmtSec(stats?.delivery.medianSec ?? null)} sub={`mediana · ${stats?.delivery.count ?? 0} ordini`} />

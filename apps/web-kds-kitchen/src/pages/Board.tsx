@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, NEXT_STATUS, type BoardOrder, type ItemStatus } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 const STATION = ((import.meta.env.VITE_STATION as string | undefined) || 'BAR') as 'BAR' | 'TAVOLA_CALDA';
 const STATION_LABEL = STATION === 'BAR' ? 'Bar' : 'Cucina';
@@ -11,9 +12,9 @@ const COLUMNS: { status: ItemStatus; label: string }[] = [
 ];
 
 function ageColor(waitingSec: number): string {
-  if (waitingSec > 600) return '#c62828';
+  if (waitingSec > 600) return colors.danger;
   if (waitingSec > 300) return '#ef6c00';
-  return '#2e7d32';
+  return colors.success;
 }
 
 function beep() {

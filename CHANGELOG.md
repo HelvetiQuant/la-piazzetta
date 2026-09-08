@@ -2,6 +2,64 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.14.0] — 2026-09-08
+
+Lotto 1 — Monorepo e componenti condivisi: npm workspaces, pacchetti
+condivisi (api-client, ui, shared-components), Swift Package unificato
+per macOS/iOS, eliminazione file duplicati, palette unica.
+
+### Added — npm workspaces
+- `package.json` root con `"workspaces": ["apps/*", "packages/*"]`.
+- `packages/tsconfig/` — `tsconfig.base.json` condiviso per tutte le
+  web app (target, lib, moduleResolution, strict).
+- `packages/api-client/` — client HTTP con login JWT, refresh
+  automatico, `apiFetch`. Prima 4 copie byte-identiche.
+- `packages/ui/` — design system completo (colors, Card, KpiCard,
+  Badge, Button, Input, Select, Spinner, EmptyState, ErrorBanner,
+  GlobalStyles). Prima esisteva solo in web-owner.
+- `packages/shared-components/` — `StaffNotesBanner`, `AddOnBanner`.
+  Prima 3 copie byte-identiche di StaffNotesBanner.
+
+### Changed — Web app come consumatori
+- Tutte le 4 web app importano da `@la-piazzetta/api-client`,
+  `@la-piazzetta/ui`, `@la-piazzetta/shared-components`.
+- `tsconfig.json` di ogni app estende `@la-piazzetta/tsconfig`.
+- `package.json` di ogni app dipende dai pacchetti condivisi.
+- File duplicati rimossi: 4× `lib/client.ts`, 4× `src/ui.tsx` (owner),
+  3× `StaffNotesBanner.tsx`, 1× `AddOnBanner.tsx`.
+- `scripts/ci.sh`: un `npm ci` in root invece di 4 installazioni
+  separate.
+
+### Fixed — Colori hard-coded
+- 13 file .tsx con colori hard-coded (`#c62828`, `#2e7d32`, `#1565c0`,
+  `#e65100`, `#ff6f00`) sostituiti con token del design system
+  (`colors.accent`, `colors.success`, `colors.secondary`,
+  `colors.warning`, `colors.danger`).
+- Palette unica allineata alle app Swift: rosso pomodoro `#C71F14`,
+  oro `#D9A633`, verde oliva `#669933`, rosso scuro `#B31A19`,
+  arancio `#E68C26`, sfondo `#F8F5F0`.
+
+### Added — Swift Package condiviso
+- `swift-packages/PiazzettaShared/` — Package.swift con target
+  `PiazzettaShared` per macOS 14+ e iOS 17+.
+- 27 file Swift unificati: 10 identici copiati, 17 divergenti
+  riconciliati con `#if os(macOS)` / `#else` (iOS).
+- `GlassSupport.swift` unificato: `hoverHighlight(cornerRadius:)` con
+  default, `GlassEmptyState(message:)` opzionale, `glassEffect` con
+  `#available`, `DeltaBadge` con due init.
+- `APIClient.swift` con `baseURL` condizionale per piattaforma.
+- `ServerManager.swift` / `ServerStatusView.swift` con implementazioni
+  separate (Docker control su macOS, health check su iOS).
+- `ContentView.swift` con AI banner e floating button sotto
+  `#if os(macOS)`, `.sheet` su iOS.
+- `swift build` verde, 0 errori, 0 warning.
+
+### Verified
+- `npm ci` in root installa tutto (api + 4 web app + 3 pacchetti).
+- Typecheck: 0 errori per tutte le 4 web app e i 3 pacchetti.
+- `swift build` del pacchetto condiviso: 0 errori.
+- Zero file byte-identici tra apps/web-* (verificato con md5).
+
 ## [0.13.1] — 2026-09-08
 
 Lotto 0 — Hardening: chiusura della falla di sicurezza cross-tenant,

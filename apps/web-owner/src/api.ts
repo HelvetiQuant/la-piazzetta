@@ -1,7 +1,7 @@
 // Client API della dashboard proprietario. Stessa interfaccia di prima
 // (api.*, inv.*, fmtSec, fmtEuro) ma ora sopra il fetch autenticato JWT reale
 // (vedi lib/client.ts) invece degli header dev-auth statici.
-import { apiFetch } from './lib/client';
+import { apiFetch } from '@la-piazzetta/api-client';
 
 function req<T>(path: string, init?: RequestInit): Promise<T> {
   return apiFetch<T>(path, init);

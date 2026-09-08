@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api, type Board, type BoardOrder, fmtSec } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 // Colore dell'attesa: verde < 5', giallo < 10', rosso oltre.
 function waitColor(sec: number): string {
-  if (sec < 300) return '#2e7d32';
+  if (sec < 300) return colors.success;
   if (sec < 600) return '#f9a825';
-  return '#c62828';
+  return colors.danger;
 }
 
 function Column({ title, accent, orders }: { title: string; accent: string; orders: BoardOrder[] }) {
@@ -64,10 +65,10 @@ export default function OrdersBoard() {
   return (
     <section>
       <h2>Comande in tempo reale</h2>
-      {error && <p style={{ color: '#c62828' }}>{error}</p>}
+      {error && <p style={{ color: colors.danger }}>{error}</p>}
       <div style={{ display: 'flex', gap: 20 }}>
-        <Column title="Bar" accent="#1565c0" orders={board.BAR} />
-        <Column title="Tavola calda" accent="#e65100" orders={board.TAVOLA_CALDA} />
+        <Column title="Bar" accent={colors.secondary} orders={board.BAR} />
+        <Column title="Tavola calda" accent={colors.warning} orders={board.TAVOLA_CALDA} />
       </div>
     </section>
   );

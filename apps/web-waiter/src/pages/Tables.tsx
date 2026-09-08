@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, STATION_LABEL, type TableRow, type BoardResponse, type Station } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 interface TableReadyInfo {
   readyCount: number;
@@ -229,7 +230,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
               className={hasReady ? 'table-card-ready-flash' : ''}
               style={{
                 ...tableCard,
-                background: hasReady ? '#ff6f00' : occupied ? '#c62828' : '#2e7d32',
+                background: hasReady ? colors.warning : occupied ? colors.danger : colors.success,
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -345,7 +346,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
               textAlign: 'center', marginBottom: 20,
             }}>
               <div style={{ fontSize: 48, marginBottom: 8 }}>🔔</div>
-              <div style={{ fontSize: 14, color: '#ff6f00', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+              <div style={{ fontSize: 14, color: colors.warning, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
                 Articoli pronti da ritirare
               </div>
               <div style={{ fontSize: 28, fontWeight: 800, marginTop: 4 }}>
@@ -365,7 +366,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
                   {/* Quantità grande */}
                   <div style={{
                     fontSize: 28, fontWeight: 800, minWidth: 44, textAlign: 'center',
-                    color: '#ff6f00',
+                    color: colors.warning,
                   }}>
                     {it.quantity}×
                   </div>
@@ -374,7 +375,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
                     <div style={{ fontSize: 18, fontWeight: 700 }}>{it.name}</div>
                     <div style={{
                       fontSize: 12, fontWeight: 600, marginTop: 2,
-                      color: it.station === 'BAR' ? '#f57c00' : '#e65100',
+                      color: it.station === 'BAR' ? '#f57c00' : colors.warning,
                     }}>
                       📍 Ritira da: {STATION_LABEL[it.station]}
                     </div>
@@ -420,7 +421,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
                 }}
                 style={{
                   flex: 1, padding: '16px 0', borderRadius: 14, border: 0,
-                  background: '#ff6f00', color: '#fff', fontSize: 16, fontWeight: 700,
+                  background: colors.warning, color: '#fff', fontSize: 16, fontWeight: 700,
                   cursor: 'pointer',
                 }}
               >
@@ -444,39 +445,39 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
       {/* CSS — lampeggiante giallo/arancio */}
       <style>{`
         @keyframes flashYellow {
-          0%, 49% { background: #ff6f00; box-shadow: 0 0 16px rgba(255,111,0,0.6); }
+          0%, 49% { background: ${colors.warning}; box-shadow: 0 0 16px rgba(255,111,0,0.6); }
           50%, 100% { background: #ffd600; box-shadow: 0 0 24px rgba(255,214,0,0.8); }
         }
         @keyframes flashBorder {
-          0%, 49% { border-color: #ff6f00; box-shadow: 0 0 16px rgba(255,111,0,0.5); }
+          0%, 49% { border-color: ${colors.warning}; box-shadow: 0 0 16px rgba(255,111,0,0.5); }
           50%, 100% { border-color: #ffd600; box-shadow: 0 0 24px rgba(255,214,0,0.7); }
         }
         @keyframes flashBadge {
-          0%, 49% { background: #fff; color: #ff6f00; }
+          0%, 49% { background: #fff; color: ${colors.warning}; }
           50%, 100% { background: #1a1a2e; color: #ffd600; }
         }
         @keyframes flashBanner {
           0%, 49% {
             background: #ffd600;
             color: #1a1a2e;
-            border-color: #ff6f00;
+            border-color: ${colors.warning};
             box-shadow: 0 4px 24px rgba(255,111,0,0.5);
           }
           50%, 100% {
-            background: #ff6f00;
+            background: ${colors.warning};
             color: #fff;
             border-color: #ffd600;
             box-shadow: 0 4px 32px rgba(255,214,0,0.7);
           }
         }
         @keyframes flashFilter {
-          0%, 49% { background: #ff6f00; color: #fff; border-color: #ff6f00; }
+          0%, 49% { background: ${colors.warning}; color: #fff; border-color: ${colors.warning}; }
           50%, 100% { background: #ffd600; color: #1a1a2e; border-color: #ffd600; }
         }
 
         .table-card-ready-flash {
           animation: flashBorder 0.7s infinite !important;
-          border: 4px solid #ff6f00 !important;
+          border: 4px solid ${colors.warning} !important;
         }
 
         .table-ready-badge-flash {
@@ -491,7 +492,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
           margin-bottom: 14px;
           padding: 14px 18px;
           border-radius: 14px;
-          border: 3px solid #ff6f00;
+          border: 3px solid ${colors.warning};
           display: flex;
           align-items: center;
           gap: 12px;
@@ -508,14 +509,14 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
         }
         @keyframes flashToast {
           0%, 49% {
-            background: linear-gradient(135deg, #ff6f00 0%, #f57c00 100%);
+            background: linear-gradient(135deg, ${colors.warning} 0%, #f57c00 100%);
             color: #fff;
             border-color: #ffd600;
           }
           50%, 100% {
-            background: linear-gradient(135deg, #ffd600 0%, #ff6f00 100%);
+            background: linear-gradient(135deg, #ffd600 0%, ${colors.warning} 100%);
             color: #1a1a2e;
-            border-color: #ff6f00;
+            border-color: ${colors.warning};
           }
         }
         @keyframes modalPop {
@@ -524,7 +525,7 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
         }
 
         .toast-ready-flash {
-          background: linear-gradient(135deg, #ff6f00 0%, #ffd600 100%);
+          background: linear-gradient(135deg, ${colors.warning} 0%, #ffd600 100%);
           color: #1a1a2e;
           border-radius: 16px;
           padding: 16px 20px;
@@ -566,6 +567,6 @@ const tableCard: React.CSSProperties = {
   textAlign: 'left', cursor: 'pointer', transition: 'transform 0.1s',
 };
 const errBox: React.CSSProperties = {
-  color: '#c62828', background: '#ffebee', borderRadius: 8, padding: '8px 12px',
+  color: colors.danger, background: '#ffebee', borderRadius: 8, padding: '8px 12px',
   marginBottom: 12, fontSize: 13,
 };

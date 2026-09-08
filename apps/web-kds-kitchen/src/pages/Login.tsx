@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { loginPassword, loginPin } from '../lib/client';
+import { loginPassword, loginPin } from '@la-piazzetta/api-client';
+import { colors } from '@la-piazzetta/ui';
 
 export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
   const [mode, setMode] = useState<'password' | 'pin'>('pin'); // PIN: device condiviso in sala
@@ -68,7 +69,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           </>
         )}
 
-        {error && <p style={{ color: '#c62828', fontSize: 13, margin: 0 }}>{error}</p>}
+        {error && <p style={{ color: colors.danger, fontSize: 13, margin: 0 }}>{error}</p>}
 
         <button type="submit" disabled={busy} style={submitStyle}>
           {busy ? 'Accesso…' : 'Accedi'}

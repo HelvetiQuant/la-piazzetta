@@ -1,4 +1,4 @@
-import { apiFetch } from './lib/client';
+import { apiFetch } from '@la-piazzetta/api-client';
 
 export type ItemStatus = 'PENDING' | 'IN_PREPARATION' | 'READY' | 'SERVED' | 'CANCELLED';
 export const NEXT_STATUS: Record<ItemStatus, ItemStatus | null> = {

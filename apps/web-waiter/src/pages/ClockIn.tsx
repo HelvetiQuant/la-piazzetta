@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { shiftApi, type MyShift } from '../api';
-import { currentUser } from '../lib/client';
+import { currentUser } from '@la-piazzetta/api-client';
 
 const ROLE_LABEL: Record<string, string> = {
   WAITER: 'Cameriere',

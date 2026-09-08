@@ -4,9 +4,9 @@ import Tables from './pages/Tables';
 import TableOrder from './pages/TableOrder';
 import Chat from './pages/Chat';
 import ClockIn from './pages/ClockIn';
-import { AddOnBanner } from './components/AddOnBanner';
-import { StaffNotesBanner } from './components/StaffNotesBanner';
-import { currentUser, isLoggedIn, logout } from './lib/client';
+import { AddOnBanner } from '@la-piazzetta/shared-components';
+import { StaffNotesBanner } from '@la-piazzetta/shared-components';
+import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 import type { TableRow } from './api';
 
 type Tab = 'tables' | 'chat' | 'shift';

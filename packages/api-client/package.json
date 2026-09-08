@@ -1,0 +1,18 @@
+{
+  "name": "@la-piazzetta/api-client",
+  "version": "0.13.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "echo 'no build needed'"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

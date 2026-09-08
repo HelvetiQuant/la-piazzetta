@@ -1,0 +1,11 @@
+{
+  "extends": "@la-piazzetta/tsconfig/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "paths": {
+      "@la-piazzetta/api-client": ["../api-client/src"],
+      "@la-piazzetta/ui": ["../ui/src"]
+    }
+  },
+  "include": ["src"]
+}

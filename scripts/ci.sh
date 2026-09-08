@@ -61,6 +61,16 @@ install_deps() {
   fi
 }
 
+# Con npm workspaces, un solo npm ci in radice installa tutto:
+# api, 4 web app e i 3 pacchetti condivisi (api-client, ui, shared-components).
+ci_install_root() {
+  if [[ -f package-lock.json ]]; then
+    npm ci --ignore-scripts || npm install --ignore-scripts
+  else
+    npm install --ignore-scripts
+  fi
+}
+
 ci_logic() {
   # Nessuna dipendenza: gira anche senza npm install. È il primo segnale utile.
   node tests/verify.mjs \
@@ -68,7 +78,6 @@ ci_logic() {
     && node tests/verify-purchase.mjs
 }
 
-ci_api_install()   { install_deps apps/api; }
 ci_api_prisma()    { (cd apps/api && npx prisma generate); }
 ci_api_validate()  { (cd apps/api && npx prisma validate); }
 ci_api_typecheck() { (cd apps/api && npx tsc --noEmit); }
@@ -91,7 +100,6 @@ ci_web() {
   local rc=0
   for app in "${WEB_APPS[@]}"; do
     printf '\n  · %s\n' "$app"
-    install_deps "apps/$app" || { rc=1; continue; }
     (cd "apps/$app" && npx tsc --noEmit) || rc=1
     (cd "apps/$app" && npm run build) || rc=1
   done
@@ -155,7 +163,7 @@ case "$TARGET" in
   api)
     run "test logica pura"      ci_logic
     run "import con estensione" ci_imports
-    run "install (api)"         ci_api_install
+    run "install (root)"        ci_install_root
     run "prisma generate"       ci_api_prisma
     run "prisma validate"       ci_api_validate
     run "typecheck (api)"       ci_api_typecheck
@@ -171,7 +179,7 @@ case "$TARGET" in
   all)
     run "test logica pura"      ci_logic
     run "import con estensione" ci_imports
-    run "install (api)"         ci_api_install
+    run "install (root)"        ci_install_root
     run "prisma generate"       ci_api_prisma
     run "prisma validate"       ci_api_validate
     run "typecheck (api)"       ci_api_typecheck

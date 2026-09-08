@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { chatApi, type ChatRoom, type ChatMessage } from '../api';
-import { currentUser } from '../lib/client';
+import { currentUser } from '@la-piazzetta/api-client';
 
 const ROOM_TYPE_ICON: Record<string, string> = {
   COLLECTIVE: '📢',

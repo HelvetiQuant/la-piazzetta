@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { inv, type StockRow, type Movement } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 const MOV_LABEL: Record<string, string> = {
   LOAD: 'Carico', WASTE: 'Scarto', RETURN: 'Reso', PHYSICAL: 'Inventario', SALE: 'Vendita', RECEIPT: 'Ricezione',
@@ -32,7 +33,7 @@ function AdjustForm({ row, onDone }: { row: StockRow; onDone: () => void }) {
       <input placeholder="Qtà" value={qty} onChange={(e) => setQty(e.target.value)} style={{ width: 70 }} />
       <input placeholder="Causale" value={reason} onChange={(e) => setReason(e.target.value)} style={{ width: 120 }} />
       <button onClick={submit}>Registra</button>
-      {err && <span style={{ color: '#c62828', fontSize: 12 }}>{err}</span>}
+      {err && <span style={{ color: colors.danger, fontSize: 12 }}>{err}</span>}
     </div>
   );
 }
@@ -65,11 +66,11 @@ export default function Inventory() {
 
   return (
     <section>
-      <h2>Magazzino {lowCount > 0 && <span style={{ color: '#c62828', fontSize: 14 }}>· {lowCount} sotto soglia</span>}</h2>
+      <h2>Magazzino {lowCount > 0 && <span style={{ color: colors.danger, fontSize: 14 }}>· {lowCount} sotto soglia</span>}</h2>
       <label style={{ display: 'block', marginBottom: 10 }}>
         <input type="checkbox" checked={onlyLow} onChange={(e) => setOnlyLow(e.target.checked)} /> solo sotto soglia
       </label>
-      {error && <p style={{ color: '#c62828' }}>{error}</p>}
+      {error && <p style={{ color: colors.danger }}>{error}</p>}
       <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', fontSize: 14 }}>
         <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
           <th style={{ padding: 8 }}>Prodotto</th>
@@ -86,7 +87,7 @@ export default function Inventory() {
                   <button onClick={() => toggleHistory(r.productId)} style={{ border: 0, background: 'none', cursor: 'pointer', fontWeight: 600 }}>
                     {expanded === r.productId ? '▾ ' : '▸ '}{r.name}
                   </button>
-                  {r.low && <span style={{ marginLeft: 6, fontSize: 11, color: '#fff', background: '#c62828', padding: '1px 6px', borderRadius: 8 }}>SOTTO SOGLIA</span>}
+                  {r.low && <span style={{ marginLeft: 6, fontSize: 11, color: '#fff', background: colors.danger, padding: '1px 6px', borderRadius: 8 }}>SOTTO SOGLIA</span>}
                 </td>
                 <td style={{ padding: 8, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.quantity} {r.unit}</td>
                 <td style={{ padding: 8, textAlign: 'right', color: '#888' }}>{r.reorderLevel || '—'}</td>
@@ -103,7 +104,7 @@ export default function Inventory() {
                           <tr key={m.id}>
                             <td>{new Date(m.createdAt).toLocaleString('it-IT')}</td>
                             <td>{MOV_LABEL[m.type] ?? m.type}</td>
-                            <td style={{ color: m.qtyDelta < 0 ? '#c62828' : '#2e7d32' }}>{m.qtyDelta > 0 ? '+' : ''}{m.qtyDelta}</td>
+                            <td style={{ color: m.qtyDelta < 0 ? colors.danger : colors.success }}>{m.qtyDelta > 0 ? '+' : ''}{m.qtyDelta}</td>
                             <td>→ {m.qtyAfter}</td>
                             <td style={{ color: '#888' }}>{m.reason ?? ''}</td>
                           </tr>

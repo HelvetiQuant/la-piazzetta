@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { inv, fmtEuro, type Supplier, type Listing, type StockRow, type Proposal } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 function euroToCents(v: string): number {
   const n = parseFloat(v.replace(',', '.'));
@@ -59,7 +60,7 @@ function SupplierListings({ supplier, products }: { supplier: Supplier; products
         <input placeholder="Prezzo € conf." value={price} onChange={(e) => setPrice(e.target.value)} style={{ width: 100 }} />
         <label style={{ fontSize: 12 }}><input type="checkbox" checked={preferred} onChange={(e) => setPreferred(e.target.checked)} /> preferito</label>
         <button onClick={add}>+ Aggiungi</button>
-        {err && <span style={{ color: '#c62828', fontSize: 12 }}>{err}</span>}
+        {err && <span style={{ color: colors.danger, fontSize: 12 }}>{err}</span>}
       </div>
     </div>
   );
@@ -120,7 +121,7 @@ export default function Suppliers() {
   return (
     <section>
       <h2>Fornitori e riordino</h2>
-      {error && <p style={{ color: '#c62828' }}>{error}</p>}
+      {error && <p style={{ color: colors.danger }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         {/* Colonna fornitori */}
@@ -156,7 +157,7 @@ export default function Suppliers() {
                 <strong>{p.supplierName}</strong>
                 <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <strong>{fmtEuro(p.totalCents)}</strong>
-                  <button onClick={() => createOrder(p)} style={{ background: '#2e7d32', color: '#fff', border: 0, padding: '4px 10px', borderRadius: 6 }}>Crea ordine</button>
+                  <button onClick={() => createOrder(p)} style={{ background: colors.success, color: '#fff', border: 0, padding: '4px 10px', borderRadius: 6 }}>Crea ordine</button>
                 </span>
               </div>
               <table style={{ width: '100%', fontSize: 13, marginTop: 6 }}>
@@ -167,7 +168,7 @@ export default function Suppliers() {
                   {p.lines.map((l) => (
                     <tr key={l.productId}>
                       <td>{l.name}</td>
-                      <td style={{ color: '#c62828' }}>{l.quantity}/{l.reorderLevel}</td>
+                      <td style={{ color: colors.danger }}>{l.quantity}/{l.reorderLevel}</td>
                       <td>{l.packs} conf. ({l.orderedBase} {l.unit})</td>
                       <td style={{ textAlign: 'right' }}>{fmtEuro(l.lineCostCents)}</td>
                     </tr>

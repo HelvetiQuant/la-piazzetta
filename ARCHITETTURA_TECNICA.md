@@ -1,6 +1,6 @@
 # La Piazzetta — Architettura tecnica (dettaglio)
 
-Documento di riferimento tecnico completo del sistema al **2026-09-08 (v0.13.1)**.
+Documento di riferimento tecnico completo del sistema al **2026-09-08 (v0.14.0)**.
 Copre stack, struttura, backend, modello dati, flussi, sicurezza, API, frontend,
 deployment e debito tecnico. Fonte di verità del codice: `apps/` + `macos/`.
 
@@ -700,3 +700,36 @@ Il budget si aggiorna solo verso il basso.
 ### 17.4 Licenza
 Software proprietario di Riccardo Gaetti, tutti i diritti riservati.
 Vendibile a moduli separati previa autorizzazione.
+
+---
+
+## 18. Monorepo e componenti condivisi (v0.14.0)
+
+### 18.1 npm workspaces
+Il repository è un monorepo npm con `"workspaces": ["apps/*", "packages/*"]`.
+Un `npm ci` in radice installa backend, 4 web app e 3 pacchetti condivisi.
+
+### 18.2 Pacchetti condivisi
+- `@la-piazzetta/tsconfig` — `tsconfig.base.json` condiviso.
+- `@la-piazzetta/api-client` — client HTTP con login JWT, refresh
+  automatico, `apiFetch`. Usato da tutte le 4 web app.
+- `@la-piazzetta/ui` — design system (colors, Card, KpiCard, Badge,
+  Button, Input, Select, Spinner, EmptyState, ErrorBanner, GlobalStyles).
+  Palette unica allineata alle app Swift.
+- `@la-piazzetta/shared-components` — StaffNotesBanner, AddOnBanner.
+
+### 18.3 Swift Package condiviso
+`swift-packages/PiazzettaShared/` — Package.swift con target
+`PiazzettaShared` per macOS 14+ e iOS 17+. Contiene 27 file Swift
+unificati con `#if os(macOS)` / `#else` per le divergenze piattaforma.
+
+### 18.4 Palette unica
+Token del design system allineati alle app Swift (GlassSupport.swift):
+- accent: `#C71F14` (rosso pomodoro)
+- secondary: `#D9A633` (oro)
+- success: `#669933` (verde oliva)
+- danger: `#B31A19` (rosso scuro)
+- warning: `#E68C26` (arancio)
+- bg: `#F8F5F0` (sfondo caldo)
+
+Nessun colore hard-coded nei frontend: solo token da `@la-piazzetta/ui`.

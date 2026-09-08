@@ -1,0 +1,6 @@
+{
+  "name": "@la-piazzetta/tsconfig",
+  "version": "0.13.1",
+  "private": true,
+  "files": ["tsconfig.base.json"]
+}

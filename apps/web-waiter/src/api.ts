@@ -1,4 +1,4 @@
-import { apiFetch } from './lib/client';
+import { apiFetch } from '@la-piazzetta/api-client';
 
 export type OrderStatus = 'DRAFT' | 'SENT' | 'IN_PREPARATION' | 'READY' | 'SERVED' | 'CANCELLED' | 'PAID';
 export type Station = 'BAR' | 'TAVOLA_CALDA';

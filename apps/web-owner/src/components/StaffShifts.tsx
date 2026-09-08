@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { staff, fmtEuro, type StaffMember, type Shift } from '../api';
+import { colors } from '@la-piazzetta/ui';
 
 const COLORS = {
   bg: '#f5f5f7', card: '#ffffff', text: '#1d1d1f', secondary: '#86868b',
@@ -198,7 +199,7 @@ export default function StaffShifts() {
                         marginLeft: 8, fontSize: 12, fontWeight: 600,
                         padding: '2px 8px', borderRadius: 8,
                         background: s.shiftRole === 'BARMAN' ? '#fff3e0' : s.shiftRole === 'COOK' ? '#fce4ec' : '#e3f2fd',
-                        color: s.shiftRole === 'BARMAN' ? '#e65100' : s.shiftRole === 'COOK' ? '#c62828' : '#1565c0',
+                        color: s.shiftRole === 'BARMAN' ? colors.warning : s.shiftRole === 'COOK' ? colors.accent : colors.secondary,
                       }}>
                         {ROLE_ICON[s.shiftRole] ?? ''} {ROLE_LABEL[s.shiftRole] ?? s.shiftRole}
                       </span>
