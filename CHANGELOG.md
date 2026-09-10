@@ -2,6 +2,50 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.17.0] — 2026-09-10
+
+Chiusura known gaps, riduzione cast `as any`, verifica funzionale job agente.
+
+### Added
+- **Endpoint `/cashier/sessions/:id/pay`**: paga l'intera sessione (tutti gli
+  ordini) in una volta con pagamento misto (CASH/CARD/CREDIT). Ripartisce i
+  pagamenti sugli ordini, crea le scritture contabili, chiude la sessione e
+  libera il tavolo. Sostituisce il workaround quick-sale nel BillDialog.
+- **Coperto weekend configurato**: `coverChargeForDay` ora è collegato alla
+  creazione della sessione. Weekend = sabato+domenica (getDay 6 e 0).
+  Tariffe configurabili via `COVER_CHARGE_WEEKDAY_CENTS` (default 200) e
+  `COVER_CHARGE_WEEKEND_CENTS` (default 300). Il coperto è congelato
+  all'apertura della sessione, come da design.
+
+### Fixed — Ratchet `as any`
+- **Riduzione da 59 a 46 cast `as any`** (budget aggiornato a 46):
+  - `index.ts`: 11 cast `(req as any).devUser as DevUser` sostituiti con
+    `currentUser(req)` (helper centralizzato in `http.ts`).
+  - `credit.routes.ts`: 2 cast `result.customer as any` rimossi (il tipo
+    Prisma `Customer` ha già `name`, `surname`, `balanceCents`).
+  - `marketing.routes.ts`: 3 cast `as any` su campi JSON Prisma sostituiti
+    con `Prisma.InputJsonValue`.
+  - `staff-notes.routes.ts`: cast `responses as any[]` sostituito con tipo
+    esplicito `Array<{ userId, text, at }>`.
+- I 46 cast residui sono legittimi: 28 accessi `req.devUser` (Express Request
+  non tipabile senza augmentation che rompe i tipi con NodeNext), 10 risposte
+  JSON da API esterne (Canva/Gamma/Meta), 1 BullMQ connection, 1 AI response,
+  3 commenti.
+
+### Verified
+- CI completa con Prisma client reale: typecheck, build, 223 asserzioni di
+  test, 4 build web app — tutto verde.
+- Job agente: `Agent jobs scheduled` con venueId/ownerUserId valorizzati.
+- Idempotenza `dailyClose`: verificata con test end-to-end su DB reale
+  (inserimento + check → skip, nessun duplicato).
+- NotificationService: dedup in-memory con cooldown confermata.
+
+### Known gaps
+- Scambio importo POS reale (EcrPosDriver per PAX A920 Pro): da
+  implementare quando Worldline attiva la funzione sul contratto.
+- Scontrino fiscale telematico: Lotto 4 (interfaccia FiscalPrinter già
+  progettata, non cablata nel Lotto 2).
+
 ## [0.16.1] — 2026-09-08
 
 Audit del repo: debug mirato, hardening CI, nessuna modifica funzionale.

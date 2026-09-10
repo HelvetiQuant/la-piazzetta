@@ -87,7 +87,7 @@ export function getLogger(): Logger {
 
 /**
  * Middleware di request logging: logga ogni richiesta HTTP con durata e
- * status. Salta /health e /ws (rumore inutile). Inietta `req.logStart` per
+ * status. Salta /health e /ws (rumore inutile). Inietta `(req as any).logStart` per
  * calcolare la durata.
  */
 export function requestLogger(log: Logger = getLogger()): RequestHandler {

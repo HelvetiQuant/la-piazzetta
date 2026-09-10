@@ -190,7 +190,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
         type: 'DESIGN',
         source: 'CANVA',
         url: design.exportUrl,
-        meta: { canvaDesignId: design.designId } as any,
+        meta: { canvaDesignId: design.designId } as Prisma.InputJsonValue,
         createdBy: user.userId,
       },
     });
@@ -225,7 +225,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
         type: 'DESIGN',
         source: 'GAMMA',
         url: doc.url,
-        meta: { gammaDocId: doc.docId } as any,
+        meta: { gammaDocId: doc.docId } as Prisma.InputJsonValue,
         createdBy: user.userId,
       },
     });
@@ -361,7 +361,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
       data: {
         status: hasErrors ? 'FAILED' : 'PUBLISHED',
         publishedAt: hasErrors ? null : new Date(),
-        perPlatform: perPlatform as any,
+        perPlatform: perPlatform as Prisma.InputJsonValue,
       },
     });
     res.json({ status: hasErrors ? 'FAILED' : 'PUBLISHED', perPlatform });

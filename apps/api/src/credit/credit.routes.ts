@@ -158,7 +158,7 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
         return { customer: updated, transaction };
       });
       // Invia notifica al cliente: totale aggiornato dopo ogni movimento
-      const c = result.customer as any;
+      const c = result.customer;
       const fullName = `${c.name} ${c.surname ?? ''}`.trim();
       const verb = body.type === 'CHARGE' ? 'Nuova consumazione a credito' : body.type === 'PAYMENT' ? 'Pagamento ricevuto' : 'Rettifica saldo';
       await notifyCustomer(c, verb, `${verb}: ${body.type === 'CHARGE' ? '+' : '−'}${fmtEuroCents(body.amountCents)}. Nuovo saldo: ${fmtEuroCents(c.balanceCents)}. — La Piazzetta`);
@@ -259,7 +259,7 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
         return { customer: updated, transaction };
       });
       // Invia notifica al cliente: totale aggiornato dopo consumazione a credito
-      const c = result.customer as any;
+      const c = result.customer;
       await notifyCustomer(c, 'Consumazione a credito', `Nuova consumazione a credito: +${fmtEuroCents(body.amountCents)}. Nuovo saldo: ${fmtEuroCents(c.balanceCents)}. — La Piazzetta`);
       res.status(201).json(result);
     } catch (e) {

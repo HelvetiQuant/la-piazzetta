@@ -88,6 +88,171 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
     res.json({ session, bill });
   });
 
+  // ─── POST /sessions/:id/pay — paga l'intera sessione (tutti gli ordini) ────
+  const sessionPaySchema = z.object({
+    payments: z.array(z.object({
+      method: z.enum(['CASH', 'CARD', 'CREDIT']),
+      amountCents: z.number().int().positive(),
+      customerId: z.string().optional(),
+      tenderedCents: z.number().int().optional(),
+    })).min(1),
+    tipCents: z.number().int().min(0).optional(),
+    closeSession: z.boolean().optional().default(true),
+  });
+
+  app.post('/api/v1/cashier/sessions/:id/pay', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const session = await prisma.tableSession.findFirst({
+      where: { id: req.params.id, venueId: user.venueId },
+      include: { table: true, orders: { include: { items: { include: { product: true } } } } },
+    });
+    if (!session) { res.status(404).json({ error: 'Sessione non trovata' }); return; }
+    if (session.status === 'CLOSED') { res.status(409).json({ error: 'Sessione già chiusa' }); return; }
+
+    const body = sessionPaySchema.parse(req.body);
+
+    // Aggrega tutti gli item da tutti gli ordini non ancora pagati.
+    const unpaidOrders = session.orders.filter((o) => o.status !== 'PAID');
+    if (unpaidOrders.length === 0) { res.status(409).json({ error: 'Tutti gli ordini sono già pagati' }); return; }
+
+    const items: BillItem[] = [];
+    for (const order of unpaidOrders) {
+      for (const it of order.items) {
+        if (it.status === 'CANCELLED') continue;
+        items.push({
+          productId: it.productId,
+          name: it.product.name,
+          vatRateCents: it.product.category.includes('alcol') || it.product.category.includes('birra') ? 2200 : 1000,
+          quantity: it.quantity,
+          unitCents: it.unitCents,
+        });
+      }
+    }
+
+    const bill = computeBill(items, session.guests, session.coverChargeCentsPerGuest, null, 'TABLE');
+    const totalDue = bill.totalCents + (body.tipCents ?? 0);
+
+    const paidTotal = body.payments.reduce((s, p) => s + p.amountCents, 0);
+    if (paidTotal < totalDue) {
+      res.status(400).json({ error: `Importo insufficiente: dovuto ${totalDue}, versato ${paidTotal}` });
+      return;
+    }
+
+    // Cassetto aperto per i pagamenti contanti.
+    const drawer = await prisma.cashDrawer.findFirst({
+      where: { venueId: user.venueId, status: 'OPEN' },
+      orderBy: { openedAt: 'desc' },
+    });
+
+    // POS per pagamenti con carta.
+    const posResponses: Array<{ method: string; outcome: string; authCode?: string; txnId?: string; terminalId?: string }> = [];
+    for (const p of body.payments) {
+      if (p.method === 'CARD') {
+        if (!pos.isAvailable()) {
+          posResponses.push({ method: 'CARD', outcome: 'MANUAL' });
+          continue;
+        }
+        const posResp = await pos.sendPayment({ amountCents: p.amountCents, requestId: session.id + ':' + p.amountCents });
+        if (posResp.outcome === 'DECLINED') {
+          res.status(402).json({ error: 'Pagamento carta rifiutato', message: posResp.message });
+          return;
+        }
+        if (posResp.outcome === 'UNKNOWN') {
+          res.status(409).json({ error: 'Stato del terminale incerto. Verificare lo scontrino prima di ritentare.', message: posResp.message });
+          return;
+        }
+        posResponses.push({ method: 'CARD', outcome: posResp.outcome, authCode: posResp.authCode, txnId: posResp.txnId, terminalId: posResp.terminalId });
+      }
+    }
+
+    // Ripartisce i pagamenti sugli ordini non pagati (in proporzione al totale di ciascuno).
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        let remainingPaid = paidTotal;
+        let tipRemaining = body.tipCents ?? 0;
+
+        for (const order of unpaidOrders) {
+          const orderItems: BillItem[] = order.items
+            .filter((it) => it.status !== 'CANCELLED')
+            .map((it) => ({
+              productId: it.productId,
+              name: it.product.name,
+              vatRateCents: it.product.category.includes('alcol') || it.product.category.includes('birra') ? 2200 : 1000,
+              quantity: it.quantity,
+              unitCents: it.unitCents,
+            }));
+          const orderBill = computeBill(orderItems, 0, 0, null, 'TABLE');
+          const orderTotal = orderBill.totalCents;
+
+          // Crea un pagamento proporzionale per questo ordine.
+          for (let i = 0; i < body.payments.length; i++) {
+            const p = body.payments[i];
+            const allocCents = Math.min(p.amountCents, orderTotal);
+            if (allocCents <= 0) continue;
+
+            const changeCents = p.method === 'CASH' && p.tenderedCents
+              ? computeChange(allocCents, p.tenderedCents, 'CASH').changeCents
+              : 0;
+
+            if (p.method === 'CREDIT') {
+              if (!p.customerId) throw new Error('Pagamento a credito richiede un cliente');
+              const customer = await tx.customer.findFirst({ where: { id: p.customerId, venueId: user.venueId } });
+              if (!customer) throw new Error('Cliente non trovato');
+              const creditResult = applyTransaction({
+                currentBalanceCents: customer.balanceCents,
+                limitCents: customer.limitCents,
+                type: 'CHARGE',
+                amountCents: allocCents,
+              });
+              if (!creditResult.ok) throw new Error(creditResult.error ?? 'Limite di fido superato');
+              await tx.customer.update({ where: { id: customer.id }, data: { balanceCents: creditResult.newBalanceCents } });
+              await tx.creditTransaction.create({
+                data: {
+                  customerId: customer.id, type: 'CHARGE', amountCents: allocCents,
+                  balanceAfterCents: creditResult.newBalanceCents, orderId: order.id, method: 'CREDIT', createdBy: user.userId,
+                },
+              });
+            }
+
+            const posResp = posResponses[i];
+            await tx.payment.create({
+              data: {
+                venueId: user.venueId, orderId: order.id, sessionId: session.id,
+                method: p.method, amountCents: allocCents,
+                tipCents: i === 0 && tipRemaining > 0 ? Math.min(tipRemaining, allocCents) : 0,
+                changeCents,
+                cashDrawerId: p.method === 'CASH' ? drawer?.id : null,
+                customerId: p.method === 'CREDIT' ? p.customerId : null,
+                posTerminalId: posResp?.terminalId, posAuthCode: posResp?.authCode, posTxnId: posResp?.txnId,
+                createdBy: user.userId,
+              },
+            });
+            await createPaymentJournalEntry(tx, user.venueId, p.method, allocCents, order.id);
+          }
+
+          await tx.order.update({ where: { id: order.id }, data: { status: 'PAID', paidAt: new Date(), totalCents: orderTotal } });
+        }
+
+        // Chiude la sessione se richiesto.
+        if (body.closeSession) {
+          await tx.tableSession.update({
+            where: { id: session.id },
+            data: { status: 'CLOSED', closedAt: new Date() },
+          });
+          if (session.table) {
+            await tx.table.update({ where: { id: session.tableId }, data: { state: 'FREE' } });
+          }
+        }
+
+        return { ok: true, totalDue, paidTotal, ordersPaid: unpaidOrders.length, sessionClosed: body.closeSession, bill };
+      });
+      res.json(result);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Errore nel pagamento sessione';
+      res.status(400).json({ error: msg });
+    }
+  });
+
   // ─── POST /sessions/:id/close — chiude, libera il tavolo ───────────────────
   app.post('/api/v1/orders-tables/sessions/:id/close', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);

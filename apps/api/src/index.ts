@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction, RequestHandler } from 'expres
 import { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import type { DevUser, RouteDeps } from './http.js';
+import { currentUser } from './http.js';
 import { registerOrderRoutes } from './orders/orders.routes.js';
 import { registerStatsRoutes } from './stats/stats.routes.js';
 import { registerDashboardRoutes } from './stats/dashboard.routes.js';
@@ -20,6 +21,7 @@ import { registerAiPreferenceRoutes } from './ai/ai-preferences.routes.js';
 import { registerMenuAddOnRoutes } from './menu-addons/menu-addons.routes.js';
 import { registerStaffNoteRoutes } from './staff/staff-notes.routes.js';
 import { registerCashierRoutes } from './cashier/cashier.routes.js';
+import { coverChargeForToday } from './cashier/bill.logic.js';
 import { registerAgentRoutes } from './agent/agent.routes.js';
 import { registerAgentJobs, scheduleAgentJobs } from './agent/jobs.js';
 import { NotificationService } from './notifications/notification.service.js';
@@ -64,7 +66,7 @@ const devAuth: RequestHandler = makeAuthMiddleware(authService);
 
 function requireRoles(...allowed: string[]): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     if (!user || !user.roles.some((r) => allowed.includes(r) || r === 'OWNER')) {
       res.status(403).json({ error: 'Forbidden' });
       return;
@@ -236,7 +238,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   const { devAuth, requireRoles } = deps;
 
   app.get('/api/v1/orders-tables/tables', devAuth, async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const tables = await prisma.table.findMany({
       where: { venueId: user.venueId },
       orderBy: { code: 'asc' },
@@ -253,7 +255,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   });
 
   app.post('/api/v1/orders-tables/tables', devAuth, requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const body = createTableSchema.parse(req.body);
     const table = await prisma.table.create({ data: { ...body, venueId: user.venueId, state: 'FREE' } });
     res.status(201).json(table);
@@ -262,7 +264,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   const openSessionSchema = z.object({ guests: z.number().int().positive().default(1) });
 
   app.post('/api/v1/orders-tables/tables/:id/sessions', devAuth, requireRoles('OWNER', 'MANAGER', 'WAITER'), async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const id = req.params.id as string;
     const { guests } = openSessionSchema.parse(req.body);
     const table = await prisma.table.findFirst({ where: { id, venueId: user.venueId } });
@@ -271,7 +273,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
       return;
     }
     const session = await prisma.$transaction(async (tx: Tx) => {
-      const s = await tx.tableSession.create({ data: { tableId: id, venueId: user.venueId, guests } });
+      const s = await tx.tableSession.create({ data: { tableId: id, venueId: user.venueId, guests, coverChargeCentsPerGuest: coverChargeForToday() } });
       await tx.table.update({ where: { id }, data: { state: 'OCCUPIED' } });
       return s;
     });
@@ -280,7 +282,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
 
   app.get('/api/v1/orders-tables/sessions/:id/orders', devAuth, requireRoles('OWNER', 'MANAGER', 'WAITER', 'CASHIER'), async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const orders = await prisma.order.findMany({
       where: { sessionId: id, venueId: user.venueId },
       include: { items: { include: { product: true } } },
@@ -290,7 +292,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   });
 
   app.get('/api/v1/orders-tables/orders', devAuth, async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const status = (req.query.status as string | undefined) ?? undefined;
     const orders = await prisma.order.findMany({
       where: { venueId: user.venueId, ...(status ? { status } : {}) },
@@ -301,7 +303,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   });
 
   app.get('/api/v1/products', devAuth, async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const products = await prisma.product.findMany({ where: { venueId: user.venueId }, include: { stock: true } });
     res.json(products);
   });
@@ -318,7 +320,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   const productUpdateSchema = productCreateSchema.partial();
 
   app.post('/api/v1/products', devAuth, requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const body = productCreateSchema.parse(req.body);
     try {
       const product = await prisma.product.create({
@@ -333,7 +335,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   });
 
   app.patch('/api/v1/products/:id', devAuth, requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const id = req.params.id as string;
     const body = productUpdateSchema.parse(req.body);
     const existing = await prisma.product.findFirst({ where: { id, venueId: user.venueId } });
@@ -348,7 +350,7 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
   });
 
   app.delete('/api/v1/products/:id', devAuth, requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const user = (req as any).devUser as DevUser;
+    const user = currentUser(req);
     const id = req.params.id as string;
     const existing = await prisma.product.findFirst({ where: { id, venueId: user.venueId } });
     if (!existing) { res.status(404).json({ error: 'Prodotto non trovato' }); return; }

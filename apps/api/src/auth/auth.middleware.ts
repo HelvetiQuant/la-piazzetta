@@ -2,9 +2,9 @@
  * Middleware di autenticazione REALE (sostituisce il devAuth a soli header).
  *
  * Ordine: se è presente `Authorization: Bearer <jwt>` lo verifica e popola
- * `req.devUser` dai claims. Solo FUORI produzione, in assenza di Bearer, accetta
+ * `(req as any).devUser` dai claims. Solo FUORI produzione, in assenza di Bearer, accetta
  * ancora gli header dev (`x-venue-id`/`x-user-id`/`x-user-roles`) per test locali.
- * La forma di `req.devUser` resta invariata: i moduli a valle non cambiano.
+ * La forma di `(req as any).devUser` resta invariata: i moduli a valle non cambiano.
  */
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';

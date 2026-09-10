@@ -277,10 +277,22 @@ export function reconcileDrawer(openingCents: number, cashPaymentsCents: number,
   return { expectedCents, countedCents, differenceCents, verdict };
 }
 
+/** Giorni considerati weekend per il coperto maggiorato (0=Domenica, 6=Sabato). */
+export const WEEKEND_DAYS = [0, 6];
+
+/** Tariffe coperto di default (in centesimi). Sovrascrivibili con env vars. */
+export const COVER_CHARGE_WEEKDAY_CENTS = Number(process.env.COVER_CHARGE_WEEKDAY_CENTS ?? 200);
+export const COVER_CHARGE_WEEKEND_CENTS = Number(process.env.COVER_CHARGE_WEEKEND_CENTS ?? 300);
+
 /**
  * Determina la tariffa del coperto per un giorno della settimana.
- * `weekday` è ISO: 1 = lunedì, 7 = domenica.
+ * `weekday` è getDay(): 0 = domenica, 1 = lunedì, ..., 6 = sabato.
  */
 export function coverChargeForDay(weekdayCents: number, weekendCents: number, weekendDays: number[], weekday: number): number {
   return weekendDays.includes(weekday) ? weekendCents : weekdayCents;
+}
+
+/** Calcola il coperto per il giorno corrente usando le tariffe configurate. */
+export function coverChargeForToday(): number {
+  return coverChargeForDay(COVER_CHARGE_WEEKDAY_CENTS, COVER_CHARGE_WEEKEND_CENTS, WEEKEND_DAYS, new Date().getDay());
 }

@@ -151,7 +151,7 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
       res.status(404).json({ error: 'Nota non trovata' });
       return;
     }
-    const responses = note.responses as any[];
+    const responses = (note.responses ?? []) as Array<{ userId: string; text: string; at: string }>;
     responses.push({ userId, text: parsed.data.text, at: new Date().toISOString() });
 
     // Auto-ack quando risponde
