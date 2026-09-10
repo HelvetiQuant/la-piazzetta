@@ -413,6 +413,73 @@ export const dash = {
   metrics: (range: string = 'today') => req<DashboardData>(`/stats/dashboard?range=${range}`),
 };
 
+// ---- Provisioning iniziale (wizard di primo avvio) --------------------------
+const API_BASE =
+  (import.meta.env.VITE_API_URL as string | undefined) ||
+  `${location.protocol}//${location.hostname}:3000/api/v1`;
+
+export interface SetupStatus { needsSetup: boolean; hasVenue: boolean; }
+export interface ProvisionInput {
+  token: string;
+  venueName: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerPassword: string;
+}
+
+export const setup = {
+  status: async (): Promise<SetupStatus> => {
+    const r = await fetch(`${API_BASE}/setup/status`);
+    if (!r.ok) throw new Error(`Errore ${r.status}`);
+    return r.json();
+  },
+  provision: async (input: ProvisionInput): Promise<{ ok: true; venueId: string; ownerEmail: string; note?: string }> => {
+    const r = await fetch(`${API_BASE}/setup/provision`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((data as { error?: string }).error || `Errore ${r.status}`);
+    return data;
+  },
+};
+
+// ---- Real-time dashboard: stesso canale WebSocket dei KDS -------------------
+export type DashboardEventKind = 'order.paid' | 'session.closed' | 'stock.critical';
+export interface DashboardEvent {
+  type: 'dashboard-event';
+  kind: DashboardEventKind;
+  amountCents?: number;
+  productName?: string;
+  quantity?: number;
+  reorderLevel?: number;
+  at: number;
+}
+
+/**
+ * Sottoscrive gli eventi operativi (incassi, chiusure, scorte critiche) via
+ * WebSocket. Ritorna una funzione di cleanup. Degradazione graceful: se il WS
+ * non è disponibile il chiamante continua col polling periodico.
+ */
+export function subscribeDashboard(onEvent: (ev: DashboardEvent) => void): () => void {
+  let ws: WebSocket | null = null;
+  try {
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const token = JSON.parse(localStorage.getItem('piazzetta.tokens') || '{}').accessToken;
+    if (token) {
+      ws = new WebSocket(`${protocol}//${location.hostname}:3000/ws?token=${token}`);
+      ws.onmessage = (m) => {
+        try {
+          const msg = JSON.parse(m.data);
+          if (msg.type === 'dashboard-event') onEvent(msg as DashboardEvent);
+        } catch { /* ignore */ }
+      };
+    }
+  } catch { /* ignore */ }
+  return () => { if (ws) { ws.onmessage = null; ws.close(); } };
+}
+
 export const ai = {
   status: () => req<AiStatus>('/ai/status'),
   marketingCopy: (body: { topic: string; tone: string; channels: string[] }) =>

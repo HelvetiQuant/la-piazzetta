@@ -2,6 +2,38 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.18.0] — 2026-09-10
+
+Lotto 5 — Fluidità operativa: dashboard proprietario in tempo reale e wizard di
+provisioning del locale.
+
+### Added
+- **Dashboard proprietario real-time**: `KdsWebSocketServer.notifyDashboard`
+  riusa il canale WebSocket `/ws` già in produzione per i KDS e invia eventi
+  `dashboard-event` con `kind` `order.paid` | `session.closed` |
+  `stock.critical`. I KDS e il cameriere li ignorano (reagiscono solo a
+  `board-update`); la dashboard owner li intercetta, mostra un toast e ricarica
+  i KPI con debounce di 800ms. Il polling di sicurezza passa da assente a 60s.
+  - Emissione: `cashier` (`/sessions/:id/pay`, `/orders/:id/pay`, `/quick-sale`,
+    `/sessions/:id/close`) per incassi e chiusure; `orders` (creazione ordine)
+    per le scorte scese sotto `reorderLevel` via `findCriticalStock`.
+  - `RouteDeps.onDashboardEvent` + `DashboardEvent` in `http.ts`; wiring in
+    `index.ts` (`rtDeps` passato a orders, cashier, inventory).
+- **Wizard di provisioning del locale** (`apps/web-owner` primo avvio): crea
+  `Venue` + primo utente `OWNER` senza Prisma Studio.
+  - `SetupToken` (token monouso, hash SHA-256 su DB, scadenza) + migrazione
+    `20260911_setup_token`.
+  - CLI `npm run provision:token [ore] [nota]` (`apps/api/scripts/provision-token.ts`).
+  - Rotte pubbliche `GET /api/v1/setup/status` e `POST /api/v1/setup/provision`
+    (rate-limited 5/min); `provision` funziona solo finché non esiste un `OWNER`.
+  - `apps/web-owner`: pagina `Setup.tsx`, `setup.status()` in `App.tsx` decide
+    fra wizard e login.
+
+### Changed
+- `registerCashierRoutes` ora riceve anche `onBoardChange`: la board KDS viene
+  ripulita in tempo reale anche alla chiusura tavolo dalla cassa (prima il
+  callback non era passato ed era un no-op).
+
 ## [0.17.0] — 2026-09-10
 
 Chiusura known gaps, riduzione cast `as any`, verifica funzionale job agente.

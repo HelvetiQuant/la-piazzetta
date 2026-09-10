@@ -1,6 +1,6 @@
 {
   "name": "@la-piazzetta/api",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "private": true,
   "type": "module",
   "description": "API La Piazzetta — Express + Prisma. Include AiService (OpenAI + Anthropic).",
@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "provision:token": "tsx scripts/provision-token.ts",
     "db:seed:menu": "tsx prisma/seed-menu.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:import:menu:sql": "psql \"$DATABASE_URL\" -f prisma/seed/menu_prices.sql",

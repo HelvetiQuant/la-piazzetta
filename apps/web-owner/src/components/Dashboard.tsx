@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { dash, fmtEuro, fmtSec, type DashboardData } from '../api';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { dash, fmtEuro, fmtSec, subscribeDashboard, type DashboardData, type DashboardEvent } from '../api';
 
 const RANGES = [
   { id: 'today', label: 'Oggi' },
@@ -96,6 +96,27 @@ export default function Dashboard() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Real-time: ricarica i KPI su evento operativo (incasso, chiusura, scorta),
+  // con un piccolo debounce per assorbire raffiche di eventi. Polling di
+  // sicurezza ridotto a 60s (prima non c'era push).
+  const [toast, setToast] = useState<string | null>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const describe = (ev: DashboardEvent): string => {
+      if (ev.kind === 'order.paid') return `Incasso registrato${ev.amountCents ? ` · ${fmtEuro(ev.amountCents)}` : ''}`;
+      if (ev.kind === 'session.closed') return `Tavolo chiuso${ev.amountCents ? ` · ${fmtEuro(ev.amountCents)}` : ''}`;
+      return `Scorta sotto soglia: ${ev.productName ?? 'prodotto'} (${ev.quantity ?? 0}/${ev.reorderLevel ?? 0})`;
+    };
+    const unsub = subscribeDashboard((ev) => {
+      setToast(describe(ev));
+      setTimeout(() => setToast(null), 4000);
+      if (debounce.current) clearTimeout(debounce.current);
+      debounce.current = setTimeout(() => { load(); }, 800);
+    });
+    const poll = setInterval(load, 60_000);
+    return () => { unsub(); clearInterval(poll); if (debounce.current) clearTimeout(debounce.current); };
+  }, [load]);
+
   if (loading) return <div style={{ textAlign: 'center', padding: 60, color: COLORS.secondary }}>Caricamento…</div>;
   if (error) return <div style={{ textAlign: 'center', padding: 60, color: COLORS.danger }}>{error}</div>;
   if (!data) return null;
@@ -106,6 +127,15 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {toast && (
+        <div style={{
+          position: 'fixed', top: 76, right: 24, zIndex: 100,
+          background: COLORS.text, color: '#fff', padding: '10px 16px', borderRadius: 12,
+          fontSize: 13, fontWeight: 500, boxShadow: '0 8px 24px rgba(0,0,0,0.18)', maxWidth: 320,
+        }}>
+          <span style={{ marginRight: 8 }}>⚡</span>{toast}
+        </div>
+      )}
       {/* Range selector */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <div style={{ display: 'inline-flex', background: '#e8e8ed', borderRadius: 980, padding: 3 }}>

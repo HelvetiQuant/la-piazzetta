@@ -28,6 +28,7 @@ import { NotificationService } from './notifications/notification.service.js';
 import { AuthService, AuthError } from './auth/auth.service.js';
 import { makeAuthMiddleware } from './auth/auth.middleware.js';
 import { registerAuthRoutes } from './auth/auth.routes.js';
+import { registerSetupRoutes } from './setup/setup.routes.js';
 import { EntitlementService } from './entitlement/entitlement.service.js';
 import { registerEntitlementRoutes, requireModule } from './entitlement/entitlement.routes.js';
 import { getLogger, requestLogger, errorLogger } from './security/logger.js';
@@ -97,9 +98,12 @@ async function bootstrap(): Promise<void> {
   app.use('/api/v1/auth/login', rateLimit({ windowMs: 60_000, max: 10, keyFn: (req) => `login:${req.ip}:${req.path}`, message: 'Troppi tentativi di login, riprova tra 1 minuto' }, rateLimitStore));
   app.use('/api/v1/auth/login-pin', rateLimit({ windowMs: 60_000, max: 20, keyFn: (req) => `loginpin:${req.ip}`, message: 'Troppi tentativi PIN, riprova tra 1 minuto' }, rateLimitStore));
   app.use('/api/v1/auth/refresh', rateLimit({ windowMs: 60_000, max: 30, message: 'Troppe richieste di refresh' }, rateLimitStore));
+  app.use('/api/v1/setup/provision', rateLimit({ windowMs: 60_000, max: 5, keyFn: (req) => `setup:${req.ip}`, message: 'Troppi tentativi di provisioning, riprova tra 1 minuto' }, rateLimitStore));
 
-  // 3. Rotte pubbliche di autenticazione (login/refresh/logout).
+  // 3. Rotte pubbliche di autenticazione (login/refresh/logout) e provisioning
+  //    iniziale del locale (wizard web al posto di Prisma Studio manuale).
   registerAuthRoutes(app, prisma, authService);
+  registerSetupRoutes(app, prisma);
 
   // 4. Paywall contestuale per la UI (passa l'istanza con cache Redis).
   registerEntitlementRoutes(app, prisma, deps, entitlements);
@@ -121,13 +125,16 @@ async function bootstrap(): Promise<void> {
   // 7. Moduli di dominio. Le route ordini notificano via WebSocket i client
   //    KDS connessi (push-on-mutation invece del solo polling).
   const kdsWs = getKdsWebSocket(authService);
-  const orderDeps: RouteDeps = {
+  const rtDeps: RouteDeps = {
     devAuth,
     requireRoles,
     onBoardChange: (venueId, station) => kdsWs.notifyBoardUpdate(venueId, station),
+    // Push verso la dashboard proprietario: stesso canale WebSocket dei KDS,
+    // eventi order.paid / session.closed / stock.critical.
+    onDashboardEvent: (venueId, event) => kdsWs.notifyDashboard(venueId, event),
   };
 
-  registerOrderRoutes(app, prisma, orderDeps); // creazione ordini con station + timestamp, board per postazione, stato riga
+  registerOrderRoutes(app, prisma, rtDeps); // creazione ordini con station + timestamp, board per postazione, stato riga
   registerStatsRoutes(app, prisma, deps); // statistiche tempi di preparazione
   registerDashboardRoutes(app, prisma, deps); // KPI dashboard: revenue, ordini, top prodotti, coperti
   registerStaffRoutes(app, prisma, deps); // stipendi e turni staff
@@ -135,14 +142,14 @@ async function bootstrap(): Promise<void> {
   registerMarketingRoutes(app, prisma, deps); // marketing avanzato: social, AI, Canva, analytics
   registerAccountingRoutes(app, prisma, deps); // contabilità italiana: piano conti, fatture, registrazioni, CE, BP, export
   registerCreditRoutes(app, prisma, deps); // crediti clienti in cassa
-  registerInventoryRoutes(app, prisma, deps); // magazzino: movimenti storicizzati, rettifiche, low stock
+  registerInventoryRoutes(app, prisma, rtDeps); // magazzino: movimenti storicizzati, rettifiche, low stock
   registerSupplierRoutes(app, prisma, deps); // fornitori: anagrafica, listino, proposte di riordino
   registerPurchaseRoutes(app, prisma, deps); // ordini d'acquisto: ciclo bozza->inviato->ricevuto + ricezione merce
   registerAiRoutes(app, prisma, deps); // AI: upsell, marketing copy, riordino predittivo (OpenAI + Anthropic)
   registerAiPreferenceRoutes(app, prisma, deps); // AI preferences: impara dall'owner, non invadente
   registerMenuAddOnRoutes(app, prisma, deps); // Menu add-on: consigli da promuovere via staff
   registerStaffNoteRoutes(app, prisma, deps); // Note/rules staff: notifiche lampeggianti con ack obbligatorio
-  registerCashierRoutes(app, prisma, deps); // Cassa: pagamenti, cassetto, vendita al banco, chiusura giornaliera
+  registerCashierRoutes(app, prisma, rtDeps); // Cassa: pagamenti, cassetto, vendita al banco, chiusura giornaliera
   registerAgentRoutes(app, prisma, deps); // Agente: approvazione one-tap, proposte riordino
 
   // 7a. Job schedulati dell'agente (chiusura contabile, proposte riordino,

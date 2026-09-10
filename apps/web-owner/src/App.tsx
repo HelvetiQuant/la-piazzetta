@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import OrdersBoard from './components/OrdersBoard';
 import PrepTimeStats from './components/PrepTimeStats';
@@ -16,6 +16,8 @@ import DailyClose from './components/DailyClose';
 import MenuManagement from './components/MenuManagement';
 import OwnerNotes from './components/OwnerNotes';
 import Login from './pages/Login';
+import Setup from './pages/Setup';
+import { setup } from './api';
 import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 
 type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting' | 'dailyclose' | 'notes';
@@ -42,8 +44,20 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 export default function App() {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
+  const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (loggedIn) { setNeedsSetup(false); return; }
+    setup.status()
+      .then((s) => setNeedsSetup(s.needsSetup))
+      .catch(() => setNeedsSetup(false)); // API irraggiungibile: mostra il login
+  }, [loggedIn]);
 
   if (!loggedIn) {
+    if (needsSetup === null) {
+      return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a1a2e', color: '#fff', fontFamily: 'system-ui' }}>Caricamento…</div>;
+    }
+    if (needsSetup) return <Setup onDone={() => setNeedsSetup(false)} />;
     return <Login onLoggedIn={() => setLoggedIn(true)} />;
   }
 

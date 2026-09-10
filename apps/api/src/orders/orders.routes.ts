@@ -3,7 +3,7 @@ import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { currentUser, type RouteDeps } from '../http.js';
 import { stationForCategory, ALL_STATIONS, type Station } from '../stations/stations.js';
-import { recordMovement } from '../inventory/inventory.service.js';
+import { recordMovement, findCriticalStock } from '../inventory/inventory.service.js';
 
 type Tx = Prisma.TransactionClient;
 
@@ -59,7 +59,29 @@ export function orderTimestampsFor(status: string, now: Date): Partial<Record<'s
 }
 
 export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps): void {
-  const { devAuth, requireRoles, onBoardChange } = deps;
+  const { devAuth, requireRoles, onBoardChange, onDashboardEvent } = deps;
+
+  /**
+   * Dopo il commit di un ordine, segnala alla dashboard proprietario i prodotti
+   * scesi sotto la soglia di riordino (push `stock.critical`). Best-effort: un
+   * errore qui non deve toccare la risposta al cameriere.
+   */
+  async function notifyCriticalStock(venueId: string, productIds: string[]): Promise<void> {
+    if (!onDashboardEvent || productIds.length === 0) return;
+    try {
+      for (const c of await findCriticalStock(prisma, venueId, productIds)) {
+        onDashboardEvent(venueId, {
+          kind: 'stock.critical',
+          productId: c.productId,
+          productName: c.productName,
+          quantity: c.quantity,
+          reorderLevel: c.reorderLevel,
+        });
+      }
+    } catch {
+      /* il real-time è un di più: non propaghiamo l'errore */
+    }
+  }
 
   /** Notifica il real-time KDS per ogni postazione toccata dalla mutazione. */
   function notifyBoard(venueId: string, stations: Iterable<string>): void {
@@ -184,6 +206,10 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
 
     // Notifica KDS: le righe appena create sono su una o entrambe le postazioni.
     notifyBoard(user.venueId, new Set(body.items.map((i) => stationForCategory(products.find((p) => p.id === i.productId)!.category))));
+
+    // Real-time dashboard owner: prodotti (o ingredienti) scesi sotto soglia.
+    const touchedProductIds = products.flatMap((p) => (p.recipeItems.length > 0 ? p.recipeItems.map((ri) => ri.ingredientId) : [p.id]));
+    void notifyCriticalStock(user.venueId, touchedProductIds);
 
     res.status(201).json(order);
   });
