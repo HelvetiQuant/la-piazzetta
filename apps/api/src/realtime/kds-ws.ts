@@ -107,6 +107,21 @@ export class KdsWebSocketServer {
     }
   }
 
+  /**
+   * Notifica la dashboard proprietario di un evento operativo (ordine pagato,
+   * sessione chiusa, scorta critica). Inviato a TUTTI i client del venue: i KDS
+   * e il cameriere ignorano `type: 'dashboard-event'` (reagiscono solo a
+   * `board-update`), la dashboard owner lo intercetta e ricarica i KPI.
+   */
+  notifyDashboard(venueId: string, event: Record<string, unknown>): void {
+    const msg = JSON.stringify({ type: 'dashboard-event', ...event, at: Date.now() });
+    for (const c of this.clients) {
+      if (c.venueId === venueId && c.ws.readyState === 1) {
+        c.ws.send(msg);
+      }
+    }
+  }
+
   /** Notifica generica a tutti i client di un venue (es. nuovo ordine). */
   notifyVenue(venueId: string, payload: NotificationPayload): void {
     const msg = JSON.stringify({ type: 'notification', ...payload });

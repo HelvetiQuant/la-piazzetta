@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 
 type Tx = Prisma.TransactionClient;
 
@@ -80,6 +80,34 @@ export class InventoryError extends Error {
   constructor(public status: number, message: string) {
     super(message);
   }
+}
+
+/**
+ * Dopo il commit di una vendita (scarico SALE), individua i prodotti la cui
+ * giacenza è scesa a/sotto la soglia di riordino. Usato per il push real-time
+ * `stock.critical` verso la dashboard proprietario: la query è fuori transazione
+ * e non blocca mai la vendita.
+ */
+export interface CriticalStock {
+  productId: string;
+  productName: string;
+  quantity: number;
+  reorderLevel: number;
+}
+
+export async function findCriticalStock(
+  prisma: PrismaClient,
+  venueId: string,
+  productIds: string[],
+): Promise<CriticalStock[]> {
+  if (productIds.length === 0) return [];
+  const rows = await prisma.stockItem.findMany({
+    where: { productId: { in: [...new Set(productIds)] }, product: { venueId } },
+    include: { product: { select: { name: true } } },
+  });
+  return rows
+    .filter((r) => r.reorderLevel > 0 && r.quantity <= r.reorderLevel)
+    .map((r) => ({ productId: r.productId, productName: r.product.name, quantity: r.quantity, reorderLevel: r.reorderLevel }));
 }
 
 /** Livello target effettivo: parLevel se impostato, altrimenti reorderLevel. */

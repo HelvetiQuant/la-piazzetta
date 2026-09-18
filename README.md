@@ -34,11 +34,23 @@ Verifica: `curl http://localhost:3000/api/v1/health` → `{"ok":true,...}`.
 Es. `192.168.1.50`. L'API sarà raggiungibile da altri device sulla stessa rete
 su `http://192.168.1.50:3000/api/v1`.
 
-### Creare i primi utenti
+### Creare i primi utenti — wizard di primo avvio
 
-Non c'è ancora una UI di provisioning: il primo utente (owner) va creato a mano
-via Prisma Studio o una query diretta, impostando `passwordHash` (scrypt, vedi
-`src/auth/password.util.ts`) o un `pin`. Da lì si può gestire il resto via API.
+Il primo utente proprietario si crea dal wizard web di `/owner`, senza toccare
+il database:
+
+```bash
+cd apps/api
+npm run provision:token          # genera un token monouso (valido 24h)
+# npm run provision:token -- 72 "Apertura sede via Roma"   # scadenza + nota
+```
+
+Il comando stampa **una sola volta** un token in chiaro (nel DB resta solo
+l'hash SHA-256). Apri `http://<host>:3000/owner`: finché non esiste un utente
+`OWNER`, la web app mostra il wizard. Inserisci token, nome del locale ed
+email/password del proprietario; il token viene consumato e vengono creati il
+`Venue` e l'utente `OWNER`. Riavvia l'API per attivare i job automatici
+dell'agente. Da lì si gestisce il resto (staff, PIN…) dalla dashboard.
 
 ## 2. Frontend — web app moderne (Vite + React + TypeScript)
 

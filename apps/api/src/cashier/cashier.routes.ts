@@ -45,10 +45,15 @@ const ACCOUNT_RICAVI_BAR = '8.01';
 const ACCOUNT_RICAVI_TAVOLA_CALDA = '8.02';
 
 export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: CashierDeps): void {
-  const { devAuth, requireRoles, onBoardChange, posTerminal } = deps;
+  const { devAuth, requireRoles, onBoardChange, onDashboardEvent, posTerminal } = deps;
   const pos: PaymentTerminal = posTerminal ?? mockPosDriver;
 
   const CASHIER_ROLES = ['OWNER', 'MANAGER', 'BARMAN', 'CASHIER'];
+
+  /** Push real-time verso la dashboard proprietario (incassi/chiusure live). */
+  function emitDash(venueId: string, event: { kind: 'order.paid' | 'session.closed'; amountCents?: number; [k: string]: unknown }): void {
+    try { onDashboardEvent?.(venueId, event); } catch { /* best-effort */ }
+  }
 
   /** Notifica il real-time KDS per ripulire la board alla chiusura tavolo. */
   function notifyBoard(venueId: string, stations: Iterable<string>): void {
@@ -246,6 +251,8 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
 
         return { ok: true, totalDue, paidTotal, ordersPaid: unpaidOrders.length, sessionClosed: body.closeSession, bill };
       });
+      emitDash(user.venueId, { kind: 'order.paid', amountCents: result.paidTotal, ordersPaid: result.ordersPaid });
+      if (result.sessionClosed) emitDash(user.venueId, { kind: 'session.closed', amountCents: result.totalDue });
       res.json(result);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Errore nel pagamento sessione';
@@ -290,6 +297,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
     });
 
     notifyBoard(user.venueId, stations);
+    emitDash(user.venueId, { kind: 'session.closed', amountCents: totalCents });
     res.json({ ok: true, totalCents });
   });
 
@@ -444,6 +452,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
 
         return { ok: true, totalDue, paidTotal };
       });
+      emitDash(user.venueId, { kind: 'order.paid', amountCents: result.paidTotal });
       res.json(result);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Errore nel pagamento';
@@ -640,6 +649,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
 
         return { orderId: order.id, totalCents: bill.totalCents, changeCents };
       });
+      emitDash(user.venueId, { kind: 'order.paid', amountCents: result.totalCents });
       res.json(result);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Errore nella vendita al banco';
