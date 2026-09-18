@@ -2,9 +2,8 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
-## [0.18.0] — 2026-09-10
+## [0.19.0] — 2026-09-10
 
-<<<<<<< HEAD
 Fix completi: Docker healthcheck, eliminazione cast `as any`, documentazione
 deploy, monorepo completo.
 
@@ -39,7 +38,8 @@ deploy, monorepo completo.
 - Typecheck API: 0 errori (con Express augmentation `declare global`).
 - `swift build` del pacchetto condiviso: 0 errori dopo pulizia cache.
 - Conteggio `as any`: 12 (da 59 originari, −80%).
-=======
+## [0.18.0] — 2026-09-10
+
 Lotto 5 — Fluidità operativa: dashboard proprietario in tempo reale e wizard di
 provisioning del locale.
 
@@ -69,7 +69,6 @@ provisioning del locale.
 - `registerCashierRoutes` ora riceve anche `onBoardChange`: la board KDS viene
   ripulita in tempo reale anche alla chiusura tavolo dalla cassa (prima il
   callback non era passato ed era un no-op).
->>>>>>> origin/main
 
 ## [0.17.0] — 2026-09-10
 
