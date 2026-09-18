@@ -8,7 +8,7 @@ export interface DevUser {
 }
 
 export function currentUser(req: Request): DevUser {
-  return (req as any).devUser as DevUser;
+  return req.devUser as DevUser;
 }
 
 /**

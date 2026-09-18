@@ -28,8 +28,8 @@ const respondSchema = z.object({
 export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps) {
   // POST /api/v1/staff-notes — crea nota (solo owner/manager)
   app.post('/api/v1/staff-notes', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const senderId = (req as any).devUser.userId;
+    const venueId = req.devUser.venueId;
+    const senderId = req.devUser.userId;
     const parsed = createNoteSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation error', issues: parsed.error.issues });
@@ -55,8 +55,8 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
 
   // GET /api/v1/staff-notes — lista note (owner: tutte, staff: solo per lui)
   app.get('/api/v1/staff-notes', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const user = (req as any).devUser;
+    const venueId = req.devUser.venueId;
+    const user = req.devUser;
     const status = req.query.status as string | undefined;
 
     const where: any = { venueId, status: status || 'ACTIVE' };
@@ -85,8 +85,8 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
 
   // GET /api/v1/staff-notes/pending — note non ancora confermate dall'utente corrente
   app.get('/api/v1/staff-notes/pending', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const user = (req as any).devUser;
+    const venueId = req.devUser.venueId;
+    const user = req.devUser;
     const userId = user.userId;
     const userRoles = user.roles;
     const departments: string[] = [];
@@ -119,8 +119,8 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
 
   // POST /api/v1/staff-notes/:id/ack — conferma ricezione (dipendente)
   app.post('/api/v1/staff-notes/:id/ack', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const userId = (req as any).devUser.userId;
+    const venueId = req.devUser.venueId;
+    const userId = req.devUser.userId;
     const note = await prisma.staffNote.findFirst({ where: { id: req.params.id, venueId } });
     if (!note) {
       res.status(404).json({ error: 'Nota non trovata' });
@@ -139,8 +139,8 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
 
   // POST /api/v1/staff-notes/:id/respond — rispondi alla nota (dipendente)
   app.post('/api/v1/staff-notes/:id/respond', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const userId = (req as any).devUser.userId;
+    const venueId = req.devUser.venueId;
+    const userId = req.devUser.userId;
     const parsed = respondSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation error', issues: parsed.error.issues });
@@ -169,7 +169,7 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
 
   // PATCH /api/v1/staff-notes/:id — modifica nota (owner)
   app.patch('/api/v1/staff-notes/:id', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const { title, body, priority, type, status, dueDate } = req.body;
     const existing = await prisma.staffNote.findFirst({ where: { id: req.params.id, venueId } });
     if (!existing) { res.status(404).json({ error: 'Nota non trovata' }); return; }
@@ -189,7 +189,7 @@ export function registerStaffNoteRoutes(app: Express, prisma: PrismaClient, deps
 
   // DELETE /api/v1/staff-notes/:id — elimina nota (owner)
   app.delete('/api/v1/staff-notes/:id', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const existing = await prisma.staffNote.findFirst({ where: { id: req.params.id, venueId } });
     if (!existing) { res.status(404).json({ error: 'Nota non trovata' }); return; }
     await prisma.staffNote.delete({ where: { id: existing.id } });

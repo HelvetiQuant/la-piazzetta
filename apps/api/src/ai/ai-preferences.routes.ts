@@ -12,7 +12,7 @@ import type { RouteDeps } from '../http.js';
 export function registerAiPreferenceRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps) {
   // GET /api/v1/ai-preferences — leggi preferenze attuali
   app.get('/api/v1/ai-preferences', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     let prefs = await prisma.aiPreference.findUnique({ where: { venueId } });
     if (!prefs) {
       // Crea preferenze di default
@@ -25,7 +25,7 @@ export function registerAiPreferenceRoutes(app: Express, prisma: PrismaClient, d
 
   // PATCH /api/v1/ai-preferences — aggiorna preferenze
   app.patch('/api/v1/ai-preferences', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const { tonePreference, language, suggestionFrequency, preferredTopics, avoidedTopics } = req.body;
     const prefs = await prisma.aiPreference.upsert({
       where: { venueId },
@@ -43,7 +43,7 @@ export function registerAiPreferenceRoutes(app: Express, prisma: PrismaClient, d
 
   // POST /api/v1/ai-preferences/feedback — registra feedback (utile/non utile)
   app.post('/api/v1/ai-preferences/feedback', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const { interactionId, feedback } = req.body; // feedback: 1 = utile, -1 = non utile
     // Aggiorna l'interazione
     if (interactionId) {
@@ -66,7 +66,7 @@ export function registerAiPreferenceRoutes(app: Express, prisma: PrismaClient, d
 
   // POST /api/v1/ai-preferences/interaction — logga interazione (per imparare)
   app.post('/api/v1/ai-preferences/interaction', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const { section, prompt, response, modelUsed, tokensUsed } = req.body;
     const interaction = await prisma.aiInteraction.create({
       data: {
@@ -93,7 +93,7 @@ export function registerAiPreferenceRoutes(app: Express, prisma: PrismaClient, d
 
   // GET /api/v1/ai-preferences/suggestions — ottieni suggerimento contestuale (non invadente)
   app.get('/api/v1/ai-preferences/suggestions', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const section = (req.query.section as string) || 'dashboard';
     
     let prefs = await prisma.aiPreference.findUnique({ where: { venueId } });

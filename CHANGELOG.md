@@ -2,6 +2,43 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.18.0] — 2026-09-10
+
+Fix completi: Docker healthcheck, eliminazione cast `as any`, documentazione
+deploy, monorepo completo.
+
+### Fixed
+- **Docker healthcheck**: `/health` → `/api/v1/health` (l'endpoint corretto).
+  Il container API ora passa lo stato `healthy` invece di `unhealthy`.
+- **Eliminazione cast `as any`**: da 46 a 12 (tutti legittimi).
+  - Creato `apps/api/src/types/express.d.ts` con `declare global` per
+    estendere `Express.Request` con `devUser` e `logStart` (funziona con
+    `moduleResolution: NodeNext` a differenza di `declare module`).
+  - 28 cast `(req as any).devUser` sostituiti con `req.devUser` (tipato).
+  - 1 cast `(req as any).logStart` sostituito con `req.logStart` (tipato).
+  - 1 cast `(req as any).devUser` in `http.ts` eliminato (ora tipato).
+  - Budget `.any-budget` aggiornato da 46 a 12.
+  - I 12 residui sono legittimi: 10 risposte JSON da API esterne
+    (Canva/Gamma/Meta), 1 BullMQ connection, 1 AI response data.
+
+### Added
+- **`DEPLOY.md`**: documentazione completa deploy con requisiti hardware,
+  setup produzione, URL servizi, configurazione rete LAN, backup,
+  troubleshooting e limiti del modello (non cloud-native, single point
+  of failure, IP statico richiesto).
+
+### Changed
+- **Monorepo completo**: `ios/` e `macos/` spostati in `apps/ios` e
+  `apps/macos`; `swift-packages/` spostato in `packages/swift-packages`.
+  Ora tutto il codice è sotto `apps/` e `packages/` come da convenzione
+  npm workspaces. I progetti Xcode mantengono path relativi interni
+  (verificato con `swift build` verde dopo pulizia cache).
+
+### Verified
+- Typecheck API: 0 errori (con Express augmentation `declare global`).
+- `swift build` del pacchetto condiviso: 0 errori dopo pulizia cache.
+- Conteggio `as any`: 12 (da 59 originari, −80%).
+
 ## [0.17.0] — 2026-09-10
 
 Chiusura known gaps, riduzione cast `as any`, verifica funzionale job agente.

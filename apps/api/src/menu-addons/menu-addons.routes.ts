@@ -30,8 +30,8 @@ const updateAddOnSchema = createAddOnSchema.partial().extend({
 export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps: RouteDeps) {
   // GET /api/v1/menu-addons — lista add-on (owner vede tutti, staff vede solo attivi)
   app.get('/api/v1/menu-addons', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const user = (req as any).devUser;
+    const venueId = req.devUser.venueId;
+    const user = req.devUser;
     const status = req.query.status as string | undefined;
     
     const where: any = { venueId };
@@ -53,8 +53,8 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
 
   // GET /api/v1/menu-addons/active — add-on attivi per lo staff ora
   app.get('/api/v1/menu-addons/active', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
-    const user = (req as any).devUser;
+    const venueId = req.devUser.venueId;
+    const user = req.devUser;
     const now = new Date();
     const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); // 1=lun, 7=dom
     const hour = now.getHours();
@@ -105,7 +105,7 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
 
   // POST /api/v1/menu-addons — crea nuovo add-on (solo owner/manager)
   app.post('/api/v1/menu-addons', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const parsed = createAddOnSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation error', issues: parsed.error.issues });
@@ -136,7 +136,7 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
 
   // PATCH /api/v1/menu-addons/:id — modifica add-on
   app.patch('/api/v1/menu-addons/:id', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const parsed = updateAddOnSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation error', issues: parsed.error.issues });
@@ -169,7 +169,7 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
 
   // DELETE /api/v1/menu-addons/:id — elimina add-on
   app.delete('/api/v1/menu-addons/:id', deps.devAuth, deps.requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const existing = await prisma.menuAddOn.findFirst({ where: { id: req.params.id, venueId } });
     if (!existing) { res.status(404).json({ error: 'Add-on non trovato' }); return; }
     await prisma.menuAddOn.delete({ where: { id: existing.id } });
@@ -178,7 +178,7 @@ export function registerMenuAddOnRoutes(app: Express, prisma: PrismaClient, deps
 
   // POST /api/v1/menu-addons/:id/track — registra proposta/accettazione (per statistiche)
   app.post('/api/v1/menu-addons/:id/track', deps.devAuth, async (req: Request, res: Response) => {
-    const venueId = (req as any).devUser.venueId;
+    const venueId = req.devUser.venueId;
     const { accepted } = req.body; // true = cliente ha accettato, false = solo proposto
     const existing = await prisma.menuAddOn.findFirst({ where: { id: req.params.id, venueId } });
     if (!existing) { res.status(404).json({ error: 'Add-on non trovato' }); return; }

@@ -40,3 +40,11 @@ apps/api/node_modules/.prisma/
 *.xcuserstate
 xcuserdata/
 *.moved-aside
+
+# Swift build artifacts
+.build/
+*.build
+DerivedData/
+*.xcworkspace/xcuserdata
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata

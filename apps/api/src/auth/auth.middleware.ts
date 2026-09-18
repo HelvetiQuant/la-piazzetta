@@ -2,9 +2,9 @@
  * Middleware di autenticazione REALE (sostituisce il devAuth a soli header).
  *
  * Ordine: se è presente `Authorization: Bearer <jwt>` lo verifica e popola
- * `(req as any).devUser` dai claims. Solo FUORI produzione, in assenza di Bearer, accetta
+ * `req.devUser` dai claims. Solo FUORI produzione, in assenza di Bearer, accetta
  * ancora gli header dev (`x-venue-id`/`x-user-id`/`x-user-roles`) per test locali.
- * La forma di `(req as any).devUser` resta invariata: i moduli a valle non cambiano.
+ * La forma di `req.devUser` resta invariata: i moduli a valle non cambiano.
  */
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
@@ -21,7 +21,7 @@ export function makeAuthMiddleware(auth: AuthService, opts: { allowDevHeaders?: 
     if (token) {
       try {
         const claims = auth.verifyAccess(token);
-        (req as any).devUser = { venueId: claims.venueId, userId: claims.sub, roles: claims.roles } as DevUser;
+        req.devUser = { venueId: claims.venueId, userId: claims.sub, roles: claims.roles } as DevUser;
         return next();
       } catch {
         res.status(401).json({ error: 'Token non valido o scaduto' });
@@ -34,7 +34,7 @@ export function makeAuthMiddleware(auth: AuthService, opts: { allowDevHeaders?: 
       const userId = req.headers['x-user-id'] as string;
       const rolesHeader = req.headers['x-user-roles'] as string;
       if (venueId && userId && rolesHeader) {
-        (req as any).devUser = { venueId, userId, roles: rolesHeader.split(',') } as DevUser;
+        req.devUser = { venueId, userId, roles: rolesHeader.split(',') } as DevUser;
         return next();
       }
     }

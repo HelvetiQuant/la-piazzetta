@@ -111,7 +111,7 @@ async function bootstrap(): Promise<void> {
   app.use('/api/v1/ai', rateLimit({
     windowMs: 60_000,
     max: Number(process.env.AI_RATE_LIMIT_PER_MIN) || 60,
-    keyFn: (req) => `ai:${(req as any).devUser?.userId ?? req.ip}`,
+    keyFn: (req) => `ai:${req.devUser?.userId ?? req.ip}`,
     message: 'Limite richieste AI raggiunto per questo minuto',
   }, rateLimitStore));
 

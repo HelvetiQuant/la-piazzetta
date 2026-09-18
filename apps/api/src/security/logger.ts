@@ -87,7 +87,7 @@ export function getLogger(): Logger {
 
 /**
  * Middleware di request logging: logga ogni richiesta HTTP con durata e
- * status. Salta /health e /ws (rumore inutile). Inietta `(req as any).logStart` per
+ * status. Salta /health e /ws (rumore inutile). Inietta `req.logStart` per
  * calcolare la durata.
  */
 export function requestLogger(log: Logger = getLogger()): RequestHandler {
@@ -97,11 +97,11 @@ export function requestLogger(log: Logger = getLogger()): RequestHandler {
       return;
     }
     const start = Date.now();
-    (req as any).logStart = start;
+    req.logStart = start;
 
     res.on('finish', () => {
       const durationMs = Date.now() - start;
-      const user = (req as any).devUser;
+      const user = req.devUser;
       const ctx: LogContext = {
         method: req.method,
         path: req.path,
