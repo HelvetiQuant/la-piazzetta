@@ -536,7 +536,7 @@ export interface MediaAsset {
 export interface SocialAccount {
   id: string; platform: string; accountId: string; username?: string | null;
   displayName?: string | null; avatarUrl?: string | null; active: boolean;
-  connectedAt: string; lastSyncAt?: string | null; scopes: string[];
+  connectedAt: string; lastSyncAt?: string | null; tokenExpiresAt?: string | null; scopes: string[];
 }
 export interface SocialPost {
   id: string; venueId: string; campaignId?: string | null; mediaAssetId?: string | null;
@@ -605,6 +605,12 @@ export const mkt = {
   connectAccount: (body: Record<string, unknown>) =>
     req<{ id: string; platform: string; accountId: string }>('/marketing/accounts/connect', { method: 'POST', body: JSON.stringify(body) }),
   disconnectAccount: (id: string) => req<{ ok: boolean }>(`/marketing/accounts/${id}`, { method: 'DELETE' }),
+  refreshAccount: (id: string) =>
+    req<{ ok: boolean; tokenExpiresAt?: string | null }>(`/marketing/accounts/${id}/refresh`, { method: 'POST' }),
+
+  // OAuth Meta (Facebook + Instagram): flow automatico con redirect
+  oauthMetaStatus: () => req<{ configured: boolean; redirectUri: string }>('/marketing/oauth/meta/status'),
+  oauthMetaAuthorize: () => req<{ url: string }>('/marketing/oauth/meta/authorize'),
 
   // Comments
   comments: (needsReply?: boolean) => req<SocialComment[]>(`/marketing/comments${needsReply ? '?needsReply=true' : ''}`),

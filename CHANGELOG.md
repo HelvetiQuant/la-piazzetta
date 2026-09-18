@@ -2,6 +2,50 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.20.0] — 2026-09-18
+
+OAuth Meta automatico: "Connetti con Meta" collega pagina Facebook + account
+Instagram business con redirect flow, senza incollare token a mano.
+
+### Added
+- **Flow OAuth Meta (Facebook Login)** in `apps/api/src/marketing/`:
+  - `GET /api/v1/marketing/oauth/meta/status` → `{ configured, redirectUri }`
+    per sapere se META_APP_ID/META_APP_SECRET sono impostati.
+  - `GET /api/v1/marketing/oauth/meta/authorize` → URL `facebook.com/dialog/oauth`
+    con `state` firmato HMAC-SHA256 (anti-CSRF, stateless, TTL 10 min,
+    contiene venueId+userId+nonce).
+  - `GET /api/v1/marketing/oauth/meta/callback` → pubblico (l'auth è lo state
+    firmato): scambia code→short token→long-lived token (~60gg) via
+    `fb_exchange_token`, scopre le pagine FB con `me/accounts` e gli account
+    IG business collegati (`instagram_business_account`), upsert in
+    `SocialAccount` con scope effettivamente concessi (`me/permissions`),
+    poi redirect alla UI owner con `?oauth_meta=ok|error`.
+  - `POST /api/v1/marketing/accounts/:id/refresh` → rinnova il token
+    long-lived (`fb_exchange_token`) per account facebook/instagram.
+  - Scope richiesti: `pages_show_list`, `pages_manage_posts`,
+    `pages_read_engagement`, `instagram_basic`, `instagram_content_publish`,
+    `business_management`.
+- **UI owner** (`Marketing → Account Social`): pulsante "Connetti con Meta"
+  (visibile se OAuth configurato), banner esito redirect, scadenza token
+  per account, avviso "in scadenza" (<7gg), pulsante "↻ Rinnova".
+  L'app si apre direttamente su Marketing → Account Social al ritorno
+  dal redirect OAuth.
+- **Env documentate**: `META_APP_ID`, `META_APP_SECRET`, `OAUTH_STATE_SECRET`
+  (default JWT_SECRET), `WEB_OWNER_URL` (default PUBLIC_BASE_URL/owner/).
+
+### Changed
+- **Token per-account**: publish, reply, auto-reply, sync commenti e sync
+  analytics ora usano `SocialAccount.accessToken` dell'account connesso
+  (OAuth o manuale) con fallback a `SOCIAL_GRAPH_TOKEN` globale. Prima i
+  token salvati nel DB non venivano mai usati: funzionava solo il token
+  globale da env — i token OAuth sarebbero stati inutili.
+
+### Verified
+- `tsc --noEmit` API: 0 errori.
+- Build `apps/web-owner` (tsc + vite): verde.
+- State OAuth: roundtrip sign/verify, secret errato/tampering/scadenza
+  rifiutati (test manuale tsx).
+
 ## [0.19.0] — 2026-09-10
 
 Fix completi: Docker healthcheck, eliminazione cast `as any`, documentazione

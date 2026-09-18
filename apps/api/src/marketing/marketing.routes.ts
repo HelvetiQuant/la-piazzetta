@@ -21,8 +21,14 @@
  *
  * Social Accounts:
  *  GET    /api/v1/marketing/accounts             → lista account connessi
- *  POST   /api/v1/marketing/accounts/connect     → connetti account (OAuth token)
+ *  POST   /api/v1/marketing/accounts/connect     → connetti account (token manuale)
  *  DELETE /api/v1/marketing/accounts/:id         → disconnetti account
+ *  POST   /api/v1/marketing/accounts/:id/refresh → rinnova token Meta long-lived
+ *
+ * OAuth Meta (Facebook Login → pagina FB + account IG business):
+ *  GET    /api/v1/marketing/oauth/meta/status    → { configured, redirectUri }
+ *  GET    /api/v1/marketing/oauth/meta/authorize → { url } con state HMAC
+ *  GET    /api/v1/marketing/oauth/meta/callback  → pubblico: exchange + upsert + redirect
  *
  * Comments:
  *  GET    /api/v1/marketing/comments?needsReply= → lista commenti
@@ -49,6 +55,9 @@ import {
   publishToInstagram, publishToFacebook, publishToWhatsApp,
   fetchSocialComments, replyToComment, fetchInstagramInsights,
   generateAiReply, generateAiPost,
+  META_OAUTH_SCOPES, newOAuthState, signOAuthState, verifyOAuthState,
+  buildMetaAuthorizeUrl, exchangeMetaCode, exchangeMetaLongLived,
+  fetchMetaPagesWithInstagram, fetchMetaGrantedScopes,
 } from './marketing.service.js';
 import { getAiService } from '../ai/ai.service.js';
 import path from 'path';
@@ -315,10 +324,6 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
       include: { mediaAsset: true },
     });
     if (!post) { res.status(404).json({ error: 'Post non trovato' }); return; }
-    if (!cfg.graphApiToken) {
-      res.status(503).json({ error: 'Social API non configurata. Imposta SOCIAL_GRAPH_TOKEN.' });
-      return;
-    }
 
     await prisma.socialPost.update({ where: { id: post.id }, data: { status: 'PUBLISHING' } });
 
@@ -330,10 +335,13 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     for (const platform of post.platforms) {
       const account = accounts.find(a => a.platform === platform);
       if (!account) { perPlatform[platform] = { error: 'Account non connesso' }; continue; }
+      // Token per-account (OAuth o manuale) con fallback al token globale env.
+      const token = account.accessToken || cfg.graphApiToken;
+      if (!token) { perPlatform[platform] = { error: 'Token non disponibile: riconnetti l\'account' }; continue; }
 
       if (platform === 'instagram' && imageUrl) {
         const r = await publishToInstagram({
-          graphToken: cfg.graphApiToken,
+          graphToken: token,
           graphVersion: cfg.graphApiVersion!,
           igUserId: account.accountId,
           imageUrl,
@@ -342,7 +350,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
         perPlatform.instagram = r ? { postId: r.igPostId, permalink: r.permalink } : { error: 'Pubblicazione fallita' };
       } else if (platform === 'facebook') {
         const r = await publishToFacebook({
-          graphToken: cfg.graphApiToken,
+          graphToken: token,
           graphVersion: cfg.graphApiVersion!,
           fbPageId: account.accountId,
           message: fullCaption,
@@ -367,6 +375,112 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     res.json({ status: hasErrors ? 'FAILED' : 'PUBLISHED', perPlatform });
   });
 
+  // ============ OAUTH META (Facebook + Instagram) ============
+  // Flow automatico "Connetti con Facebook": authorize emette un URL firmato,
+  // il browser va su Meta e torna al callback pubblico che salva gli account.
+  const metaConfigured = () => Boolean(cfg.metaAppId && cfg.metaAppSecret);
+  const metaRedirectUri = () => `${cfg.publicBaseUrl}/api/v1/marketing/oauth/meta/callback`;
+  const ownerAppUrl = () => cfg.ownerAppUrl ?? `${cfg.publicBaseUrl}/owner/`;
+  const stateSecret = () => cfg.oauthStateSecret ?? 'dev-oauth-state-secret';
+
+  app.get('/api/v1/marketing/oauth/meta/status', devAuth, requireRoles(...MKT_ROLES), async (_req: Request, res: Response) => {
+    res.json({ configured: metaConfigured(), redirectUri: metaRedirectUri() });
+  });
+
+  app.get('/api/v1/marketing/oauth/meta/authorize', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
+    if (!metaConfigured()) {
+      res.status(503).json({ error: 'OAuth Meta non configurato. Imposta META_APP_ID e META_APP_SECRET.' });
+      return;
+    }
+    const user = currentUser(req);
+    const state = signOAuthState(newOAuthState(user.venueId, user.userId), stateSecret());
+    res.json({
+      url: buildMetaAuthorizeUrl({
+        appId: cfg.metaAppId!,
+        redirectUri: metaRedirectUri(),
+        state,
+        graphVersion: cfg.graphApiVersion!,
+      }),
+    });
+  });
+
+  // Callback pubblico: il browser torna da Meta senza Bearer. L'autenticazione
+  // è garantita dallo `state` firmato HMAC emesso da /authorize (venueId+userId
+  // dentro, scadenza 10 min). Esito → redirect alla UI owner con query param.
+  app.get('/api/v1/marketing/oauth/meta/callback', async (req: Request, res: Response) => {
+    const done = (params: Record<string, string>) =>
+      res.redirect(`${ownerAppUrl()}?${new URLSearchParams(params).toString()}`);
+    const fail = (reason: string) => done({ oauth_meta: 'error', reason });
+
+    if (req.query.error) {
+      fail(String(req.query.error_description ?? req.query.error));
+      return;
+    }
+    const state = verifyOAuthState(String(req.query.state ?? ''), stateSecret());
+    if (!state) { fail('state non valido o scaduto'); return; }
+    const code = String(req.query.code ?? '');
+    if (!code) { fail('code mancante'); return; }
+    if (!metaConfigured()) { fail('OAuth Meta non configurato'); return; }
+
+    const short = await exchangeMetaCode({
+      appId: cfg.metaAppId!, appSecret: cfg.metaAppSecret!,
+      redirectUri: metaRedirectUri(), code, graphVersion: cfg.graphApiVersion!,
+    });
+    if (!short) { fail('scambio code fallito'); return; }
+
+    const long = await exchangeMetaLongLived({
+      appId: cfg.metaAppId!, appSecret: cfg.metaAppSecret!,
+      token: short.accessToken, graphVersion: cfg.graphApiVersion!,
+    });
+    const userToken = long?.accessToken ?? short.accessToken;
+    const expiresAt = long?.expiresInSec
+      ? new Date(Date.now() + long.expiresInSec * 1000)
+      : new Date(Date.now() + short.expiresInSec * 1000);
+
+    const pages = await fetchMetaPagesWithInstagram({ userToken, graphVersion: cfg.graphApiVersion! });
+    if (!pages) { fail('lettura pagine Facebook fallita'); return; }
+    if (pages.length === 0) { fail('nessuna pagina Facebook trovata: serve una pagina di cui sei admin'); return; }
+
+    const grantedScopes = await fetchMetaGrantedScopes({ userToken, graphVersion: cfg.graphApiVersion! });
+
+    let connected = 0;
+    for (const p of pages) {
+      await prisma.socialAccount.upsert({
+        where: { venueId_platform_accountId: { venueId: state.v, platform: 'facebook', accountId: p.pageId } },
+        create: {
+          venueId: state.v, platform: 'facebook', accountId: p.pageId,
+          accessToken: p.pageAccessToken, tokenExpiresAt: expiresAt,
+          displayName: p.pageName, scopes: grantedScopes.length ? grantedScopes : META_OAUTH_SCOPES,
+        },
+        update: {
+          accessToken: p.pageAccessToken, tokenExpiresAt: expiresAt,
+          displayName: p.pageName, scopes: grantedScopes.length ? grantedScopes : META_OAUTH_SCOPES,
+          active: true,
+        },
+      });
+      connected++;
+      if (p.igUserId) {
+        await prisma.socialAccount.upsert({
+          where: { venueId_platform_accountId: { venueId: state.v, platform: 'instagram', accountId: p.igUserId } },
+          create: {
+            venueId: state.v, platform: 'instagram', accountId: p.igUserId,
+            accessToken: p.pageAccessToken, tokenExpiresAt: expiresAt,
+            username: p.igUsername, displayName: p.igName ?? p.igUsername, avatarUrl: p.igAvatarUrl,
+            scopes: grantedScopes.length ? grantedScopes : META_OAUTH_SCOPES,
+          },
+          update: {
+            accessToken: p.pageAccessToken, tokenExpiresAt: expiresAt,
+            username: p.igUsername, displayName: p.igName ?? p.igUsername, avatarUrl: p.igAvatarUrl,
+            scopes: grantedScopes.length ? grantedScopes : META_OAUTH_SCOPES,
+            active: true,
+          },
+        });
+        connected++;
+      }
+    }
+    done({ oauth_meta: 'ok', accounts: String(connected) });
+  });
+
   // ============ SOCIAL ACCOUNTS ============
   app.get('/api/v1/marketing/accounts', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
@@ -379,6 +493,7 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
       id: a.id, platform: a.platform, accountId: a.accountId, username: a.username,
       displayName: a.displayName, avatarUrl: a.avatarUrl, active: a.active,
       connectedAt: a.connectedAt, lastSyncAt: a.lastSyncAt, scopes: a.scopes,
+      tokenExpiresAt: a.tokenExpiresAt,
     })));
   });
 
@@ -433,6 +548,38 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     res.json({ ok: true });
   });
 
+  // Rinnova un token Meta long-lived (fb_exchange_token). I token pagina FB/IG
+  // ottenuti via OAuth scadono ~60 giorni dopo la connessione dell'utente.
+  app.post('/api/v1/marketing/accounts/:id/refresh', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const account = await prisma.socialAccount.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
+    if (!account) { res.status(404).json({ error: 'Account non trovato' }); return; }
+    if (account.platform !== 'facebook' && account.platform !== 'instagram') {
+      res.status(400).json({ error: 'Refresh supportato solo per account Meta (facebook/instagram)' });
+      return;
+    }
+    if (!metaConfigured()) {
+      res.status(503).json({ error: 'OAuth Meta non configurato. Imposta META_APP_ID e META_APP_SECRET.' });
+      return;
+    }
+    const renewed = await exchangeMetaLongLived({
+      appId: cfg.metaAppId!, appSecret: cfg.metaAppSecret!,
+      token: account.accessToken, graphVersion: cfg.graphApiVersion!,
+    });
+    if (!renewed) {
+      res.status(502).json({ error: 'Refresh fallito: riconnetti l\'account con OAuth' });
+      return;
+    }
+    const tokenExpiresAt = renewed.expiresInSec
+      ? new Date(Date.now() + renewed.expiresInSec * 1000)
+      : null;
+    await prisma.socialAccount.update({
+      where: { id: account.id },
+      data: { accessToken: renewed.accessToken, tokenExpiresAt },
+    });
+    res.json({ ok: true, tokenExpiresAt });
+  });
+
   // ============ COMMENTS ============
   app.get('/api/v1/marketing/comments', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
@@ -446,6 +593,15 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     res.json(comments);
   });
 
+  // Token per piattaforma: preferisce il token dell'account connesso (OAuth o
+  // manuale), fallback al token globale SOCIAL_GRAPH_TOKEN.
+  const platformTokens = async (venueId: string): Promise<Map<string, string>> => {
+    const accounts = await prisma.socialAccount.findMany({ where: { venueId, active: true } });
+    return new Map(accounts.map(a => [a.platform, a.accessToken]));
+  };
+  const tokenFor = (tokens: Map<string, string>, platform: string): string | undefined =>
+    tokens.get(platform) || cfg.graphApiToken;
+
   const replySchema = z.object({ replyText: z.string().min(1) });
   app.post('/api/v1/marketing/comments/:id/reply', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
@@ -457,9 +613,11 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     if (!comment) { res.status(404).json({ error: 'Commento non trovato' }); return; }
 
     // Pubblica la risposta sulla piattaforma
-    if (cfg.graphApiToken && (comment.platform === 'instagram' || comment.platform === 'facebook')) {
+    const tokens = await platformTokens(user.venueId);
+    const token = tokenFor(tokens, comment.platform);
+    if (token && (comment.platform === 'instagram' || comment.platform === 'facebook')) {
       await replyToComment({
-        graphToken: cfg.graphApiToken,
+        graphToken: token,
         graphVersion: cfg.graphApiVersion!,
         commentId: comment.platformCommentId,
         replyText: body.replyText,
@@ -489,9 +647,11 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
     });
 
     // Pubblica la risposta
-    if (cfg.graphApiToken && (comment.platform === 'instagram' || comment.platform === 'facebook')) {
+    const tokens = await platformTokens(user.venueId);
+    const token = tokenFor(tokens, comment.platform);
+    if (token && (comment.platform === 'instagram' || comment.platform === 'facebook')) {
       await replyToComment({
-        graphToken: cfg.graphApiToken,
+        graphToken: token,
         graphVersion: cfg.graphApiVersion!,
         commentId: comment.platformCommentId,
         replyText,
@@ -508,8 +668,9 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
   // Sync commenti da social
   app.post('/api/v1/marketing/comments/sync', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
-    if (!cfg.graphApiToken) {
-      res.status(503).json({ error: 'Social API non configurata' });
+    const tokens = await platformTokens(user.venueId);
+    if (tokens.size === 0 && !cfg.graphApiToken) {
+      res.status(503).json({ error: 'Nessun account social connesso e SOCIAL_GRAPH_TOKEN non impostato' });
       return;
     }
     const publishedPosts = await prisma.socialPost.findMany({
@@ -521,8 +682,10 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
       if (!perPlatform) continue;
       for (const [platform, info] of Object.entries(perPlatform)) {
         if (!info.postId || info.error) continue;
+        const token = tokenFor(tokens, platform);
+        if (!token) continue;
         const comments = await fetchSocialComments({
-          graphToken: cfg.graphApiToken,
+          graphToken: token,
           graphVersion: cfg.graphApiVersion!,
           postPlatformId: info.postId,
           platform: platform as 'instagram' | 'facebook',
@@ -633,8 +796,9 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
   // Sync analytics da Instagram
   app.post('/api/v1/marketing/analytics/sync', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
-    if (!cfg.graphApiToken) {
-      res.status(503).json({ error: 'Social API non configurata' });
+    const tokens = await platformTokens(user.venueId);
+    if (tokens.size === 0 && !cfg.graphApiToken) {
+      res.status(503).json({ error: 'Nessun account social connesso e SOCIAL_GRAPH_TOKEN non impostato' });
       return;
     }
     const posts = await prisma.socialPost.findMany({
@@ -647,8 +811,10 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
       for (const [platform, info] of Object.entries(perPlatform)) {
         if (!info.postId || info.error) continue;
         if (platform === 'instagram') {
+          const token = tokenFor(tokens, platform);
+          if (!token) continue;
           const insights = await fetchInstagramInsights({
-            graphToken: cfg.graphApiToken,
+            graphToken: token,
             graphVersion: cfg.graphApiVersion!,
             igPostId: info.postId,
           });

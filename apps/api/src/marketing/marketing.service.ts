@@ -11,6 +11,7 @@
  */
 
 import type { PrismaClient } from '@prisma/client';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { getAiService } from '../ai/ai.service.js';
 
 /** Variante di copy marketing generata dall'AI; `hashtags` è opzionale
@@ -30,6 +31,13 @@ export interface MarketingConfig {
   // WhatsApp Business
   whatsappToken?: string;
   whatsappPhoneId?: string;
+  // OAuth Meta (Facebook Login → pagina FB + account IG business)
+  metaAppId?: string;
+  metaAppSecret?: string;
+  // Segreto per firmare lo `state` OAuth (anti-CSRF). Default: JWT_SECRET.
+  oauthStateSecret?: string;
+  // URL dell'app owner dove riportare il browser dopo il callback OAuth.
+  ownerAppUrl?: string;
   // Base URL per media (es. https://piazzetta.example.com)
   publicBaseUrl?: string;
 }
@@ -42,6 +50,11 @@ export function getMarketingConfig(): MarketingConfig {
     graphApiVersion: process.env.GRAPH_API_VERSION ?? 'v21.0',
     whatsappToken: process.env.WHATSAPP_TOKEN,
     whatsappPhoneId: process.env.WHATSAPP_PHONE_ID,
+    metaAppId: process.env.META_APP_ID,
+    metaAppSecret: process.env.META_APP_SECRET,
+    // `||` (non `??`): un valore vuoto in .env deve comunque fare fallback.
+    oauthStateSecret: process.env.OAUTH_STATE_SECRET || process.env.JWT_SECRET,
+    ownerAppUrl: process.env.WEB_OWNER_URL || undefined,
     publicBaseUrl: process.env.PUBLIC_BASE_URL ?? 'http://localhost:3000',
   };
 }
@@ -390,6 +403,187 @@ export async function generateAiPost(opts: {
     };
   } catch {
     return null;
+  }
+}
+
+// ============ OAuth Meta (Facebook Login → pagina FB + account IG business) ============
+// Flow: /authorize emette un URL facebook.com/dialog/oauth con `state` firmato
+// HMAC (anti-CSRF, stateless — niente tabella). Il callback pubblico verifica
+// lo state, scambia code→short token→long-lived token (~60gg), scopre le
+// pagine FB dell'utente e gli account IG business collegati, e salva i token
+// pagina in SocialAccount.
+
+/** Scope richiesti: lettura pagine, pubblicazione FB, pubblicazione IG. */
+export const META_OAUTH_SCOPES = [
+  'pages_show_list',
+  'pages_manage_posts',
+  'pages_read_engagement',
+  'instagram_basic',
+  'instagram_content_publish',
+  'business_management',
+];
+
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; // 10 minuti
+
+export interface OAuthStatePayload {
+  /** venueId del locale che ha avviato il flow. */
+  v: string;
+  /** userId dell'utente (owner/manager). */
+  u: string;
+  /** nonce anti-replay. */
+  n: string;
+  /** scadenza (epoch ms). */
+  exp: number;
+}
+
+export function signOAuthState(payload: OAuthStatePayload, secret: string): string {
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = createHmac('sha256', secret).update(body).digest('base64url');
+  return `${body}.${sig}`;
+}
+
+export function verifyOAuthState(state: string, secret: string): OAuthStatePayload | null {
+  const dot = state.lastIndexOf('.');
+  if (dot <= 0) return null;
+  const body = state.slice(0, dot);
+  const sig = state.slice(dot + 1);
+  const expected = createHmac('sha256', secret).update(body).digest('base64url');
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  try {
+    const p = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as OAuthStatePayload;
+    if (!p.v || !p.u || typeof p.exp !== 'number' || p.exp < Date.now()) return null;
+    return p;
+  } catch {
+    return null;
+  }
+}
+
+export function newOAuthState(venueId: string, userId: string): OAuthStatePayload {
+  return { v: venueId, u: userId, n: randomBytes(12).toString('hex'), exp: Date.now() + OAUTH_STATE_TTL_MS };
+}
+
+// ---- URL di autorizzazione Facebook Login ----
+export function buildMetaAuthorizeUrl(opts: {
+  appId: string;
+  redirectUri: string;
+  state: string;
+  graphVersion: string;
+}): string {
+  const q = new URLSearchParams({
+    client_id: opts.appId,
+    redirect_uri: opts.redirectUri,
+    state: opts.state,
+    scope: META_OAUTH_SCOPES.join(','),
+    response_type: 'code',
+  });
+  return `https://www.facebook.com/${opts.graphVersion}/dialog/oauth?${q.toString()}`;
+}
+
+// ---- Scambio code → user access token (short-lived) ----
+export async function exchangeMetaCode(opts: {
+  appId: string;
+  appSecret: string;
+  redirectUri: string;
+  code: string;
+  graphVersion: string;
+}): Promise<{ accessToken: string; expiresInSec: number } | null> {
+  try {
+    const q = new URLSearchParams({
+      client_id: opts.appId,
+      client_secret: opts.appSecret,
+      redirect_uri: opts.redirectUri,
+      code: opts.code,
+    });
+    const resp = await fetch(`https://graph.facebook.com/${opts.graphVersion}/oauth/access_token?${q.toString()}`);
+    if (!resp.ok) return null;
+    const data = await resp.json() as any;
+    if (!data.access_token) return null;
+    return { accessToken: data.access_token, expiresInSec: Number(data.expires_in) || 3600 };
+  } catch {
+    return null;
+  }
+}
+
+// ---- Upgrade short token → long-lived token (~60 giorni) ----
+// La stessa chiamata serve anche come refresh: passando un token long-lived
+// ancora valido Meta ne restituisce uno nuovo con scadenza estesa.
+export async function exchangeMetaLongLived(opts: {
+  appId: string;
+  appSecret: string;
+  token: string;
+  graphVersion: string;
+}): Promise<{ accessToken: string; expiresInSec: number } | null> {
+  try {
+    const q = new URLSearchParams({
+      client_id: opts.appId,
+      client_secret: opts.appSecret,
+      grant_type: 'fb_exchange_token',
+      fb_exchange_token: opts.token,
+    });
+    const resp = await fetch(`https://graph.facebook.com/${opts.graphVersion}/oauth/access_token?${q.toString()}`);
+    if (!resp.ok) return null;
+    const data = await resp.json() as any;
+    if (!data.access_token) return null;
+    return { accessToken: data.access_token, expiresInSec: Number(data.expires_in) || 0 };
+  } catch {
+    return null;
+  }
+}
+
+// ---- Pagine FB dell'utente + account IG business collegati ----
+export interface MetaPageWithIg {
+  pageId: string;
+  pageName: string;
+  pageAccessToken: string;
+  igUserId?: string;
+  igUsername?: string;
+  igName?: string;
+  igAvatarUrl?: string;
+}
+
+export async function fetchMetaPagesWithInstagram(opts: {
+  userToken: string;
+  graphVersion: string;
+}): Promise<MetaPageWithIg[] | null> {
+  try {
+    const fields = 'id,name,access_token,instagram_business_account{id,username,name,profile_picture_url}';
+    const resp = await fetch(
+      `https://graph.facebook.com/${opts.graphVersion}/me/accounts?fields=${fields}&access_token=${opts.userToken}`,
+    );
+    if (!resp.ok) return null;
+    const data = await resp.json() as any;
+    return ((data.data ?? []) as any[]).map(p => ({
+      pageId: p.id,
+      pageName: p.name ?? '',
+      pageAccessToken: p.access_token ?? '',
+      igUserId: p.instagram_business_account?.id,
+      igUsername: p.instagram_business_account?.username,
+      igName: p.instagram_business_account?.name,
+      igAvatarUrl: p.instagram_business_account?.profile_picture_url,
+    })).filter(p => p.pageId && p.pageAccessToken);
+  } catch {
+    return null;
+  }
+}
+
+// ---- Scope effettivamente concessi dall'utente (diagnostica) ----
+export async function fetchMetaGrantedScopes(opts: {
+  userToken: string;
+  graphVersion: string;
+}): Promise<string[]> {
+  try {
+    const resp = await fetch(
+      `https://graph.facebook.com/${opts.graphVersion}/me/permissions?access_token=${opts.userToken}`,
+    );
+    if (!resp.ok) return [];
+    const data = await resp.json() as any;
+    return ((data.data ?? []) as Array<{ permission: string; status: string }>)
+      .filter(p => p.status === 'granted')
+      .map(p => p.permission);
+  } catch {
+    return [];
   }
 }
 

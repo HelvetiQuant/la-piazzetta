@@ -19,7 +19,9 @@ const STATUS_FG: Record<string, string> = { DRAFT: C.sec, SCHEDULED: C.acc, PUBL
 type SubTab = 'create' | 'posts' | 'comments' | 'analytics' | 'accounts' | 'campaigns';
 
 export default function Marketing() {
-  const [tab, setTab] = useState<SubTab>('create');
+  // Ritorno dal flow OAuth Meta: vai diretto alla sezione Account Social.
+  const [tab, setTab] = useState<SubTab>(() =>
+    new URLSearchParams(window.location.search).has('oauth_meta') ? 'accounts' : 'create');
   const [aiStatus, setAiStatus] = useState<{ enabled: boolean; budgetSpentCents: number } | null>(null);
 
   useEffect(() => { ai.status().then(setAiStatus).catch(() => {}); }, []);
@@ -533,12 +535,42 @@ function AccountsManager() {
   const [accountId, setAccountId] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [username, setUsername] = useState('');
+  const [oauthMeta, setOauthMeta] = useState<{ configured: boolean; redirectUri: string } | null>(null);
+  const [oauthBanner, setOauthBanner] = useState<{ ok: boolean; text: string } | null>(null);
+  const [refreshingId, setRefreshingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setAccounts(await mkt.accounts()); } catch {} finally { setLoading(false); }
+    try {
+      setAccounts(await mkt.accounts());
+      setOauthMeta(await mkt.oauthMetaStatus());
+    } catch {} finally { setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  // Esito del redirect OAuth Meta: ?oauth_meta=ok|error sulla URL dell'app.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const result = q.get('oauth_meta');
+    if (!result) return;
+    if (result === 'ok') {
+      const n = q.get('accounts');
+      setOauthBanner({ ok: true, text: `Account Meta connessi${n ? `: ${n} (pagine Facebook + Instagram)` : ''}` });
+      load();
+    } else {
+      setOauthBanner({ ok: false, text: `Connessione Meta fallita: ${q.get('reason') ?? 'errore sconosciuto'}` });
+    }
+    const url = new URL(window.location.href);
+    url.search = '';
+    window.history.replaceState({}, '', url.toString());
+  }, [load]);
+
+  const connectMeta = async () => {
+    try {
+      const { url } = await mkt.oauthMetaAuthorize();
+      window.location.href = url;
+    } catch (e: any) { alert(e.message); }
+  };
 
   const connect = async () => {
     if (!accountId || !accessToken) return;
@@ -554,14 +586,53 @@ function AccountsManager() {
     try { await mkt.disconnectAccount(id); await load(); } catch (e: any) { alert(e.message); }
   };
 
+  const refresh = async (id: string) => {
+    setRefreshingId(id);
+    try { await mkt.refreshAccount(id); await load(); }
+    catch (e: any) { alert(e.message); }
+    finally { setRefreshingId(null); }
+  };
+
+  const isExpiringSoon = (a: SocialAccount) =>
+    a.tokenExpiresAt && new Date(a.tokenExpiresAt).getTime() - Date.now() < 7 * 86400000;
+
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.sec }}>Caricamento…</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: 18, fontWeight: 600 }}>Account social connessi</div>
-        <button onClick={() => setShowConnect(!showConnect)} style={btnPri}>+ Connetti account</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {oauthMeta?.configured && (
+            <button onClick={connectMeta} style={{ ...btnPri, background: '#1877f2' }}>
+              f Connetti con Meta
+            </button>
+          )}
+          <button onClick={() => setShowConnect(!showConnect)} style={oauthMeta?.configured ? btnSec : btnPri}>
+            + Token manuale
+          </button>
+        </div>
       </div>
+
+      {oauthBanner && (
+        <div style={{
+          background: oauthBanner.ok ? '#e8f8ed' : '#fff0f0', borderRadius: 12,
+          padding: '10px 16px', fontSize: 13, color: oauthBanner.ok ? C.ok : C.err,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span>{oauthBanner.ok ? '✓' : '⚠️'} {oauthBanner.text}</span>
+          <button onClick={() => setOauthBanner(null)} style={{ ...btn, padding: '2px 8px', fontSize: 12, background: 'transparent', color: C.sec }}>✕</button>
+        </div>
+      )}
+
+      {oauthMeta && !oauthMeta.configured && (
+        <div style={{ ...card, fontSize: 13, color: C.sec, background: '#f5f5f7' }}>
+          💡 Per la connessione automatica di Facebook/Instagram ("Connetti con Meta")
+          imposta <code>META_APP_ID</code> e <code>META_APP_SECRET</code> nel backend
+          (app su developers.facebook.com con redirect URI{' '}
+          <code>{oauthMeta.redirectUri}</code>). In alternativa usa il token manuale.
+        </div>
+      )}
 
       {showConnect && (
         <div style={card}>
@@ -615,12 +686,25 @@ function AccountsManager() {
                     <div style={{ fontSize: 12, color: C.sec }}>{a.platform}</div>
                   </div>
                 </div>
-                <button onClick={() => disconnect(a.id)} style={{ ...btn, padding: '4px 10px', fontSize: 12, background: 'transparent', color: C.err, border: `1px solid ${C.err}40` }}>Disconnetti</button>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {(a.platform === 'facebook' || a.platform === 'instagram') && oauthMeta?.configured && (
+                    <button onClick={() => refresh(a.id)} disabled={refreshingId === a.id}
+                      style={{ ...btn, padding: '4px 10px', fontSize: 12, background: 'transparent', color: C.acc, border: `1px solid ${C.acc}40` }}>
+                      {refreshingId === a.id ? '…' : '↻ Rinnova'}
+                    </button>
+                  )}
+                  <button onClick={() => disconnect(a.id)} style={{ ...btn, padding: '4px 10px', fontSize: 12, background: 'transparent', color: C.err, border: `1px solid ${C.err}40` }}>Disconnetti</button>
+                </div>
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: C.sec }}>
                 Connesso: {new Date(a.connectedAt).toLocaleDateString('it-IT')}
                 {a.lastSyncAt && ` · Ultimo sync: ${new Date(a.lastSyncAt).toLocaleDateString('it-IT')}`}
               </div>
+              {a.tokenExpiresAt && (
+                <div style={{ marginTop: 4, fontSize: 12, color: isExpiringSoon(a) ? C.warn : C.sec }}>
+                  {isExpiringSoon(a) ? '⚠️' : '🔑'} Token scade: {new Date(a.tokenExpiresAt).toLocaleDateString('it-IT')}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -42,7 +42,10 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('dashboard');
+  // Dopo il redirect OAuth Meta (callback → ?oauth_meta=...) apri direttamente
+  // la scheda Marketing così l'owner vede l'esito nella sezione Account Social.
+  const [tab, setTab] = useState<Tab>(() =>
+    new URLSearchParams(window.location.search).has('oauth_meta') ? 'marketing' : 'dashboard');
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
   const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
 
