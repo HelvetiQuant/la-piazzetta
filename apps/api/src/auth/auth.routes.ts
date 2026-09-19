@@ -35,6 +35,19 @@ export function registerAuthRoutes(app: Express, prisma: PrismaClient, auth: Aut
     await handle(res, () => auth.loginWithPin(b.venueId, b.userId, b.pin));
   });
 
+  // Lista staff per il picker PIN dei device condivisi: espone solo id/nome/ruolo
+  // (il PIN resta il segreto). Pattern standard POS (Square, Clover).
+  app.get('/api/v1/auth/pin-users', async (req: Request, res: Response) => {
+    const venueId = String(req.query.venueId ?? '');
+    if (!venueId) { res.status(400).json({ error: 'venueId obbligatorio' }); return; }
+    const users = await prisma.user.findMany({
+      where: { venueId, pin: { not: null } },
+      select: { id: true, name: true, roles: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json(users.map((u) => ({ id: u.id, name: u.name, roles: u.roles })));
+  });
+
   app.post('/api/v1/auth/refresh', async (req: Request, res: Response) => {
     const b = refreshSchema.parse(req.body);
     await handle(res, () => auth.refresh(b.refreshToken));

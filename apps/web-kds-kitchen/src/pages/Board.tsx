@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, NEXT_STATUS, type BoardOrder, type ItemStatus } from '../api';
 import { colors } from '@la-piazzetta/ui';
+import { wsUrl } from '@la-piazzetta/api-client';
 
-const STATION = ((import.meta.env.VITE_STATION as string | undefined) || 'BAR') as 'BAR' | 'TAVOLA_CALDA';
+const STATION = ((import.meta.env.VITE_STATION as string | undefined) || 'TAVOLA_CALDA') as 'BAR' | 'TAVOLA_CALDA';
 const STATION_LABEL = STATION === 'BAR' ? 'Bar' : 'Cucina';
 
 const COLUMNS: { status: ItemStatus; label: string }[] = [
@@ -56,10 +57,9 @@ export default function Board() {
     // WebSocket connection
     let ws: WebSocket | null = null;
     try {
-      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       const token = JSON.parse(localStorage.getItem('piazzetta.tokens') || '{}').accessToken;
       if (token) {
-        ws = new WebSocket(`${protocol}//${location.hostname}:3000/ws?token=${token}`);
+        ws = new WebSocket(wsUrl(token));
         ws.onmessage = (ev) => {
           try {
             const msg = JSON.parse(ev.data);

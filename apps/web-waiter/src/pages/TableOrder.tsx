@@ -5,6 +5,7 @@ import {
 } from '../api';
 import { colors } from '@la-piazzetta/ui';
 import BillDialog from './BillDialog';
+import { wsUrl } from '@la-piazzetta/api-client';
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Bozza',
@@ -127,10 +128,9 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
     // WebSocket per aggiornamento real-time
     let ws: WebSocket | null = null;
     try {
-      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       const token = JSON.parse(localStorage.getItem('piazzetta.tokens') || '{}').accessToken;
       if (token) {
-        ws = new WebSocket(`${protocol}//${location.hostname}:3000/ws?token=${token}`);
+        ws = new WebSocket(wsUrl(token));
         ws.onmessage = (ev) => {
           try {
             const msg = JSON.parse(ev.data);

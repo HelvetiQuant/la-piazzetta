@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, STATION_LABEL, type TableRow, type BoardResponse, type Station } from '../api';
 import { colors } from '@la-piazzetta/ui';
+import { wsUrl } from '@la-piazzetta/api-client';
 
 interface TableReadyInfo {
   readyCount: number;
@@ -59,10 +60,9 @@ export default function Tables({ onOpenTable }: { onOpenTable: (table: TableRow)
     // WebSocket per real-time
     let ws: WebSocket | null = null;
     try {
-      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       const token = JSON.parse(localStorage.getItem('piazzetta.tokens') || '{}').accessToken;
       if (token) {
-        ws = new WebSocket(`${protocol}//${location.hostname}:3000/ws?token=${token}`);
+        ws = new WebSocket(wsUrl(token));
         ws.onmessage = (ev) => {
           try {
             const msg = JSON.parse(ev.data);

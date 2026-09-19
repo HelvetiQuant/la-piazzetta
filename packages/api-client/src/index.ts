@@ -59,6 +59,24 @@ export function venueId(): string {
   return currentUser()?.venueId || DEFAULT_VENUE;
 }
 
+/** Staff con PIN configurato (picker device condivisi, endpoint pubblico). */
+export interface PinUser {
+  id: string;
+  name: string;
+  roles: string[];
+}
+export async function listPinUsers(venue = DEFAULT_VENUE): Promise<PinUser[]> {
+  const res = await fetch(`${API}/auth/pin-users?venueId=${encodeURIComponent(venue)}`);
+  if (!res.ok) return [];
+  return (await res.json()) as PinUser[];
+}
+
+/** URL WebSocket /ws derivato dalla stessa API_URL (niente porta hardcoded). */
+export function wsUrl(token: string | null): string {
+  const base = API.replace(/\/api\/v1\/?$/, '').replace(/^http/, 'ws');
+  return `${base}/ws${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+}
+
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     method: 'POST',

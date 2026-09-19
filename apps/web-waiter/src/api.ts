@@ -267,6 +267,12 @@ export const cashierApi = {
       method: 'POST',
       body: JSON.stringify({ payments, tipCents }),
     }),
+  /** Paga l'intera sessione (tutti gli ordini + coperto) con uno o più versamenti. */
+  paySession: (sessionId: string, payments: PaymentInput[], tipCents = 0, closeSession = true) =>
+    apiFetch<{ ok: boolean; totalCents: number; changeCents: number }>(`/cashier/sessions/${sessionId}/pay`, {
+      method: 'POST',
+      body: JSON.stringify({ payments, tipCents, closeSession }),
+    }),
   voidItem: (orderId: string, itemId: string, reason: string) =>
     apiFetch<{ ok: boolean }>(`/cashier/orders/${orderId}/void-item`, {
       method: 'POST',
@@ -307,6 +313,9 @@ export const creditApi = {
   /** Ricerca cliente per telefono (per verificare se esiste già). */
   lookup: (phone: string) =>
     apiFetch<{ customer: CreditCustomer | null }>(`/credit/lookup?phone=${encodeURIComponent(phone)}`),
+  /** Trova o crea cliente senza addebito (selezione cliente per pagamento CREDIT). */
+  findOrCreate: (input: { phone: string; name: string; surname?: string; email?: string }) =>
+    apiFetch<CreditCustomer>('/credit/customers/find-or-create', { method: 'POST', body: JSON.stringify(input) }),
   /** Registra consumazione a credito: crea o trova cliente, addebita. */
   staffCharge: (input: { name: string; surname?: string; phone: string; amountCents: number; note?: string; orderId?: string }) =>
     apiFetch<{ customer: CreditCustomer; transaction: { id: string; type: string; amountCents: number; balanceAfterCents: number } }>(

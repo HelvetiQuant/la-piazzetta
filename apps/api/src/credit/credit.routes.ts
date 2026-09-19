@@ -271,6 +271,27 @@ export function registerCreditRoutes(app: Express, prisma: PrismaClient, deps: R
     }
   });
 
+  // ---- Trova o crea cliente SENZA addebito (selezione cliente al pagamento) ----
+  app.post('/api/v1/credit/customers/find-or-create', devAuth, requireRoles(...STAFF_CREDIT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const body = z.object({
+      phone: z.string().min(3),
+      name: z.string().min(1),
+      surname: z.string().optional(),
+      email: z.string().email().optional(),
+    }).parse(req.body);
+    const existing = await prisma.customer.findFirst({ where: { venueId: user.venueId, phone: body.phone } });
+    if (existing) { res.json(existing); return; }
+    const customer = await prisma.customer.create({
+      data: {
+        venueId: user.venueId,
+        name: body.name, surname: body.surname, phone: body.phone, email: body.email,
+        notes: `Cliente registrato da ${user.userId} (${new Date().toISOString().slice(0, 10)})`,
+      },
+    });
+    res.status(201).json(customer);
+  });
+
   // ---- Ricerca clienti per telefono (per staff sala/banco) ----
   app.get('/api/v1/credit/lookup', devAuth, requireRoles(...STAFF_CREDIT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);

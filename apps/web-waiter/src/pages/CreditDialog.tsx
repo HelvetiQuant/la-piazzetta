@@ -16,10 +16,13 @@ export default function CreditDialog({
   defaultAmountCents,
   onClose,
   onCharged,
+  mode = 'charge',
 }: {
   defaultAmountCents?: number;
   onClose: () => void;
   onCharged?: (customer: CreditCustomer) => void;
+  /** 'charge': addebita subito (vendita banco). 'select': trova/crea cliente e basta (pagamento sessione atomico). */
+  mode?: 'charge' | 'select';
 }) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -54,13 +57,22 @@ export default function CreditDialog({
 
   async function charge() {
     const amount = typeof amountCents === 'number' ? amountCents : 0;
-    if (amount <= 0) { setError('Importo obbligatorio'); return; }
     if (!phone.trim() && !email.trim()) { setError('Inserire almeno un telefono o email per le notifiche'); return; }
     if (!found && !name.trim()) { setError('Nome obbligatorio per nuovo cliente'); return; }
+    if (mode === 'charge' && amount <= 0) { setError('Importo obbligatorio'); return; }
 
     setLoading(true);
     setError(null);
     try {
+      if (mode === 'select') {
+        // Solo selezione cliente: l'addebito avviene atomicamente in paySession.
+        const customer = found ?? await creditApi.findOrCreate({
+          name: name.trim(), surname: surname.trim() || undefined,
+          phone: phone.trim(), email: email.trim() || undefined,
+        });
+        onCharged?.(customer);
+        return;
+      }
       const result = await creditApi.staffCharge({
         name: name.trim(),
         surname: surname.trim() || undefined,
@@ -88,7 +100,7 @@ export default function CreditDialog({
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 16px 8px', borderBottom: '1px solid #f0f0f0' }}>
-          <h3 style={{ margin: 0 }}>📋 Consumazione a credito</h3>
+          <h3 style={{ margin: 0 }}>📋 {mode === 'select' ? 'Cliente a credito' : 'Consumazione a credito'}</h3>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', fontSize: 20, cursor: 'pointer', color: '#999' }}>✕</button>
         </div>
 
@@ -182,18 +194,20 @@ export default function CreditDialog({
                 </>
               )}
 
-              {/* Importo */}
-              <div>
-                <label style={labelStyle}>Importo (€) *</label>
-                <input
-                  type="number"
-                  value={amountCents === '' ? '' : amountCents / 100}
-                  onChange={(e) => setAmountCents(e.target.value === '' ? '' : Math.round(Number(e.target.value) * 100))}
-                  placeholder="es. 15.50"
-                  step="0.50"
-                  style={inputStyle}
-                />
-              </div>
+              {/* Importo (solo addebito diretto) */}
+              {mode === 'charge' && (
+                <div>
+                  <label style={labelStyle}>Importo (€) *</label>
+                  <input
+                    type="number"
+                    value={amountCents === '' ? '' : amountCents / 100}
+                    onChange={(e) => setAmountCents(e.target.value === '' ? '' : Math.round(Number(e.target.value) * 100))}
+                    placeholder="es. 15.50"
+                    step="0.50"
+                    style={inputStyle}
+                  />
+                </div>
+              )}
 
               {/* Nota opzionale */}
               <div>
@@ -216,7 +230,7 @@ export default function CreditDialog({
                   borderRadius: 12, cursor: loading ? 'wait' : 'pointer',
                 }}
               >
-                {loading ? 'Registrazione…' : 'Registra a credito'}
+                {loading ? 'Attendere…' : mode === 'select' ? 'Seleziona cliente' : 'Registra a credito'}
               </button>
             </>
           )}

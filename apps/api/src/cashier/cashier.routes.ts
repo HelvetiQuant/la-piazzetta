@@ -49,6 +49,9 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
   const pos: PaymentTerminal = posTerminal ?? mockPosDriver;
 
   const CASHIER_ROLES = ['OWNER', 'MANAGER', 'BARMAN', 'CASHIER'];
+  // Incassi al tavolo/banco: anche il cameriere riscuote (contanti/carta/credito).
+  // Gestione cassetto e report restano riservati a CASHIER_ROLES.
+  const PAYMENT_ROLES = [...CASHIER_ROLES, 'WAITER'];
 
   /** Push real-time verso la dashboard proprietario (incassi/chiusure live). */
   function emitDash(venueId: string, event: { kind: 'order.paid' | 'session.closed'; amountCents?: number; [k: string]: unknown }): void {
@@ -105,7 +108,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
     closeSession: z.boolean().optional().default(true),
   });
 
-  app.post('/api/v1/cashier/sessions/:id/pay', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
+  app.post('/api/v1/cashier/sessions/:id/pay', devAuth, requireRoles(...PAYMENT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const session = await prisma.tableSession.findFirst({
       where: { id: req.params.id, venueId: user.venueId },
@@ -261,7 +264,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
   });
 
   // ─── POST /sessions/:id/close — chiude, libera il tavolo ───────────────────
-  app.post('/api/v1/orders-tables/sessions/:id/close', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
+  app.post('/api/v1/orders-tables/sessions/:id/close', devAuth, requireRoles(...PAYMENT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const session = await prisma.tableSession.findFirst({
       where: { id: req.params.id, venueId: user.venueId },
@@ -312,7 +315,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
     tipCents: z.number().int().min(0).optional(),
   });
 
-  app.post('/api/v1/cashier/orders/:id/pay', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
+  app.post('/api/v1/cashier/orders/:id/pay', devAuth, requireRoles(...PAYMENT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const order = await prisma.order.findFirst({
       where: { id: req.params.id, venueId: user.venueId },
@@ -463,7 +466,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
   // ─── POST /cashier/orders/:id/void-item — storno riga con motivo ──────────
   const voidSchema = z.object({ reason: z.string().min(1, 'Motivo obbligatorio') });
 
-  app.post('/api/v1/cashier/orders/:id/void-item', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
+  app.post('/api/v1/cashier/orders/:id/void-item', devAuth, requireRoles(...PAYMENT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const { itemId } = req.body as { itemId?: string };
     if (!itemId) { res.status(400).json({ error: 'itemId obbligatorio' }); return; }
@@ -515,7 +518,7 @@ export function registerCashierRoutes(app: Express, prisma: PrismaClient, deps: 
     clientOrderId: z.string().optional(),
   });
 
-  app.post('/api/v1/cashier/quick-sale', devAuth, requireRoles(...CASHIER_ROLES), async (req: Request, res: Response) => {
+  app.post('/api/v1/cashier/quick-sale', devAuth, requireRoles(...PAYMENT_ROLES), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const body = quickSaleSchema.parse(req.body);
 

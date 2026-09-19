@@ -101,6 +101,41 @@ export default function ClockIn({ onEnterShift }: { onEnterShift?: () => void })
     return <div style={{ textAlign: 'center', padding: 60, color: '#888' }}>Caricamento…</div>;
   }
 
+  const clockOutModal = showClockOut && (
+    <div onClick={() => setShowClockOut(false)} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: 20,
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#fff', borderRadius: 20, padding: 28, width: 360,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+      }}>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Chiudi turno</div>
+        <div style={{ fontSize: 14, color: '#86868b', marginBottom: 20 }}>
+          {(shift && ROLE_LABEL[shift.shiftRole ?? '']) ?? ''} · iniziato alle {shift && fmtTime(shift.startedAt)}
+        </div>
+        <label style={{ fontSize: 13, color: '#86868b', display: 'block', marginBottom: 6 }}>Pausa (minuti)</label>
+        <input
+          type="number" value={breakMinutes} onChange={e => setBreakMinutes(Number(e.target.value))} min={0}
+          style={{
+            width: '100%', borderRadius: 12, border: '1px solid #d2d2d7', padding: '12px 14px',
+            fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 20,
+          }}
+        />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={() => setShowClockOut(false)} style={{
+            flex: 1, borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f',
+          }}>Annulla</button>
+          <button onClick={doClockOut} disabled={clockingIn} style={{
+            flex: 1, borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+            border: 'none', background: '#ff3b30', color: '#fff',
+          }}>{clockingIn ? 'Uscita…' : 'Conferma uscita'}</button>
+        </div>
+      </div>
+    </div>
+  );
+
   // Se ha un turno aperto → mostra stato turno
   if (shift && shift.status === 'OPEN') {
     return (
@@ -136,6 +171,7 @@ export default function ClockIn({ onEnterShift }: { onEnterShift?: () => void })
           </button>
         </div>
         {error && <div style={{ color: '#ff3b30', textAlign: 'center', marginTop: 12, fontSize: 14 }}>{error}</div>}
+        {clockOutModal}
       </div>
     );
   }
@@ -200,41 +236,7 @@ export default function ClockIn({ onEnterShift }: { onEnterShift?: () => void })
         {error && <div style={{ color: '#ff3b30', marginTop: 12, fontSize: 14 }}>{error}</div>}
       </div>
 
-      {/* Clock-out modal */}
-      {showClockOut && (
-        <div onClick={() => setShowClockOut(false)} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: 20,
-        }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: '#fff', borderRadius: 20, padding: 28, width: 360,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Chiudi turno</div>
-            <div style={{ fontSize: 14, color: '#86868b', marginBottom: 20 }}>
-              {(shift && ROLE_LABEL[shift.shiftRole ?? '']) ?? ''} · iniziato alle {shift && fmtTime(shift.startedAt)}
-            </div>
-            <label style={{ fontSize: 13, color: '#86868b', display: 'block', marginBottom: 6 }}>Pausa (minuti)</label>
-            <input
-              type="number" value={breakMinutes} onChange={e => setBreakMinutes(Number(e.target.value))} min={0}
-              style={{
-                width: '100%', borderRadius: 12, border: '1px solid #d2d2d7', padding: '12px 14px',
-                fontSize: 16, outline: 'none', boxSizing: 'border-box', marginBottom: 20,
-              }}
-            />
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowClockOut(false)} style={{
-                flex: 1, borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 600, cursor: 'pointer',
-                border: '1px solid #d2d2d7', background: '#fff', color: '#1d1d1f',
-              }}>Annulla</button>
-              <button onClick={doClockOut} disabled={clockingIn} style={{
-                flex: 1, borderRadius: 14, padding: '14px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                border: 'none', background: '#ff3b30', color: '#fff',
-              }}>{clockingIn ? 'Uscita…' : 'Conferma uscita'}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {clockOutModal}
     </div>
   );
 }

@@ -2,6 +2,58 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.21.0] — 2026-09-19
+
+Audit UX completo delle web app (euristiche Nielsen / ISO 9241-11) con test
+end-to-end reali: fix di 6 bug, di cui 2 bloccanti per il flusso di incasso
+del cameriere.
+
+### Fixed
+- **Incasso cameriere (bloccante)**: `CASHIER_ROLES` escludeva `WAITER` —
+  ogni pagamento al tavolo rispondeva `403 Forbidden`. Nuovo `PAYMENT_ROLES`
+  (= CASHIER + WAITER) per `/cashier/sessions/:id/pay`, `/orders/:id/pay`,
+  `quick-sale`, `void-item` e chiusura sessione; cassetto e report restano
+  riservati a OWNER/MANAGER/BARMAN/CASHIER.
+- **BillDialog usava `quickSale` + `closeSession`** (workaround Lotto 2):
+  creava un ordine fittizio COUNTER e chiudeva la sessione lasciando gli
+  ordini non pagati; lo split pagava una quota ma chiudeva tutto. Ora usa
+  `POST /cashier/sessions/:id/pay` con flusso multi-versamento: ogni tap su
+  Contanti/Carta/Credito aggiunge una quota (lista con undo, residuo live),
+  conferma atomica quando residuo = 0. Supporta split alla romana e
+  pagamenti misti (es. contanti + carta) in un'unica transazione.
+- **Vendite a credito invisibili ai KPI**: `staff-charge` creava solo la
+  `creditTransaction` senza `Payment` — gli ordini restavano non pagati e
+  il ricavo spariva dalla dashboard. Nuovo `POST /credit/customers/find-or-create`
+  (selezione cliente senza addebito): il pagamento CREDIT passa da
+  `paySession` che addebita atomicamente con controllo fido, crea Payment +
+  scrittura contabile e marca gli ordini PAID. `CreditDialog` ha ora
+  modalita `select` (selezione cliente) e `charge` (addebito diretto banco).
+- **Modal clock-out irraggiungibile**: in `ClockIn.tsx` il modal era nel ramo
+  "nessun turno" — con turno aperto il pulsante Esci non faceva nulla.
+  Estratto in variabile condivisa tra i due rami.
+- **WebSocket hardcoded a :3000** in waiter + entrambi i KDS: real-time rotto
+  con API su altra porta. Nuovo helper `wsUrl()` in `@la-piazzetta/api-client`
+  derivato da `VITE_API_URL` (stessa sorgente dell'HTTP).
+- **KDS cucina default station `BAR`**: ora `TAVOLA_CALDA`.
+
+### Added
+- `GET /api/v1/auth/pin-users?venueId=` (pubblico): lista staff con PIN
+  configurato — solo id/nome/ruolo, il PIN resta il segreto.
+- `listPinUsers()` e `wsUrl()` in `@la-piazzetta/api-client`.
+
+### Changed
+- **Login PIN cameriere**: da campo testo "userId" a picker staff visuale
+  (avatar + nome + ruolo) con tastierino numerico — pattern standard POS,
+  niente tastiera su tablet condiviso.
+- `creditApi.findOrCreate` in web-waiter.
+
+### Verified
+- E2E reale: sessione → ordine → conto (con IVA e coperto weekend) →
+  pagamento split CASH+CARD → sessione chiusa → tavolo liberato.
+- `/auth/pin-users` restituisce lo staff del venue reale.
+- Typecheck e build verdi su api, api-client, owner, waiter, kds-bar,
+  kds-kitchen.
+
 ## [0.20.0] — 2026-09-18
 
 OAuth Meta automatico: "Connetti con Meta" collega pagina Facebook + account
