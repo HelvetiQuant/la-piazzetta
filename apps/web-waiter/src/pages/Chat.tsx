@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { chatApi, type ChatRoom, type ChatMessage } from '../api';
 import { currentUser } from '@la-piazzetta/api-client';
+import { uiAlert } from '@la-piazzetta/ui';
 
 const ROOM_TYPE_ICON: Record<string, string> = {
   COLLECTIVE: '📢',
@@ -74,7 +75,7 @@ export default function Chat() {
     try {
       const msg = await chatApi.send(activeRoom, msgText);
       setMessages(prev => [...prev, msg]);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   async function createDirectToOwner() {
@@ -83,7 +84,7 @@ export default function Chat() {
       setRooms(prev => [...prev, room]);
       setActiveRoom(room.id);
       setShowNewDirect(false);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   }
 
   if (loading) return <div style={{ textAlign: 'center', padding: 60, color: '#888' }}>Caricamento…</div>;

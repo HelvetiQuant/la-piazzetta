@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { staff, fmtEuro, type StaffMember, type PayrollEntry, type PayrollSummary } from '../api';
+import { uiAlert } from '@la-piazzetta/ui';
 
 const COLORS = {
   bg: '#f5f5f7', card: '#ffffff', text: '#1d1d1f', secondary: '#86868b',
@@ -67,16 +68,16 @@ export default function Payroll() {
         deductionCents: calcDeduction,
       });
       await load();
-    } catch (e: any) { alert(e.message ?? 'Errore'); } finally { setCalcLoading(false); }
+    } catch (e: any) { uiAlert(e.message ?? 'Errore'); } finally { setCalcLoading(false); }
   };
 
   const updateStatus = async (id: string, status: 'DRAFT' | 'APPROVED' | 'PAID') => {
-    try { await staff.updatePayroll(id, { status }); await load(); } catch (e: any) { alert(e.message ?? 'Errore'); }
+    try { await staff.updatePayroll(id, { status }); await load(); } catch (e: any) { uiAlert(e.message ?? 'Errore'); }
   };
 
   const saveRate = async () => {
     if (!editingRate) return;
-    try { await staff.setRate(editingRate.id, rateValue); setEditingRate(null); await load(); } catch (e: any) { alert(e.message ?? 'Errore'); }
+    try { await staff.setRate(editingRate.id, rateValue); setEditingRate(null); await load(); } catch (e: any) { uiAlert(e.message ?? 'Errore'); }
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: 60, color: COLORS.secondary }}>Caricamento…</div>;

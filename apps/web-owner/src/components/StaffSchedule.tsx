@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { staff, schedule, fmtEuro, type StaffMember, type ScheduledShift, type AvailabilitySlot, type AIShiftSuggestion } from '../api';
+import { uiAlert, uiConfirm } from '@la-piazzetta/ui';
 
 const COLORS = {
   bg: '#f5f5f7', card: '#ffffff', text: '#1d1d1f', secondary: '#86868b',
@@ -76,7 +77,7 @@ export default function StaffSchedule() {
       });
       setAiSuggestions(r.suggestions);
       setAiApplied(r.aiApplied);
-    } catch (e: any) { alert(e.message ?? 'Errore AI'); } finally { setAiLoading(false); }
+    } catch (e: any) { uiAlert(e.message ?? 'Errore AI'); } finally { setAiLoading(false); }
   };
 
   const doApply = async () => {
@@ -87,19 +88,19 @@ export default function StaffSchedule() {
       })));
       setAiSuggestions([]);
       await load();
-      alert('Turni applicati!');
-    } catch (e: any) { alert(e.message ?? 'Errore'); }
+      uiAlert('Turni applicati!');
+    } catch (e: any) { uiAlert(e.message ?? 'Errore'); }
   };
 
   const doConfirm = async (id: string) => {
-    try { await schedule.confirm(id); await load(); } catch (e: any) { alert(e.message); }
+    try { await schedule.confirm(id); await load(); } catch (e: any) { uiAlert(e.message); }
   };
   const doCancel = async (id: string) => {
-    try { await schedule.cancel(id); await load(); } catch (e: any) { alert(e.message); }
+    try { await schedule.cancel(id); await load(); } catch (e: any) { uiAlert(e.message); }
   };
   const doDelete = async (id: string) => {
-    if (!confirm('Eliminare questo turno?')) return;
-    try { await schedule.delete(id); await load(); } catch (e: any) { alert(e.message); }
+    if (!await uiConfirm('Eliminare questo turno?')) return;
+    try { await schedule.delete(id); await load(); } catch (e: any) { uiAlert(e.message); }
   };
 
   // Availability editor
@@ -116,7 +117,7 @@ export default function StaffSchedule() {
   const saveAvail = async () => {
     if (!editAvailUser) return;
     try { await schedule.setAvailability(editAvailUser, availSlots); setEditAvailUser(''); await load(); }
-    catch (e: any) { alert(e.message); }
+    catch (e: any) { uiAlert(e.message); }
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: 60, color: COLORS.secondary }}>Caricamento…</div>;
@@ -366,7 +367,7 @@ function AddShiftForm({ staffList, weekStart_, onCreated }: { staffList: StaffMe
     try {
       await schedule.create({ userId, date: fmtDate(date), startHour, endHour, station });
       setUserId(''); onCreated();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   return (

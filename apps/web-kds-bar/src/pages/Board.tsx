@@ -158,7 +158,7 @@ export default function Board() {
               {cards.map(({ item, order }) => (
                 <div
                   key={item.id}
-                  onClick={() => setSelectedItem(item)}
+                  onClick={() => bump(item.id, item.status)}
                   style={{
                     background: 'rgba(44,44,46,0.8)',
                     borderRadius: 14,
@@ -174,11 +174,24 @@ export default function Board() {
                   {/* Header card */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ fontSize: 12, opacity: 0.6 }}>{order.table}</div>
-                    <div style={{
-                      fontSize: 12, fontWeight: 600, color: ageColor(order.waitingSec),
-                      fontVariantNumeric: 'tabular-nums',
-                    }}>
-                      ⏱ {ageLabel(order.waitingSec)}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{
+                        fontSize: 12, fontWeight: 600, color: ageColor(order.waitingSec),
+                        fontVariantNumeric: 'tabular-nums',
+                      }}>
+                        ⏱ {ageLabel(order.waitingSec)}
+                      </div>
+                      {/* Dettagli/ricetta: tap sull'icona, non sulla card */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}
+                        aria-label="Dettagli e ricetta"
+                        style={{
+                          width: 32, height: 32, borderRadius: '50%', border: 0, cursor: 'pointer',
+                          background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 15,
+                        }}
+                      >
+                        ⓘ
+                      </button>
                     </div>
                   </div>
 
@@ -204,7 +217,7 @@ export default function Board() {
                       marginTop: 8, fontSize: 12, color: '#0071e3',
                       display: 'flex', alignItems: 'center', gap: 4,
                     }}>
-                      📖 Tocca per la ricetta
+                      📖 Ricetta disponibile (ⓘ)
                     </div>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { staff, fmtEuro, type StaffMember, type Shift } from '../api';
-import { colors } from '@la-piazzetta/ui';
+import { colors, uiAlert, uiConfirm } from '@la-piazzetta/ui';
 
 const COLORS = {
   bg: '#f5f5f7', card: '#ffffff', text: '#1d1d1f', secondary: '#86868b',
@@ -80,7 +80,7 @@ export default function StaffShifts() {
       await staff.clockIn(m.id, role);
       setRoleSelectFor(null);
       await load();
-    } catch (e: any) { alert(e.message ?? 'Errore'); }
+    } catch (e: any) { uiAlert(e.message ?? 'Errore'); }
   };
 
   const doClockOut = async () => {
@@ -90,12 +90,12 @@ export default function StaffShifts() {
       setClockOutShift(null);
       setBreakMinutes(0);
       await load();
-    } catch (e: any) { alert(e.message ?? 'Errore'); }
+    } catch (e: any) { uiAlert(e.message ?? 'Errore'); }
   };
 
   const doDelete = async (id: string) => {
-    if (!confirm('Eliminare questo turno?')) return;
-    try { await staff.deleteShift(id); await load(); } catch (e: any) { alert(e.message ?? 'Errore'); }
+    if (!await uiConfirm('Eliminare questo turno?')) return;
+    try { await staff.deleteShift(id); await load(); } catch (e: any) { uiAlert(e.message ?? 'Errore'); }
   };
 
   const openShifts = shifts.filter(s => s.status === 'OPEN');

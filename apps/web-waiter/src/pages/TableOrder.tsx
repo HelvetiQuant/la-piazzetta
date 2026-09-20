@@ -3,7 +3,7 @@ import {
   api, fmtEuro, CATEGORY_LABELS, STATION_LABEL, stationForCategory,
   type OrderRow, type OrderItem, type Product, type TableRow, type Station,
 } from '../api';
-import { colors } from '@la-piazzetta/ui';
+import { colors, uiConfirm } from '@la-piazzetta/ui';
 import BillDialog from './BillDialog';
 import { wsUrl } from '@la-piazzetta/api-client';
 
@@ -65,6 +65,8 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
+  // Bozza carrello persistente per sessione: sopravvive a "← Sala" e refresh.
+  const cartKey = session ? `piazzetta.cart.${session.id}` : null;
   const [category, setCategory] = useState<string>('');
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
@@ -159,6 +161,31 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
     return products.filter((p) => p.name.toLowerCase().includes(q));
   }, [products, category, search]);
 
+  // Reidrata la bozza carrello quando i prodotti sono caricati (una volta per sessione)
+  const cartHydrated = useRef(false);
+  useEffect(() => {
+    if (!cartKey || cartHydrated.current || products.length === 0) return;
+    cartHydrated.current = true;
+    try {
+      const saved = JSON.parse(localStorage.getItem(cartKey) || '[]') as { productId: string; quantity: number; notes?: string }[];
+      if (!saved.length) return;
+      const lines = saved.flatMap((s) => {
+        const p = products.find((x) => x.id === s.productId);
+        return p ? [{ product: p, quantity: s.quantity, notes: s.notes ?? '' }] : [];
+      });
+      if (lines.length) setCart(lines);
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products, cartKey]);
+
+  // Salva la bozza a ogni modifica (vuota = rimuovi la chiave)
+  useEffect(() => {
+    if (!cartKey || !cartHydrated.current) return;
+    if (cart.length === 0) localStorage.removeItem(cartKey);
+    else localStorage.setItem(cartKey, JSON.stringify(cart.map((l) => ({ productId: l.product.id, quantity: l.quantity, notes: l.notes }))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart, cartKey]);
+
   const cartTotal = cart.reduce((sum, l) => sum + l.product.priceCents * l.quantity, 0);
 
   const cartByStation = useMemo(() => {
@@ -234,6 +261,16 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
   async function advance(order: OrderRow, status: 'SERVED' | 'PAID') {
     try {
       await api.setOrderStatus(order.id, status);
+      await loadOrders();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  async function cancelOrder(order: OrderRow) {
+    if (!(await uiConfirm('Annullare questa comanda? La cucina smetterà di prepararla.', { okLabel: 'Annulla comanda', danger: true }))) return;
+    try {
+      await api.setOrderStatus(order.id, 'CANCELLED');
       await loadOrders();
     } catch (e) {
       setError((e as Error).message);
@@ -398,6 +435,11 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
                 {o.status === 'SERVED' && (
                   <button onClick={() => advance(o, 'PAID')} style={actionBtn}>
                     Segna pagata
+                  </button>
+                )}
+                {(o.status === 'SENT' || o.status === 'IN_PREPARATION') && (
+                  <button onClick={() => cancelOrder(o)} style={{ ...actionBtn, color: colors.danger, borderColor: '#ffcdd2' }}>
+                    Annulla
                   </button>
                 )}
               </div>

@@ -10,7 +10,7 @@
  */
 import { useEffect, useState } from 'react';
 import { notesApi, type StaffNote } from '../api';
-import { colors } from '@la-piazzetta/ui';
+import { colors, uiConfirm } from '@la-piazzetta/ui';
 
 const TYPE_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
   WARNING: { icon: '⚠️', label: 'AVVISO', color: '#E68C26' },
@@ -53,7 +53,7 @@ export default function OwnerNotes() {
   }
 
   async function remove(id: string) {
-    if (!confirm('Eliminare definitivamente questa disposizione?')) return;
+    if (!await uiConfirm('Eliminare definitivamente questa disposizione?')) return;
     try {
       await notesApi.remove(id);
       await load();

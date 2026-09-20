@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { chat, type ChatRoom, type ChatMessage, type ChatStaffUser } from '../api';
+import { uiAlert } from '@la-piazzetta/ui';
 
 const COLORS = {
   bg: '#f5f5f7', card: '#ffffff', text: '#1d1d1f', secondary: '#86868b',
@@ -119,7 +120,7 @@ export default function StaffChat() {
       setNewTarget('');
       setNewVisibility('ALL');
     } catch (e: any) {
-      alert(e.message);
+      uiAlert(e.message);
     } finally {
       setCreating(false);
     }
@@ -133,7 +134,7 @@ export default function StaffChat() {
       const msg = await chat.send(activeRoom, msgText);
       setMessages(prev => [...prev, msg]);
       setAiSuggestions([]);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   const sendSuggestion = async (suggestion: string) => {
@@ -143,7 +144,7 @@ export default function StaffChat() {
     try {
       const msg = await chat.send(activeRoom, suggestion);
       setMessages(prev => [...prev, msg]);
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   const getAiSuggestions = async () => {

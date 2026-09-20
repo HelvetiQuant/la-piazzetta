@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { mkt, ai, fmtEuro, type MediaAsset, type SocialPost, type SocialAccount, type SocialComment, type Campaign, type MarketingAnalytics } from '../api';
+import { uiAlert, uiConfirm } from '@la-piazzetta/ui';
 
 const C = {
   bg: '#f5f5f7', card: '#fff', text: '#1d1d1f', sec: '#86868b',
@@ -99,7 +100,7 @@ function CreatePost({ aiEnabled }: { aiEnabled: boolean }) {
         setUploadLoading(false);
       };
       reader.readAsDataURL(file);
-    } catch (err: any) { alert(err.message); setUploadLoading(false); }
+    } catch (err: any) { uiAlert(err.message); setUploadLoading(false); }
   };
 
   const generate = async () => {
@@ -109,7 +110,7 @@ function CreatePost({ aiEnabled }: { aiEnabled: boolean }) {
       const r = await mkt.generatePost({ topic: topic.trim(), tone, channels, mediaAssetId: selectedMedia || undefined });
       setCaption(r.caption);
       setHashtags(r.hashtags);
-    } catch (e: any) { alert(e.message); } finally { setGenLoading(false); }
+    } catch (e: any) { uiAlert(e.message); } finally { setGenLoading(false); }
   };
 
   const createCanva = async () => {
@@ -119,7 +120,7 @@ function CreatePost({ aiEnabled }: { aiEnabled: boolean }) {
       const r = await mkt.canvaCreate({ title: topic, mediaAssetId: selectedMedia || undefined });
       setMedia(prev => [r.asset, ...prev]);
       setSelectedMedia(r.asset.id);
-    } catch (e: any) { alert(e.message); } finally { setCanvaLoading(false); }
+    } catch (e: any) { uiAlert(e.message); } finally { setCanvaLoading(false); }
   };
 
   const createGamma = async () => {
@@ -129,7 +130,7 @@ function CreatePost({ aiEnabled }: { aiEnabled: boolean }) {
       const r = await mkt.gammaCreate({ prompt: topic, title: topic });
       setMedia(prev => [r.asset, ...prev]);
       setSelectedMedia(r.asset.id);
-    } catch (e: any) { alert(e.message); } finally { setGammaLoading(false); }
+    } catch (e: any) { uiAlert(e.message); } finally { setGammaLoading(false); }
   };
 
   const savePost = async (status: 'DRAFT' | 'SCHEDULED') => {
@@ -143,7 +144,7 @@ function CreatePost({ aiEnabled }: { aiEnabled: boolean }) {
       setSaveStatus(status === 'DRAFT' ? 'Bozza salvata!' : 'Post programmato!');
       setTimeout(() => setSaveStatus(''), 3000);
       setCaption(''); setHashtags([]); setTopic('');
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   return (
@@ -261,16 +262,16 @@ function PostsManager() {
   useEffect(() => { load(); }, [load]);
 
   const publish = async (id: string) => {
-    if (!confirm('Pubblicare ora su tutti i canali selezionati?')) return;
+    if (!await uiConfirm('Pubblicare ora su tutti i canali selezionati?')) return;
     try {
       const r = await mkt.publishPost(id);
-      alert(r.status === 'PUBLISHED' ? 'Pubblicato!' : 'Errore su alcune piattaforme: ' + JSON.stringify(r.perPlatform));
+      uiAlert(r.status === 'PUBLISHED' ? 'Pubblicato!' : 'Errore su alcune piattaforme: ' + JSON.stringify(r.perPlatform));
       await load();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
   const del = async (id: string) => {
-    if (!confirm('Eliminare questo post?')) return;
-    try { await mkt.deletePost(id); await load(); } catch (e: any) { alert(e.message); }
+    if (!await uiConfirm('Eliminare questo post?')) return;
+    try { await mkt.deletePost(id); await load(); } catch (e: any) { uiAlert(e.message); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.sec }}>Caricamento…</div>;
@@ -342,18 +343,18 @@ function CommentsManager() {
     const text = replyText[id];
     if (!text?.trim()) return;
     try { await mkt.replyComment(id, text.trim()); setReplyText({ ...replyText, [id]: '' }); await load(); }
-    catch (e: any) { alert(e.message); }
+    catch (e: any) { uiAlert(e.message); }
   };
 
   const autoReply = async (id: string) => {
     setAiReplyLoading(id);
-    try { await mkt.autoReply(id); await load(); } catch (e: any) { alert(e.message); } finally { setAiReplyLoading(null); }
+    try { await mkt.autoReply(id); await load(); } catch (e: any) { uiAlert(e.message); } finally { setAiReplyLoading(null); }
   };
 
   const sync = async () => {
     setSyncLoading(true);
-    try { const r = await mkt.syncComments(); alert(`${r.synced} commenti sincronizzati`); await load(); }
-    catch (e: any) { alert(e.message); } finally { setSyncLoading(false); }
+    try { const r = await mkt.syncComments(); uiAlert(`${r.synced} commenti sincronizzati`); await load(); }
+    catch (e: any) { uiAlert(e.message); } finally { setSyncLoading(false); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.sec }}>Caricamento…</div>;
@@ -424,7 +425,7 @@ function AnalyticsView() {
 
   const sync = async () => {
     setSyncLoading(true);
-    try { await mkt.syncAnalytics(); await load(); } catch (e: any) { alert(e.message); } finally { setSyncLoading(false); }
+    try { await mkt.syncAnalytics(); await load(); } catch (e: any) { uiAlert(e.message); } finally { setSyncLoading(false); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.sec }}>Caricamento…</div>;
@@ -569,7 +570,7 @@ function AccountsManager() {
     try {
       const { url } = await mkt.oauthMetaAuthorize();
       window.location.href = url;
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   const connect = async () => {
@@ -578,18 +579,18 @@ function AccountsManager() {
       await mkt.connectAccount({ platform, accountId, accessToken, username });
       setShowConnect(false); setAccountId(''); setAccessToken(''); setUsername('');
       await load();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   const disconnect = async (id: string) => {
-    if (!confirm('Disconnettere questo account?')) return;
-    try { await mkt.disconnectAccount(id); await load(); } catch (e: any) { alert(e.message); }
+    if (!await uiConfirm('Disconnettere questo account?')) return;
+    try { await mkt.disconnectAccount(id); await load(); } catch (e: any) { uiAlert(e.message); }
   };
 
   const refresh = async (id: string) => {
     setRefreshingId(id);
     try { await mkt.refreshAccount(id); await load(); }
-    catch (e: any) { alert(e.message); }
+    catch (e: any) { uiAlert(e.message); }
     finally { setRefreshingId(null); }
   };
 
@@ -734,11 +735,11 @@ function CampaignsManager() {
       await mkt.createCampaign({ name: name.trim(), description, budgetCents: Math.round(budget * 100), status: 'ACTIVE' });
       setShowCreate(false); setName(''); setDescription(''); setBudget(0);
       await load();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { uiAlert(e.message); }
   };
 
   const updateStatus = async (id: string, status: string) => {
-    try { await mkt.updateCampaign(id, { status }); await load(); } catch (e: any) { alert(e.message); }
+    try { await mkt.updateCampaign(id, { status }); await load(); } catch (e: any) { uiAlert(e.message); }
   };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.sec }}>Caricamento…</div>;

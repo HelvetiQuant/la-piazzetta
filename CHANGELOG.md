@@ -47,6 +47,19 @@ del cameriere.
   niente tastiera su tablet condiviso.
 - `creditApi.findOrCreate` in web-waiter.
 
+### Fixed (round 2)
+- **49 `alert()`/`confirm()` nativi sostituiti** con dialoghi custom
+  `uiAlert`/`uiConfirm` in `packages/ui` (overlay blur, Esc/Enter, stile
+  coerente col design system): owner (Marketing 22, StaffSchedule 9,
+  Accounting 6, StaffShifts 4, Payroll 3, StaffChat 3, Suppliers 1,
+  OwnerNotes 1) + waiter Chat (2). Niente più dialoghi bloccanti nativi.
+- **KDS bar a 1-tap** come la cucina: tap sulla card = avanza stato,
+  ricetta/dettagli dietro bottone ⓘ (prima: 2 tap per ogni bump).
+- **Annulla comanda** in TableOrder: pulsante su comande SENT/IN_PREPARATION
+  con conferma custom (transizione CANCELLED già supportata dal backend).
+- **Bozza carrello persistente** per sessione in localStorage: sopravvive
+  a navigazione indietro e refresh della pagina.
+
 ### Verified
 - E2E reale: sessione → ordine → conto (con IVA e coperto weekend) →
   pagamento split CASH+CARD → sessione chiusa → tavolo liberato.

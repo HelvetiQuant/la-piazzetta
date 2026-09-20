@@ -9,6 +9,7 @@ import {
   type TrialBalance,
   type VatReturn,
 } from '../api';
+import { uiAlert } from '@la-piazzetta/ui';
 
 type Tab = 'invoices' | 'journal' | 'reports' | 'chart' | 'vat';
 
@@ -488,7 +489,7 @@ function NewInvoiceModal({ onClose, onSaved }: { accounts: ChartOfAccount[]; onC
         await acct.uploadInvoiceFile(inv.id, base64, file.type, file.name);
       }
       onSaved();
-    } catch (e) { alert('Errore: ' + (e as Error).message); }
+    } catch (e) { uiAlert('Errore: ' + (e as Error).message); }
     setSaving(false);
   };
 
@@ -531,7 +532,7 @@ function RecordInvoiceModal({ invoice, accounts, onClose, onDone }: { invoice: S
   const record = async () => {
     setSaving(true);
     try { await acct.recordInvoice(invoice.id, expenseId, vatId, supplierId); onDone(); }
-    catch (e) { alert('Errore: ' + (e as Error).message); }
+    catch (e) { uiAlert('Errore: ' + (e as Error).message); }
     setSaving(false);
   };
 
@@ -577,7 +578,7 @@ function PayInvoiceModal({ invoice, accounts, onClose, onDone }: { invoice: Supp
   const pay = async () => {
     setSaving(true);
     try { await acct.payInvoice(invoice.id, method, bankId); onDone(); }
-    catch (e) { alert('Errore: ' + (e as Error).message); }
+    catch (e) { uiAlert('Errore: ' + (e as Error).message); }
     setSaving(false);
   };
 
@@ -620,12 +621,12 @@ function NewJournalModal({ accounts, onClose, onSaved }: { accounts: ChartOfAcco
   const balanced = totalD === totalC && totalD > 0;
 
   const save = async () => {
-    if (!balanced) { alert('Totale dare e avere devono essere uguali'); return; }
+    if (!balanced) { uiAlert('Totale dare e avere devono essere uguali'); return; }
     setSaving(true);
     try {
       await acct.createJournal({ date, description, reference, lines: lines.map(l => ({ ...l, debitCents: l.debitCents, creditCents: l.creditCents })) });
       onSaved();
-    } catch (e) { alert('Errore: ' + (e as Error).message); }
+    } catch (e) { uiAlert('Errore: ' + (e as Error).message); }
     setSaving(false);
   };
 
@@ -665,7 +666,7 @@ function CalcVatButton({ onCalc }: { onCalc: () => void }) {
   const calc = async () => {
     setSaving(true);
     try { await acct.calcVat(period); onCalc(); }
-    catch (e) { alert('Errore: ' + (e as Error).message); }
+    catch (e) { uiAlert('Errore: ' + (e as Error).message); }
     setSaving(false);
   };
   return (

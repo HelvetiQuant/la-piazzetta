@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { inv, fmtEuro, type Supplier, type Listing, type StockRow, type Proposal } from '../api';
-import { colors } from '@la-piazzetta/ui';
+import { colors, uiAlert } from '@la-piazzetta/ui';
 
 function euroToCents(v: string): number {
   const n = parseFloat(v.replace(',', '.'));
@@ -105,7 +105,7 @@ export default function Suppliers() {
         })),
       });
       await loadProposals();
-      alert(`Ordine creato in bozza per ${p.supplierName}. Vai al tab "Ordini d'acquisto" per inviarlo.`);
+      uiAlert(`Ordine creato in bozza per ${p.supplierName}. Vai al tab "Ordini d'acquisto" per inviarlo.`);
     } catch (e) {
       setError((e as Error).message);
     }
