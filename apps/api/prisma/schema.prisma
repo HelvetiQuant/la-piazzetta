@@ -45,6 +45,8 @@ model Venue {
   aiInteractions AiInteraction[]
   menuAddOns MenuAddOn[]
   staffNotes StaffNote[]
+  aiConversations AiConversation[]
+  aiInstructions  AiInstruction[]
   tableSessions TableSession[]
   orders Order[]
   approvalTokens ApprovalToken[]
@@ -1012,4 +1014,50 @@ model StaffNote {
   @@index([venueId, status])
   @@index([venueId, targetScope, targetValue])
   @@index([venueId, type])
+}
+
+// ==================== AI ASSISTANT (owner) ====================
+
+// Conversazione owner↔assistente: persistita per memoria contestuale
+model AiConversation {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  userId    String   // owner che parla
+  title     String?  // auto-titolo dal primo messaggio
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  AiMessage[]
+
+  @@index([venueId, userId, updatedAt])
+}
+
+model AiMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String   // user | assistant | tool
+  content        String
+  toolName       String?  // per role=tool
+  toolCalls      Json?    // per role=assistant con chiamate
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// Istruzione differita: "quando carico la foto, prepara il post per venerdì"
+model AiInstruction {
+  id          String   @id @default(cuid())
+  venueId     String
+  venue       Venue    @relation(fields: [venueId], references: [id])
+  userId      String
+  triggerType String   // media_upload | manual | scheduled
+  description String   // testo originale del comando
+  payload     Json     // es. {topic, tone, channels, date} per il post
+  status      String   @default("PENDING") // PENDING | EXECUTED | FAILED | CANCELLED
+  result      Json?    // esito esecuzione (es. postId bozza)
+  executedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([venueId, status, triggerType])
 }

@@ -60,6 +60,7 @@ import {
   fetchMetaPagesWithInstagram, fetchMetaGrantedScopes,
 } from './marketing.service.js';
 import { getAiService } from '../ai/ai.service.js';
+import { processPendingUploadInstructions } from '../ai/assistant/assistant.service.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -100,7 +101,10 @@ export function registerMarketingRoutes(app: Express, prisma: PrismaClient, deps
         createdBy: user.userId,
       },
     });
-    res.status(201).json(asset);
+    // Trigger comandi differiti dell'assistente: "quando carico la foto, prepara
+    // il post" → crea la bozza con questa foto e la marca EXECUTED.
+    const executedInstructions = await processPendingUploadInstructions(prisma, user.venueId, asset.id);
+    res.status(201).json({ ...asset, executedInstructions });
   });
 
   app.get('/api/v1/marketing/media', devAuth, requireRoles(...MKT_ROLES), async (req: Request, res: Response) => {

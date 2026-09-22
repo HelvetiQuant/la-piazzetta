@@ -488,6 +488,48 @@ export const ai = {
     }),
 };
 
+// ---- Assistente owner (chat con tool-call) ----
+export interface AssistantAction { tool: string; result: unknown }
+export interface AssistantChatResult {
+  conversationId: string;
+  reply: string;
+  actions: AssistantAction[];
+  provider?: string;
+}
+export interface AssistantConversation {
+  id: string;
+  title: string | null;
+  updatedAt: string;
+  _count: { messages: number };
+}
+export interface AssistantMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  createdAt: string;
+}
+export interface AiInstruction {
+  id: string;
+  triggerType: string;
+  description: string;
+  status: string;
+  createdAt: string;
+}
+
+export const assistant = {
+  chat: (message: string, conversationId?: string) =>
+    req<AssistantChatResult>('/ai/assistant/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, conversationId }),
+    }),
+  conversations: () => req<AssistantConversation[]>('/ai/assistant/conversations'),
+  conversation: (id: string) =>
+    req<{ id: string; title: string | null; messages: AssistantMessage[] }>(`/ai/assistant/conversations/${id}`),
+  instructions: () => req<AiInstruction[]>('/ai/assistant/instructions'),
+  cancelInstruction: (id: string) =>
+    req<{ ok: boolean }>(`/ai/assistant/instructions/${id}`, { method: 'DELETE' }),
+};
+
 export const staff = {
   list: () => req<StaffMember[]>('/staff'),
   setRate: (userId: string, hourlyRateCents: number) =>

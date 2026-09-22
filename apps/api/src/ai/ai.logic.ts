@@ -16,7 +16,8 @@ export type AiTask =
   | 'demand_forecast'
   | 'marketing_copy'
   | 'shift_suggestion'
-  | 'webcam_classify';
+  | 'webcam_classify'
+  | 'assistant';
 
 export const ALL_TASKS: AiTask[] = [
   'upsell',
@@ -24,6 +25,7 @@ export const ALL_TASKS: AiTask[] = [
   'marketing_copy',
   'shift_suggestion',
   'webcam_classify',
+  'assistant',
 ];
 
 /** Task le cui risposte sono deterministiche a parità di input → cacheabili. */
@@ -182,6 +184,12 @@ export function buildPrompt(task: AiTask, input: unknown): ChatMessages {
           '{"arrival":boolean,"partySize":number,"confidence":number}.',
         user: `Segnale edge: ${payload}`,
       };
+    case 'assistant': {
+      // Passthrough: l'orchestratore dell'assistente costruisce system/user
+      // completi (prompt strumenti + transcript serializzato) in input.
+      const i = input as { system?: string; user?: string } | undefined;
+      return { system: String(i?.system ?? ''), user: String(i?.user ?? payload) };
+    }
   }
 }
 

@@ -17,6 +17,7 @@ import { registerInventoryRoutes } from './inventory/inventory.routes.js';
 import { registerSupplierRoutes } from './suppliers/suppliers.routes.js';
 import { registerPurchaseRoutes } from './suppliers/purchase.routes.js';
 import { registerAiRoutes } from './ai/ai.routes.js';
+import { registerAssistantRoutes } from './ai/assistant/assistant.routes.js';
 import { registerAiPreferenceRoutes } from './ai/ai-preferences.routes.js';
 import { registerMenuAddOnRoutes } from './menu-addons/menu-addons.routes.js';
 import { registerStaffNoteRoutes } from './staff/staff-notes.routes.js';
@@ -146,6 +147,7 @@ async function bootstrap(): Promise<void> {
   registerSupplierRoutes(app, prisma, deps); // fornitori: anagrafica, listino, proposte di riordino
   registerPurchaseRoutes(app, prisma, deps); // ordini d'acquisto: ciclo bozza->inviato->ricevuto + ricezione merce
   registerAiRoutes(app, prisma, deps); // AI: upsell, marketing copy, riordino predittivo (OpenAI + Anthropic)
+  registerAssistantRoutes(app, prisma, deps); // Assistente owner: chat con tool-call e comandi differiti
   registerAiPreferenceRoutes(app, prisma, deps); // AI preferences: impara dall'owner, non invadente
   registerMenuAddOnRoutes(app, prisma, deps); // Menu add-on: consigli da promuovere via staff
   registerStaffNoteRoutes(app, prisma, deps); // Note/rules staff: notifiche lampeggianti con ack obbligatorio

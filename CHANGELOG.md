@@ -2,6 +2,29 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.23.0] — 2026-09-22
+
+Assistente AI conversazionale per l'owner: chat con tool-call sui dati reali
+del locale e comandi esecutivi, anche differiti.
+
+### Added
+- **Assistente owner** (`/ai/assistant/*`): chat persistente con accesso a
+  strumenti business — `sales_report` (incassi per giorno/metodo),
+  `staff_availability` (disponibilità+turni per data/ruolo/fascia),
+  `inventory_status`, `orders_summary`, `credit_report`,
+  `draft_marketing_post` (bozza social con caption AI), 
+  `schedule_instruction` + `list_pending_instructions`.
+- **Comandi differiti** — `AiInstruction` con trigger `media_upload`: "quando
+  carico la foto, prepara il post per venerdì" → all'upload in
+  Marketing → Media la bozza viene generata automaticamente con la foto
+  allegata (verificato end-to-end).
+- Modelli `AiConversation`, `AiMessage`, `AiInstruction` + migration
+  `20260922_ai_assistant`.
+- Tab "🤖 Assistente" nella webapp owner: chat, storico conversazioni,
+  pannello comandi in attesa con annullamento.
+- Nuovo task AI `assistant` (routing `AI_ROUTE_ASSISTANT`, default openai con
+  fallback chain).
+
 ## [0.22.0] — 2026-09-19
 
 Debug completo post-audit: integrazione Mistral, fix Gamma API reale, rollup

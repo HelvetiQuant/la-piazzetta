@@ -42,6 +42,7 @@ const DEFAULT_ROUTING: Record<AiTask, AiProvider> = {
   marketing_copy: 'openai',
   shift_suggestion: 'openai',
   webcam_classify: 'openai',
+  assistant: 'openai',
 };
 
 /** Nome della variabile di routing per un task, es. AI_ROUTE_DEMAND_FORECAST. */

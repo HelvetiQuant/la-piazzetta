@@ -15,15 +15,17 @@ import Accounting from './components/Accounting';
 import DailyClose from './components/DailyClose';
 import MenuManagement from './components/MenuManagement';
 import OwnerNotes from './components/OwnerNotes';
+import Assistant from './components/Assistant';
 import Login from './pages/Login';
 import Setup from './pages/Setup';
 import { setup } from './api';
 import { currentUser, isLoggedIn, logout } from '@la-piazzetta/api-client';
 
-type Tab = 'dashboard' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting' | 'dailyclose' | 'notes';
+type Tab = 'dashboard' | 'assistant' | 'board' | 'stats' | 'marketing' | 'menu' | 'inventory' | 'suppliers' | 'purchases' | 'staff' | 'schedule' | 'chat' | 'payroll' | 'credit' | 'accounting' | 'dailyclose' | 'notes';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { id: 'assistant', label: 'Assistente', icon: '🤖' },
   { id: 'board', label: 'Comande', icon: '🍽️' },
   { id: 'stats', label: 'Tempi', icon: '⏱️' },
   { id: 'marketing', label: 'Marketing', icon: '✨' },
@@ -127,6 +129,7 @@ export default function App() {
       {/* Main content */}
       <main style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
         {tab === 'dashboard' && <Dashboard />}
+        {tab === 'assistant' && <Assistant />}
         {tab === 'board' && <OrdersBoard />}
         {tab === 'stats' && <PrepTimeStats />}
         {tab === 'marketing' && <Marketing />}
