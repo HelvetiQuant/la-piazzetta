@@ -10,6 +10,7 @@ import type { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { currentUser, type RouteDeps } from '../http.js';
 import { getAiService, AiDisabledError, AiBudgetExceededError, type AiService } from './ai.service.js';
+import { ProviderError } from './ai.provider.js';
 import { computeReorder } from '../suppliers/reorder.logic.js';
 import { forecastTargetLevel } from './ai.logic.js';
 
@@ -23,6 +24,11 @@ function handleAiError(err: unknown, res: Response): boolean {
   }
   if (err instanceof AiBudgetExceededError) {
     res.status(429).json({ error: err.message });
+    return true;
+  }
+  if (err instanceof ProviderError) {
+    // Catena di provider esaurita: 502 con dettaglio, mai crash del processo.
+    res.status(502).json({ error: `Provider AI non disponibile: ${err.message}` });
     return true;
   }
   return false;

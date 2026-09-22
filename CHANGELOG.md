@@ -15,6 +15,9 @@ stato ordine e correzioni AI/marketing.
 - Test AI aggiornati alla catena a 3 provider (`tests/ai.test.mts`).
 
 ### Fixed
+- **Crash API su provider AI esauriti** — `ProviderError` non gestito in
+  `handleAiError` veniva rilanciato nella route async → unhandled rejection →
+  crash del processo. Ora risponde 502 pulito.
 - **Gamma API reale** — l'endpoint era obsoleto (`api.gamma.app/v1/documents`,
   404). Ora usa `public-api.gamma.app/v1.0/generations` con polling async dello
   stato fino a `completed`/`failed` e persistenza del `gammaUrl` finale.
