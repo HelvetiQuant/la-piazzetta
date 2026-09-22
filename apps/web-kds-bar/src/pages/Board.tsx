@@ -92,6 +92,19 @@ export default function Board() {
 
   const totalCount = orders.reduce((s, o) => s + o.items.length, 0);
   const pendingCount = orders.reduce((s, o) => s + o.items.filter((i) => i.status === 'PENDING').length, 0);
+  const markSoldOut = async (item: BoardItem) => {
+    if (!item.productId) return;
+    if (!window.confirm(`Segnare "${item.name}" come ESAURITO? I camerieri non potranno più venderlo finché non lo riattivi.`)) return;
+    try {
+      await api.setSoldOut(item.productId, true);
+      setSelectedItem(null);
+      setError(`🚫 "${item.name}" segnato esaurito — riattivalo da Menu quando torna disponibile.`);
+      setTimeout(() => setError(''), 6000);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
   const readyCount = orders.reduce((s, o) => s + o.items.filter((i) => i.status === 'READY').length, 0);
 
   return (
@@ -240,6 +253,7 @@ export default function Board() {
           order={orders.find((o) => o.items.some((i) => i.id === selectedItem.id))!}
           onClose={() => setSelectedItem(null)}
           onBump={() => bump(selectedItem.id, selectedItem.status)}
+          onSoldOut={() => markSoldOut(selectedItem)}
         />
       )}
     </div>
@@ -247,12 +261,13 @@ export default function Board() {
 }
 
 function RecipeModal({
-  item, order, onClose, onBump,
+  item, order, onClose, onBump, onSoldOut,
 }: {
   item: BoardItem;
   order: BoardOrder;
   onClose: () => void;
   onBump: () => void;
+  onSoldOut: () => void;
 }) {
   const nextStatus = NEXT_STATUS[item.status];
   const statusLabels: Record<string, string> = {
@@ -364,6 +379,20 @@ function RecipeModal({
             <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>
               Articolo completato
             </div>
+          )}
+
+          {/* 86'd: prodotto finito a metà servizio → i camerieri smettono di venderlo */}
+          {item.productId && (
+            <button
+              onClick={onSoldOut}
+              style={{
+                width: '100%', marginTop: 10, padding: '12px 0', borderRadius: 14,
+                border: '1px solid rgba(255,59,48,0.4)', background: 'rgba(255,59,48,0.12)',
+                color: '#ff3b30', fontSize: 15, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              🚫 Prodotto finito — segna esaurito
+            </button>
           )}
         </div>
       </div>

@@ -209,6 +209,7 @@ model Product {
   priceCents  Int
   unit        String   @default("pz") // unità base di consumo: pz, cl, g, ml...
   preparation String?  // istruzioni di preparazione (cocktail, piatti) — testo libero
+  soldOut     Boolean  @default(false) // "86'd": esaurito a metà servizio — non ordinabile, visibile ai camerieri
   stock       StockItem?
   orderItems  OrderItem[]
   recipeItems RecipeItem[] @relation("Recipe")

@@ -62,6 +62,15 @@ export default function MenuManagement() {
     }
   }
 
+  async function toggleSoldOut(p: Product) {
+    try {
+      await menu.setSoldOut(p.id, !p.soldOut);
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   async function handleDelete(p: Product) {
     try {
       await menu.remove(p.id);
@@ -125,7 +134,17 @@ export default function MenuManagement() {
               return (
                 <tr key={p.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                   <td style={tdStyle}><code style={{ fontSize: 12, color: '#86868b' }}>{p.code}</code></td>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>{p.name}</td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>
+                    {p.name}
+                    {p.soldOut && (
+                      <span style={{
+                        marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#fff',
+                        background: colors.danger, padding: '2px 6px', borderRadius: 4,
+                      }}>
+                        ESAURITO
+                      </span>
+                    )}
+                  </td>
                   <td style={tdStyle}>{CATEGORY_LABELS[p.category] ?? p.category}</td>
                   <td style={tdStyle}>
                     <span style={{
@@ -138,6 +157,13 @@ export default function MenuManagement() {
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>{fmtEuro(p.priceCents)}</td>
                   <td style={tdStyle}>
+                    <button
+                      onClick={() => toggleSoldOut(p)}
+                      title={p.soldOut ? 'Riattiva vendita' : 'Segna esaurito (non ordinabile)'}
+                      style={{ ...editBtn, color: p.soldOut ? colors.success : colors.danger, borderColor: p.soldOut ? '#a5e8b0' : '#ffcdd2' }}
+                    >
+                      {p.soldOut ? '↺ Riattiva' : '🚫 Esaurito'}
+                    </button>
                     <button onClick={() => setEditing(p)} style={editBtn}>Modifica</button>
                     <button onClick={() => setConfirmDelete(p)} style={delBtn}>Elimina</button>
                   </td>

@@ -127,6 +127,15 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
       return;
     }
 
+    // "86'd": un prodotto marcato esaurito non è ordinabile — il cameriere deve
+    // saperlo PRIMA di prometterlo al cliente (scenario reale: lasagne finite
+    // a metà servizio). Errore esplicito con i nomi, non silent fail.
+    const soldOut = products.filter((p) => p.soldOut).map((p) => p.name);
+    if (soldOut.length > 0) {
+      res.status(409).json({ error: `Esaurito: ${soldOut.join(', ')}`, soldOut });
+      return;
+    }
+
     const session = await prisma.tableSession.findFirst({
       where: { id: body.sessionId, state: 'OPEN', venueId: user.venueId },
     });
@@ -348,6 +357,7 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
       waitingSec: Math.round((now - new Date(o.placedAt).getTime()) / 1000),
       items: o.items.map((it) => ({
         id: it.id,
+        productId: it.productId,
         name: it.product.name,
         quantity: it.quantity,
         notes: it.notes,

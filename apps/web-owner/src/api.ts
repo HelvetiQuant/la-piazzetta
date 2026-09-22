@@ -19,6 +19,7 @@ export interface Product {
   category: string;
   priceCents: number;
   unit: string;
+  soldOut?: boolean;
   stock?: { quantity: number } | null;
   createdAt: string;
   updatedAt: string;
@@ -282,6 +283,8 @@ export const menu = {
     req<Product>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   remove: (id: string) =>
     req<{ ok: boolean; deactivated?: boolean }>(`/products/${id}`, { method: 'DELETE' }),
+  setSoldOut: (id: string, soldOut: boolean) =>
+    req<Product>(`/products/${id}/sold-out`, { method: 'PATCH', body: JSON.stringify({ soldOut }) }),
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {

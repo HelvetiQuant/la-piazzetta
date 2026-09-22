@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, NEXT_STATUS, type BoardOrder, type ItemStatus } from '../api';
+import { api, NEXT_STATUS, type BoardOrder, type BoardItem, type ItemStatus } from '../api';
 import { colors } from '@la-piazzetta/ui';
 import { wsUrl } from '@la-piazzetta/api-client';
 
@@ -73,6 +73,18 @@ export default function Board() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function markSoldOut(item: BoardItem) {
+    if (!item.productId) return;
+    if (!window.confirm(`Segnare "${item.name}" come ESAURITO? I camerieri non potranno più venderlo finché non lo riattivi.`)) return;
+    try {
+      await api.setSoldOut(item.productId, true);
+      setError(`🚫 "${item.name}" segnato esaurito — riattivalo da Menu quando torna disponibile.`);
+      setTimeout(() => setError(''), 6000);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   async function bump(itemId: string, current: ItemStatus) {
     const next = NEXT_STATUS[current];
     if (!next) return;
@@ -118,8 +130,20 @@ export default function Board() {
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ fontSize: 13, opacity: 0.7 }}>
-                    {order.table} · {Math.floor(order.waitingSec / 60)}′{order.waitingSec % 60}s
+                  <div style={{ fontSize: 13, opacity: 0.7, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{order.table} · {Math.floor(order.waitingSec / 60)}′{order.waitingSec % 60}s</span>
+                    {item.productId && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); markSoldOut(item); }}
+                        title="Prodotto finito: segna esaurito"
+                        style={{
+                          border: 0, borderRadius: 6, padding: '4px 8px', cursor: 'pointer',
+                          background: 'rgba(255,59,48,0.15)', color: '#ff6b63', fontSize: 13,
+                        }}
+                      >
+                        🚫
+                      </button>
+                    )}
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700 }}>
                     {item.quantity}× {item.name}

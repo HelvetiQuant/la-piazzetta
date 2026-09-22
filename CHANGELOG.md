@@ -2,6 +2,29 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.24.0] — 2026-09-22
+
+Stress-test su scenari reali di bar/tavola calda (fonti: TeamSystem Horeca,
+GestionaleRistorante, guide KDS): fix del gap "prodotto esaurito vendibile".
+
+### Added
+- **Prodotto "esaurito" (86'd)** — flag `Product.soldOut` indipendente dalla
+  giacenza. `PATCH /products/:id/sold-out` usabile da OWNER/MANAGER/BARMAN/
+  KITCHEN/COOK: chi finisce un articolo a metà servizio lo marca dal KDS
+  (🚫 nel modal dettagli bar / tasto sulla card cucina) o dal Menu owner.
+- Waiter: prodotti esauriti greyed + badge ESAURITO, non ordinabili; errore
+  409 esplicito (`Esaurito: <nomi>`) se inviati comunque; refresh menu
+  automatico dopo il rifiuto.
+- `productId` esposto negli item della board KDS (serve al toggle esaurito).
+
+### Verified (test E2E live)
+- Note/allergie sulle righe arrivano al KDS ("SENZA GLUTINE" visibile).
+- Doppio tap/offline retry: `clientOrderId` rende la creazione idempotente.
+- Storno riga con motivo obbligatorio + RETURN magazzino (append-only).
+- Coperto congelato all'apertura sessione (attivo oltre mezzanotte OK).
+- Ticket aging su KDS: colori verde/arancio/rosso a 5/10 minuti.
+- Assistente: disponibilità staff con UNAVAILABLE rispettata nelle risposte.
+
 ## [0.23.0] — 2026-09-22
 
 Assistente AI conversazionale per l'owner: chat con tool-call sui dati reali

@@ -358,6 +358,18 @@ function registerTableAndProductRoutes(app: express.Express, prisma: PrismaClien
     }
   });
 
+  // Toggle "esaurito" (86'd) — usabile anche da bar/cucina: chi finisce un
+  // prodotto a metà servizio lo marca e i camerieri smettono di venderlo.
+  app.patch('/api/v1/products/:id/sold-out', devAuth, requireRoles('OWNER', 'MANAGER', 'BARMAN', 'KITCHEN', 'COOK'), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const id = req.params.id as string;
+    const soldOut = Boolean((req.body as { soldOut?: unknown })?.soldOut);
+    const existing = await prisma.product.findFirst({ where: { id, venueId: user.venueId } });
+    if (!existing) { res.status(404).json({ error: 'Prodotto non trovato' }); return; }
+    const product = await prisma.product.update({ where: { id }, data: { soldOut } });
+    res.json(product);
+  });
+
   app.delete('/api/v1/products/:id', devAuth, requireRoles('OWNER', 'MANAGER'), async (req: Request, res: Response) => {
     const user = currentUser(req);
     const id = req.params.id as string;

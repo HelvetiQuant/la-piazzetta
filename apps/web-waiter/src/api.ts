@@ -27,6 +27,7 @@ export interface Product {
   category: string;
   priceCents: number;
   unit: string;
+  soldOut?: boolean;
   stock?: StockInfo | null;
 }
 export interface OrderItem {

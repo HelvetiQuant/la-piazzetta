@@ -253,6 +253,9 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
       await loadOrders();
     } catch (e) {
       setError((e as Error).message);
+      // Se il server ha rifiutato per prodotto esaurito, ricarica il menu così
+      // il badge ESAURITO appare subito sulla card.
+      api.products().then(setProducts).catch(() => {});
     } finally {
       setSending(false);
     }
@@ -356,13 +359,29 @@ export default function TableOrder({ table, onBack }: { table: TableRow; onBack:
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 8 }}>
           {filteredProducts.map((p) => {
             const station = stationForCategory(p.category);
+            const out = p.soldOut === true;
             return (
               <button
                 key={p.id}
-                onClick={() => addToCart(p)}
-                style={productCard}
+                onClick={() => { if (!out) addToCart(p); }}
+                disabled={out}
+                style={{
+                  ...productCard,
+                  opacity: out ? 0.45 : 1,
+                  cursor: out ? 'not-allowed' : 'pointer',
+                }}
               >
-                <div style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.3 }}>{p.name}</div>
+                <div style={{ fontWeight: 600, fontSize: 14, lineHeight: 1.3 }}>
+                  {p.name}
+                  {out && (
+                    <span style={{
+                      marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#fff',
+                      background: colors.danger, padding: '2px 6px', borderRadius: 4,
+                    }}>
+                      ESAURITO
+                    </span>
+                  )}
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
                   <span style={{ fontSize: 14, color: '#1a1a2e', fontWeight: 700 }}>{fmtEuro(p.priceCents)}</span>
                   <span style={{

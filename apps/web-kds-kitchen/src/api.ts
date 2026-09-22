@@ -11,6 +11,7 @@ export const NEXT_STATUS: Record<ItemStatus, ItemStatus | null> = {
 
 export interface BoardItem {
   id: string;
+  productId?: string;
   name: string;
   quantity: number;
   notes?: string | null;
@@ -31,4 +32,6 @@ export const api = {
     apiFetch<{ station: string; orders: BoardOrder[] }>(`/orders-tables/board?station=${station}`),
   bumpItem: (itemId: string, status: ItemStatus) =>
     apiFetch(`/orders-tables/order-items/${itemId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  setSoldOut: (productId: string, soldOut: boolean) =>
+    apiFetch(`/products/${productId}/sold-out`, { method: 'PATCH', body: JSON.stringify({ soldOut }) }),
 };
