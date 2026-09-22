@@ -15,6 +15,7 @@ export interface ProviderConfig {
 export interface AiConfig {
   openai: ProviderConfig;
   anthropic: ProviderConfig;
+  mistral: ProviderConfig;
   /** provider preferito per ciascun task */
   routing: Record<AiTask, AiProvider>;
   maxRetries: number;
@@ -65,6 +66,11 @@ export function loadAiConfig(env: NodeJS.ProcessEnv = process.env): AiConfig {
       model: env.ANTHROPIC_MODEL ?? 'claude-3-5-haiku-latest',
       baseUrl: env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com/v1',
     },
+    mistral: {
+      apiKey: env.MISTRAL_API_KEY ?? null,
+      model: env.MISTRAL_MODEL ?? 'mistral-small-latest',
+      baseUrl: env.MISTRAL_BASE_URL ?? 'https://api.mistral.ai/v1',
+    },
     routing,
     maxRetries: num(env.AI_MAX_RETRIES, 2),
     timeoutMs: num(env.AI_TIMEOUT_MS, 20000),
@@ -76,5 +82,5 @@ export function loadAiConfig(env: NodeJS.ProcessEnv = process.env): AiConfig {
 
 /** True se almeno un provider ha la chiave configurata. */
 export function hasAnyProvider(cfg: AiConfig): boolean {
-  return Boolean(cfg.openai.apiKey || cfg.anthropic.apiKey);
+  return Boolean(cfg.openai.apiKey || cfg.anthropic.apiKey || cfg.mistral.apiKey);
 }

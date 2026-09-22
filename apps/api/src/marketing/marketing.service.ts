@@ -97,28 +97,47 @@ export async function createCanvaDesign(opts: {
   }
 }
 
-// ---- Gamma API: genera presentazione/landing ----
+// ---- Gamma API: genera presentazione/post via Generate API (asincrona) ----
+// POST /v1.0/generations → generationId; GET /generations/{id} fino a
+// status=completed → gammaUrl. Auth: header X-API-KEY.
 export async function createGammaDoc(opts: {
   apiKey: string;
   prompt: string;
   title: string;
 }): Promise<{ docId: string; url: string } | null> {
   try {
-    const resp = await fetch('https://api.gamma.app/v1/documents', {
+    const resp = await fetch('https://public-api.gamma.app/v1.0/generations', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${opts.apiKey}`,
+        'X-API-KEY': opts.apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: opts.prompt,
-        title: opts.title,
-        format: 'social_post',
+        inputText: `${opts.title}\n\n${opts.prompt}`,
+        format: 'social',
+        textMode: 'generate',
       }),
     });
     if (!resp.ok) return null;
-    const data = await resp.json() as any;
-    return { docId: data.id, url: data.url ?? `https://gamma.app/docs/${data.id}` };
+    const created = await resp.json() as any;
+    const genId = created.generationId as string | undefined;
+    if (!genId) return null;
+
+    // Polling: la generazione è asincrona (~30-60s). Timeout 120s.
+    const deadline = Date.now() + 120_000;
+    while (Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const poll = await fetch(`https://public-api.gamma.app/v1.0/generations/${genId}`, {
+        headers: { 'X-API-KEY': opts.apiKey },
+      });
+      if (!poll.ok) continue;
+      const st = await poll.json() as any;
+      if (st.status === 'completed' && st.gammaUrl) {
+        return { docId: st.gammaId ?? genId, url: st.gammaUrl as string };
+      }
+      if (st.status === 'failed') return null;
+    }
+    return null; // timeout
   } catch {
     return null;
   }
@@ -368,7 +387,7 @@ Risposta (solo il testo, senza virgolette):`;
       channels: ['instagram'],
     });
     const variant = r.data?.variants?.[0];
-    if (variant) return `${variant.text} ${variant.text}`.trim().slice(0, 300);
+    if (variant) return variant.text.trim().slice(0, 300);
   } catch {}
   return 'Grazie mille! Ti aspettiamo! 😊';
 }
@@ -398,7 +417,7 @@ export async function generateAiPost(opts: {
     const variant = r.data?.variants?.[0] as MarketingVariant | undefined;
     if (!variant) return null;
     return {
-      caption: `${variant.text}\n\n${variant.text}`,
+      caption: variant.text,
       hashtags: variant.hashtags ?? ['#lapiazzetta', '#bar', '#tavolacalda'],
     };
   } catch {

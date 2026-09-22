@@ -55,9 +55,11 @@ async function rejects(fn: () => Promise<unknown>, ctor: Function, msg: string) 
 
 // ---------- routing ----------
 eq(parseProvider('OpenAI'), 'openai', 'parseProvider case-insensitive');
+eq(parseProvider('Mistral'), 'mistral', 'parseProvider mistral');
 eq(parseProvider('gemini'), null, 'parseProvider ignoto -> null');
-eq(providerChain('anthropic'), ['anthropic', 'openai'], 'catena da anthropic');
-eq(providerChain(null), ['openai', 'anthropic'], 'catena default -> openai primo');
+eq(providerChain('anthropic'), ['anthropic', 'openai', 'mistral'], 'catena da anthropic');
+eq(providerChain('mistral'), ['mistral', 'openai', 'anthropic'], 'catena da mistral');
+eq(providerChain(null), ['openai', 'anthropic', 'mistral'], 'catena default -> openai primo');
 
 // ---------- backoff ----------
 const rng = () => 0.5; // jitter deterministico

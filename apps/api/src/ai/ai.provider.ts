@@ -13,7 +13,7 @@ import type { ChatMessages } from './ai.logic.js';
 
 export interface CompletionResult {
   text: string;
-  provider: 'openai' | 'anthropic';
+  provider: 'openai' | 'anthropic' | 'mistral';
   model: string;
   inTokens: number;
   outTokens: number;
@@ -92,6 +92,47 @@ export async function callOpenAI(cfg: ProviderConfig, messages: ChatMessages, op
     return {
       text,
       provider: 'openai',
+      model: cfg.model,
+      inTokens: data?.usage?.prompt_tokens ?? 0,
+      outTokens: data?.usage?.completion_tokens ?? 0,
+    };
+  });
+}
+
+/** Mistral La Plateforme — stesso schema OpenAI Chat Completions. */
+export async function callMistral(cfg: ProviderConfig, messages: ChatMessages, opts: CallOptions): Promise<CompletionResult> {
+  if (!cfg.apiKey) throw new ProviderError('MISTRAL_API_KEY mancante', false, 401);
+  const doFetch = opts.fetchImpl ?? fetch;
+
+  return withTimeout(opts.timeoutMs, async (signal) => {
+    const resp = await doFetch(`${cfg.baseUrl}/chat/completions`, {
+      method: 'POST',
+      signal,
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${cfg.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [
+          { role: 'system', content: messages.system },
+          { role: 'user', content: messages.user },
+        ],
+        temperature: opts.temperature ?? 0.4,
+        max_tokens: opts.maxOutputTokens ?? 800,
+      }),
+    });
+
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => '');
+      throw new ProviderError(`Mistral ${resp.status}: ${body.slice(0, 300)}`, statusIsRetryable(resp.status), resp.status);
+    }
+
+    const data: any = await resp.json();
+    const text: string = data?.choices?.[0]?.message?.content ?? '';
+    return {
+      text,
+      provider: 'mistral',
       model: cfg.model,
       inTokens: data?.usage?.prompt_tokens ?? 0,
       outTokens: data?.usage?.completion_tokens ?? 0,

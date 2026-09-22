@@ -287,6 +287,28 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
     const ts = itemTimestampsFor(status, now);
     const updated = await prisma.orderItem.update({ where: { id }, data: { status, ...ts } });
 
+    // Rollup: lo stato ordine segue il minimo stato "attivo" delle righe,
+    // così il cameriere vede READY quando tutto è pronto e può servire.
+    // Ordini PAID/CANCELLED non vengono retrocessi.
+    const order = await prisma.order.findUnique({ where: { id: item.orderId }, include: { items: true } });
+    if (order && order.status !== 'PAID' && order.status !== 'CANCELLED') {
+      const active = order.items.filter((i) => i.status !== 'CANCELLED');
+      const rank: Record<string, number> = { PENDING: 0, IN_PREPARATION: 1, READY: 2, SERVED: 3 };
+      let orderStatus: string | null = null;
+      if (active.length === 0) {
+        orderStatus = 'CANCELLED';
+      } else {
+        const min = Math.min(...active.map((i) => rank[i.status] ?? 0));
+        orderStatus = min === 0 ? 'SENT' : min === 1 ? 'IN_PREPARATION' : min === 2 ? 'READY' : 'SERVED';
+      }
+      if (orderStatus !== order.status) {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { status: orderStatus, ...orderTimestampsFor(orderStatus, now) },
+        });
+      }
+    }
+
     // Notifica la postazione della riga avanzata (bump KDS).
     notifyBoard(user.venueId, [item.station]);
 
@@ -310,7 +332,8 @@ export function registerOrderRoutes(app: Express, prisma: PrismaClient, deps: Ro
         ...(station ? { items: { some: { station } } } : {}),
       },
       include: {
-        items: { where: station ? { station } : undefined, include: { product: true } },
+        // Solo righe ancora attive: SERVED/CANCELLED non devono restare sul KDS.
+        items: { where: { status: { in: ['PENDING', 'IN_PREPARATION', 'READY'] }, ...(station ? { station } : {}) }, include: { product: true } },
         session: { include: { table: true } },
       },
       orderBy: { placedAt: 'asc' },

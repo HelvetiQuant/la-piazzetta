@@ -24,7 +24,7 @@ import {
   type AiProvider,
   type AiTask,
 } from './ai.logic.js';
-import { callOpenAI, callAnthropic, ProviderError, type CompletionResult, type CallOptions } from './ai.provider.js';
+import { callOpenAI, callAnthropic, callMistral, ProviderError, type CompletionResult, type CallOptions } from './ai.provider.js';
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -42,7 +42,7 @@ interface CacheEntry {
 
 export class AiDisabledError extends Error {
   constructor() {
-    super('Nessun provider AI configurato (imposta OPENAI_API_KEY o ANTHROPIC_API_KEY).');
+    super('Nessun provider AI configurato (imposta OPENAI_API_KEY, ANTHROPIC_API_KEY o MISTRAL_API_KEY).');
     this.name = 'AiDisabledError';
   }
 }
@@ -75,13 +75,16 @@ export class AiService {
   }
 
   private hasKey(p: AiProvider): boolean {
-    return Boolean(p === 'openai' ? this.cfg.openai.apiKey : this.cfg.anthropic.apiKey);
+    const key = p === 'openai' ? this.cfg.openai.apiKey
+      : p === 'anthropic' ? this.cfg.anthropic.apiKey
+      : this.cfg.mistral.apiKey;
+    return Boolean(key);
   }
 
   private callProvider(p: AiProvider, prompt: { system: string; user: string }, opts: CallOptions): Promise<CompletionResult> {
-    return p === 'openai'
-      ? callOpenAI(this.cfg.openai, prompt, opts)
-      : callAnthropic(this.cfg.anthropic, prompt, opts);
+    if (p === 'openai') return callOpenAI(this.cfg.openai, prompt, opts);
+    if (p === 'anthropic') return callAnthropic(this.cfg.anthropic, prompt, opts);
+    return callMistral(this.cfg.mistral, prompt, opts);
   }
 
   private cacheKey(task: AiTask, input: unknown): string {
@@ -112,7 +115,9 @@ export class AiService {
     const chainAll = providerChain(primary).filter((p) => this.hasKey(p));
     if (chainAll.length === 0) throw new AiDisabledError();
 
-    const estModel = primary === 'anthropic' ? this.cfg.anthropic.model : this.cfg.openai.model;
+    const estModel = primary === 'anthropic' ? this.cfg.anthropic.model
+      : primary === 'mistral' ? this.cfg.mistral.model
+      : this.cfg.openai.model;
     if (!this.budget.canSpend(estimateCostCents(estModel, approxIn, 400))) {
       throw new AiBudgetExceededError();
     }

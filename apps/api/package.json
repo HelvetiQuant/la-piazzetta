@@ -1,9 +1,9 @@
 {
   "name": "@la-piazzetta/api",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "private": true,
   "type": "module",
-  "description": "API La Piazzetta — Express + Prisma. Include AiService (OpenAI + Anthropic).",
+  "description": "API La Piazzetta \u2014 Express + Prisma. Include AiService (OpenAI + Anthropic).",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",

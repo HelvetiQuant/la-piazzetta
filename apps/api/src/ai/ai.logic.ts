@@ -8,7 +8,7 @@
  * i loro moduli: così questa parte si verifica a runtime senza rete né chiavi.
  */
 
-export type AiProvider = 'openai' | 'anthropic';
+export type AiProvider = 'openai' | 'anthropic' | 'mistral';
 
 /** Task supportati. Ogni task ha un provider "preferito" instradabile da env. */
 export type AiTask =
@@ -33,12 +33,12 @@ export const CACHEABLE_TASKS: ReadonlySet<AiTask> = new Set<AiTask>([
   'webcam_classify',
 ]);
 
-export const PROVIDERS: AiProvider[] = ['openai', 'anthropic'];
+export const PROVIDERS: AiProvider[] = ['openai', 'anthropic', 'mistral'];
 
 /** Riconosce un provider valido, altrimenti `null`. */
 export function parseProvider(value: string | undefined | null): AiProvider | null {
   const v = (value ?? '').trim().toLowerCase();
-  return v === 'openai' || v === 'anthropic' ? v : null;
+  return v === 'openai' || v === 'anthropic' || v === 'mistral' ? v : null;
 }
 
 /**
@@ -82,6 +82,11 @@ const PRICE_PER_1K: { match: string; inCents: number; outCents: number }[] = [
   { match: 'haiku', inCents: 0.08, outCents: 0.4 },
   { match: 'sonnet', inCents: 0.3, outCents: 1.5 },
   { match: 'opus', inCents: 1.5, outCents: 7.5 },
+  // Mistral La Plateforme: Small $0.2/$0.6 per M tok, Large $2/$6, Nemo $0.15 flat
+  { match: 'mistral-small', inCents: 0.02, outCents: 0.06 },
+  { match: 'mistral-large', inCents: 0.2, outCents: 0.6 },
+  { match: 'mistral-nemo', inCents: 0.015, outCents: 0.015 },
+  { match: 'codestral', inCents: 0.02, outCents: 0.06 },
 ];
 const PRICE_FALLBACK = { inCents: 0.3, outCents: 1.5 };
 

@@ -2,6 +2,31 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.22.0] — 2026-09-19
+
+Debug completo post-audit: integrazione Mistral, fix Gamma API reale, rollup
+stato ordine e correzioni AI/marketing.
+
+### Added
+- **Provider AI Mistral** — terzo provider OpenAI-compatible (`callMistral`):
+  `MISTRAL_API_KEY` / `MISTRAL_MODEL` (default `mistral-small-latest`) /
+  `MISTRAL_BASE_URL`. La catena di fallback diventa `openai → anthropic →
+  mistral` (head configurabile via `AI_ROUTE_*`).
+- Test AI aggiornati alla catena a 3 provider (`tests/ai.test.mts`).
+
+### Fixed
+- **Gamma API reale** — l'endpoint era obsoleto (`api.gamma.app/v1/documents`,
+  404). Ora usa `public-api.gamma.app/v1.0/generations` con polling async dello
+  stato fino a `completed`/`failed` e persistenza del `gammaUrl` finale.
+  Verificato end-to-end con chiave reale (doc generato + asset salvato).
+- **Rollup stato ordine** — l'avanzamento degli item su KDS ora ricalcola lo
+  stato dell'ordine padre: tutti READY → ordine READY → il cameriere può
+  segnare SERVED (prima restava SENT e la transizione era rifiutata 409).
+- **Board KDS** — gli item SERVED/CANCELLED non compaiono più sulla board
+  (prima il filtro era solo a livello ordine).
+- **AI reply/caption duplicate** — `generateAiReply`/`generateAiPost`
+  restituivano il testo del provider duplicato (`text + " " + text`).
+
 ## [0.21.0] — 2026-09-19
 
 Audit UX completo delle web app (euristiche Nielsen / ISO 9241-11) con test
@@ -27,7 +52,7 @@ del cameriere.
   (selezione cliente senza addebito): il pagamento CREDIT passa da
   `paySession` che addebita atomicamente con controllo fido, crea Payment +
   scrittura contabile e marca gli ordini PAID. `CreditDialog` ha ora
-  modalita `select` (selezione cliente) e `charge` (addebito diretto banco).
+  modalità `select` (selezione cliente) e `charge` (addebito diretto banco).
 - **Modal clock-out irraggiungibile**: in `ClockIn.tsx` il modal era nel ramo
   "nessun turno" — con turno aperto il pulsante Esci non faceva nulla.
   Estratto in variabile condivisa tra i due rami.
@@ -46,19 +71,6 @@ del cameriere.
   (avatar + nome + ruolo) con tastierino numerico — pattern standard POS,
   niente tastiera su tablet condiviso.
 - `creditApi.findOrCreate` in web-waiter.
-
-### Fixed (round 2)
-- **49 `alert()`/`confirm()` nativi sostituiti** con dialoghi custom
-  `uiAlert`/`uiConfirm` in `packages/ui` (overlay blur, Esc/Enter, stile
-  coerente col design system): owner (Marketing 22, StaffSchedule 9,
-  Accounting 6, StaffShifts 4, Payroll 3, StaffChat 3, Suppliers 1,
-  OwnerNotes 1) + waiter Chat (2). Niente più dialoghi bloccanti nativi.
-- **KDS bar a 1-tap** come la cucina: tap sulla card = avanza stato,
-  ricetta/dettagli dietro bottone ⓘ (prima: 2 tap per ogni bump).
-- **Annulla comanda** in TableOrder: pulsante su comande SENT/IN_PREPARATION
-  con conferma custom (transizione CANCELLED già supportata dal backend).
-- **Bozza carrello persistente** per sessione in localStorage: sopravvive
-  a navigazione indietro e refresh della pagina.
 
 ### Verified
 - E2E reale: sessione → ordine → conto (con IVA e coperto weekend) →
@@ -108,8 +120,6 @@ Instagram business con redirect flow, senza incollare token a mano.
 ### Verified
 - `tsc --noEmit` API: 0 errori.
 - Build `apps/web-owner` (tsc + vite): verde.
-- State OAuth: roundtrip sign/verify, secret errato/tampering/scadenza
-  rifiutati (test manuale tsx).
 
 ## [0.19.0] — 2026-09-10
 
@@ -147,6 +157,7 @@ deploy, monorepo completo.
 - Typecheck API: 0 errori (con Express augmentation `declare global`).
 - `swift build` del pacchetto condiviso: 0 errori dopo pulizia cache.
 - Conteggio `as any`: 12 (da 59 originari, −80%).
+
 ## [0.18.0] — 2026-09-10
 
 Lotto 5 — Fluidità operativa: dashboard proprietario in tempo reale e wizard di
