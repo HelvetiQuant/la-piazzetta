@@ -155,18 +155,93 @@ struct MenuProduct: Codable, Identifiable {
 
 struct AccountingAccount: Codable, Identifiable {
     let id: String
+    let code: String?
     let name: String
-    let type: String
-    let balanceCents: Int?
+    let category: String?
+    let active: Bool?
 }
 
 struct Invoice: Codable, Identifiable {
     let id: String
-    let number: String?
-    let supplier: String?
-    let totalCents: Int
+    let supplierId: String?
+    let supplierName: String
+    let supplierVat: String?
+    let invoiceNumber: String
+    let invoiceDate: Date?
+    let dueDate: Date?
+    let netAmountCents: Int
+    let vatRate: Double
+    let vatAmountCents: Int
+    let totalAmountCents: Int
     let status: String
-    let issuedAt: Date?
+    let filePath: String?
+    let ocrData: InvoiceOcrData?
+    let note: String?
+
+    // Convenienza per le view
+    var number: String { invoiceNumber }
+    var supplier: String { supplierName }
+    var totalCents: Int { totalAmountCents }
+}
+
+struct InvoiceOcrData: Codable {
+    let confidence: Double?
+    let scannedAt: String?
+    let stockLoadedAt: String?
+    let lineItems: [ScannedLineItem]?
+}
+
+struct ScannedLineItem: Codable, Identifiable {
+    let description: String
+    let qty: Double
+    let unitPriceCents: Int
+    let vatRate: Double?
+    var id: String { description }
+}
+
+struct ScannedInvoice: Codable {
+    let supplierName: String
+    let supplierVat: String?
+    let supplierAddress: String?
+    let supplierEmail: String?
+    let supplierPhone: String?
+    let invoiceNumber: String
+    let invoiceDate: String
+    let dueDate: String?
+    let netAmountCents: Int
+    let vatRate: Double
+    let vatAmountCents: Int
+    let totalAmountCents: Int
+    let lineItems: [ScannedLineItem]?
+    let confidence: Double
+}
+
+struct ScanSupplier: Codable {
+    let id: String
+    let name: String
+    let vatNumber: String?
+}
+
+struct ScanInvoiceResult: Codable {
+    let invoice: Invoice
+    let supplier: ScanSupplier?
+    let supplierCreated: Bool
+    let matchKind: String?
+    let buyerDetected: Bool?
+    let duplicate: Bool?
+    let parsed: ScannedInvoice
+}
+
+struct StockLoadResult: Codable {
+    let loaded: [StockLoadLine]
+}
+struct StockLoadLine: Codable {
+    let productId: String
+    let qtyAfter: Int
+}
+
+struct RecordInvoiceResponse: Codable {
+    let invoice: Invoice
 }
 
 // MARK: - Chat staff

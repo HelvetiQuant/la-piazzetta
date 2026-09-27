@@ -41,6 +41,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Serve la fotocamera per scansionare le fatture dei fornitori.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Serve la libreria foto per caricare le immagini delle fatture.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

@@ -2,6 +2,25 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.25.1] — 2026-09-27
+
+### Added
+- **App iOS owner — scansione fatture**: tab Contabilità → "Scansiona fattura"
+  apre fotocamera o libreria foto → upload → modal verifica con dati estratti
+  editabili, badge fornitore riconosciuto/creato/duplicato/destinatario →
+  "📦 Merce" mappa righe fattura a prodotti (suggerimento fuzzy) → RECEIPT
+  magazzino → "Contabilizza" con partita doppia (conto costo a scelta, IVA 4.03
+  e fornitori 7.01 automatici). Build installata su iPad.
+
+### Fixed
+- Model `Invoice` iOS disallineato col backend (`number`/`totalCents` vs
+  `invoiceNumber`/`totalAmountCents`) → la lista fatture non decodificava.
+- `AccountingAccount` iOS: `type`/`balanceCents` → `code`/`category` reali.
+- `JSONDecoder` iOS: strategia `.iso8601` non leggeva i millisecondi Prisma
+  (`...T00:00:00.000Z`) — decoder custom con fallback a ISO plain e `yyyy-MM-dd`.
+- `Info.plist`: `NSCameraUsageDescription`/`NSPhotoLibraryUsageDescription` per
+  la cattura foto fatture.
+
 ## [0.25.0] — 2026-09-27
 
 Ciclo fatture fornitori guidato dall'AI: foto → OCR vision → fornitore

@@ -7,6 +7,15 @@
 
 import Foundation
 
+enum InvoiceDateFormatter {
+    static let dateOnly: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+}
+
 enum APIError: LocalizedError {
     case invalidURL
     case server(String)
@@ -45,7 +54,19 @@ final class APIClient: ObservableObject {
 
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
+        // Prisma serializza le Date come ISO8601 con millisecondi (".000Z"):
+        // .iso8601 puro le rifiuta — accettiamo entrambe le forme.
+        let full = ISO8601DateFormatter()
+        full.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        d.dateDecodingStrategy = .custom { dec in
+            let box = try dec.singleValueContainer()
+            let s = try box.decode(String.self)
+            if let date = full.date(from: s) ?? plain.date(from: s) { return date }
+            // tollera anche "YYYY-MM-DD" (campi Date-only Prisma)
+            if let date = InvoiceDateFormatter.dateOnly.date(from: s) { return date }
+            throw DecodingError.dataCorruptedError(in: box, debugDescription: "Data non valida: \(s)")
+        }
         return d
     }()
 
@@ -131,6 +152,28 @@ final class APIClient: ObservableObject {
 
     func fetchInvoices() async throws -> [Invoice] {
         try await request("/accounting/invoices", method: "GET")
+    }
+
+    /// Foto/PDF fattura → scan AI → fornitore riconosciuto/creato + fattura registrata.
+    func scanInvoice(base64: String, mimeType: String, filename: String? = nil) async throws -> ScanInvoiceResult {
+        var body: [String: Any] = ["base64": base64, "mimeType": mimeType]
+        if let filename { body["filename"] = filename }
+        return try await request("/accounting/invoices/scan", method: "POST", body: body)
+    }
+
+    func updateInvoice(id: String, body: [String: Any]) async throws -> Invoice {
+        try await request("/accounting/invoices/\(id)", method: "PATCH", body: body)
+    }
+
+    func loadInvoiceStock(id: String, items: [[String: Any]]) async throws -> StockLoadResult {
+        try await request("/accounting/invoices/\(id)/load-stock", method: "POST", body: ["items": items])
+    }
+
+    func recordInvoice(id: String, expenseAccountId: String, vatAccountId: String, supplierAccountId: String) async throws -> Invoice {
+        let r: RecordInvoiceResponse = try await request("/accounting/invoices/\(id)/record", method: "POST", body: [
+            "expenseAccountId": expenseAccountId, "vatAccountId": vatAccountId, "supplierAccountId": supplierAccountId,
+        ])
+        return r.invoice
     }
 
     // MARK: - Comande (board)
