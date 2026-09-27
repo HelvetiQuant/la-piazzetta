@@ -43,6 +43,10 @@ services:
       OWNER_PHONE: "${OWNER_PHONE:-}"
     ports:
       - "3000:3000"
+    volumes:
+      # File fatture scansionate (invoicesDir = /app/apps/api/invoices nel
+      # container): senza volume i PDF/foto andrebbero persi a ogni rebuild.
+      - invoicedata:/app/apps/api/invoices
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/v1/health"]
       interval: 30s
@@ -51,3 +55,4 @@ services:
 
 volumes:
   pgdata:
+  invoicedata:

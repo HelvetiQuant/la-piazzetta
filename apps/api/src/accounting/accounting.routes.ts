@@ -138,11 +138,15 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
     const q = invoiceQuerySchema.parse(req.query);
     const to = q.to ? new Date(q.to) : new Date();
     const from = q.from ? new Date(q.from) : new Date(to.getTime() - 90 * 86400000);
+    // Le fatture RECEIVED sono in attesa di revisione: la data OCR può essere
+    // errata e il filtro 90gg le nasconderebbe → nessun filtro data se esplicito status=RECEIVED.
+    const explicitRange = !!(q.from || q.to);
+    const skipDateFilter = explicitRange ? false : q.status === 'RECEIVED';
     const invoices = await prisma.supplierInvoice.findMany({
       where: {
         venueId: user.venueId,
         ...(q.status ? { status: q.status } : {}),
-        invoiceDate: { gte: from, lte: to },
+        ...(skipDateFilter ? {} : { invoiceDate: { gte: from, lte: to } }),
       },
       orderBy: { invoiceDate: 'desc' },
     });
