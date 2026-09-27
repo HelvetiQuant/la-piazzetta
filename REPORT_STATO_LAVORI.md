@@ -100,7 +100,7 @@ server locale + web app per dipendenti + app native owner (macOS/iPad).
 
 | # | Cosa | Priorità | Note |
 |---|---|---|---|
-| 1 | **App iOS owner: completare le schermate** | Alta | Build installata su iPad; la shell esiste, va verificata la parità funzionale con la webapp (dashboard, assistente AI, marketing…) |
+| 1 | **App iOS owner: completare le schermate** | Alta | Build installata su iPad. ✅ Scansione fatture da foto già presente in app (stesso flusso web: foto→OCR→verifica→carico→contabilizza). Da verificare parità sulle altre schermate (assistente AI, marketing…) |
 | 2 | **Push "esaurito" real-time ai camerieri** | Media | Oggi il menu si aggiorna al refresh; aggiungere evento WS |
 | 3 | **Chiavi AI di produzione** | Alta | In uso chiave Mistral temporanea; OpenAI/Anthropic del nodo B non valide/senza crediti — servono chiavi definitive |
 | 4 | **Meta App review** | Media | Per pubblicare davvero servono app Meta in "Live" + scopes approvati (`instagram_content_publish`, `pages_manage_posts`) |
