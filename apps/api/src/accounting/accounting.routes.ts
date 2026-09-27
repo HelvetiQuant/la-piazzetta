@@ -44,7 +44,7 @@ import { currentUser, type RouteDeps } from '../http.js';
 import { ITALIAN_CHART_OF_ACCOUNTS } from './chart-of-accounts.js';
 import { getAiService, AiDisabledError, AiBudgetExceededError } from '../ai/ai.service.js';
 import { ProviderError } from '../ai/ai.provider.js';
-import { parseScannedInvoice, matchSupplier, normalizeVat, normalizeSupplierName } from './invoice-scan.logic.js';
+import { parseScannedInvoice, matchSupplier, normalizeVat, normalizeSupplierName, isLikelyBuyer } from './invoice-scan.logic.js';
 import { recordMovement, InventoryError } from '../inventory/inventory.service.js';
 import path from 'path';
 import fs from 'fs';
@@ -194,7 +194,10 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
     });
     const dup = sameNumber.find(c =>
       (match && c.supplierId === match.supplier.id) ||
-      normalizeSupplierName(c.supplierName) === normName,
+      normalizeSupplierName(c.supplierName) === normName ||
+      // stesso numero + stesso totale = stessa fattura anche se il fornitore
+      // è stato letto diversamente (es. riquadro destinatario scambiato)
+      (parsed.totalAmountCents > 0 && c.totalAmountCents === parsed.totalAmountCents),
     );
     if (dup) {
       res.json({ invoice: dup, supplier: dup.supplierId ? await prisma.supplier.findUnique({ where: { id: dup.supplierId } }) : null, supplierCreated: false, parsed, duplicate: true });
@@ -203,8 +206,7 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
 
     // Guardrail: l'AI può aver letto il DESTINATARIO (noi) come fornitore.
     const venue = await prisma.venue.findUnique({ where: { id: user.venueId } });
-    const ownName = normalizeSupplierName(venue?.name ?? '');
-    const readBuyer = Boolean(ownName) && normName.includes(ownName);
+    const readBuyer = isLikelyBuyer(parsed.supplierName, venue?.name);
 
     let supplier = readBuyer ? null : (match?.supplier ?? null);
     let supplierCreated = false;

@@ -46,6 +46,20 @@ export function normalizeSupplierName(raw: string | null | undefined): string {
     .trim();
 }
 
+/**
+ * True se la ragione sociale letta dall'AI è probabilmente il nostro locale
+ * (l'AI può confondere il riquadro DESTINATARIO con l'emittente).
+ * Confronto per token "forti" (≥4 char) del nome venue: es. venue
+ * "La Piazzetta" → token {piazzetta}; OCR "PIAZZETTA DI CHIARELLO ANTONINO
+ * E SOCIETA' S.S." → match → da marcare per revisione, non creare fornitore.
+ */
+export function isLikelyBuyer(supplierName: string, venueName: string | null | undefined): boolean {
+  const venueTokens = normalizeSupplierName(venueName).split(' ').filter((t) => t.length >= 4);
+  if (venueTokens.length === 0) return false;
+  const supplierTokens = new Set(normalizeSupplierName(supplierName).split(' '));
+  return venueTokens.every((t) => supplierTokens.has(t));
+}
+
 function eurosToCents(v: unknown): number {
   const n = Number(v);
   return Number.isFinite(n) ? Math.round(n * 100) : 0;
