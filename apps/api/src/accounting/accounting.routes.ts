@@ -205,6 +205,10 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
       // è stato letto diversamente (es. riquadro destinatario scambiato)
       (parsed.totalAmountCents > 0 && c.totalAmountCents === parsed.totalAmountCents),
     );
+    if (dup) {
+      res.json({ invoice: dup, supplier: dup.supplierId ? await prisma.supplier.findUnique({ where: { id: dup.supplierId } }) : null, supplierCreated: false, parsed, duplicate: true });
+      return;
+    }
 
     let supplier = readBuyer ? null : (match?.supplier ?? null);
     let supplierCreated = false;
