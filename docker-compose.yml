@@ -26,6 +26,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Variabili opzionali (chiavi AI/Gamma/Meta ecc.) — le chiavi in `environment`
+    # qui sotto (es. DATABASE_URL) hanno precedenza su quelle del file.
+    env_file:
+      - path: apps/api/.env
+        required: false
     environment:
       DATABASE_URL: "postgresql://piazzetta:piazzetta@db:5432/lapiazzetta?schema=public"
       JWT_SECRET: "${JWT_SECRET:-prova-locale-non-per-produzione}"

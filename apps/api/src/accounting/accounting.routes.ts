@@ -10,7 +10,10 @@
  *
  * Fatture fornitori:
  *  GET    /api/v1/accounting/invoices?status=&from=&to= → lista fatture
+ *  POST   /api/v1/accounting/invoices/scan         → scan AI foto fattura → fornitore + fattura
  *  POST   /api/v1/accounting/invoices              → registra fattura (con upload)
+ *  POST   /api/v1/accounting/invoices/:id/upload   → allega file
+ *  POST   /api/v1/accounting/invoices/:id/load-stock → carico merce a magazzino
  *  POST   /api/v1/accounting/invoices/:id/record   → contabilizza fattura → journal entry
  *  POST   /api/v1/accounting/invoices/:id/pay      → segna come pagata
  *  GET    /api/v1/accounting/invoices/:id/file     → download file fattura
@@ -39,6 +42,10 @@ import type { PrismaClient, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { currentUser, type RouteDeps } from '../http.js';
 import { ITALIAN_CHART_OF_ACCOUNTS } from './chart-of-accounts.js';
+import { getAiService, AiDisabledError, AiBudgetExceededError } from '../ai/ai.service.js';
+import { ProviderError } from '../ai/ai.provider.js';
+import { parseScannedInvoice, matchSupplier, normalizeVat } from './invoice-scan.logic.js';
+import { recordMovement, InventoryError } from '../inventory/inventory.service.js';
 import path from 'path';
 import fs from 'fs';
 
@@ -142,6 +149,139 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
     res.json(invoices);
   });
 
+  // Scansione AI di una foto/PDF fattura: estrae i dati con vision, abbina (o
+  // crea) il fornitore, salva il file e registra la fattura in stato RECEIVED.
+  // Idempotente: stesso numero fattura + fornitore → ritorna l'esistente.
+  app.post('/api/v1/accounting/invoices/scan', devAuth, requireRoles(...ACCT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const body = z.object({
+      base64: z.string().min(1),
+      mimeType: z.string().default('image/jpeg'),
+      filename: z.string().optional(),
+    }).parse(req.body);
+
+    const raw = body.base64.includes(',') ? body.base64.split(',').pop()! : body.base64;
+    const dataUrl = `data:${body.mimeType};base64,${raw}`;
+
+    let result;
+    try {
+      result = await getAiService().scanInvoice(dataUrl);
+    } catch (err) {
+      if (err instanceof AiDisabledError) { res.status(503).json({ error: err.message }); return; }
+      if (err instanceof AiBudgetExceededError) { res.status(429).json({ error: err.message }); return; }
+      if (err instanceof ProviderError) { res.status(502).json({ error: 'Errore AI vision', detail: err.message }); return; }
+      throw err;
+    }
+
+    const parsed = parseScannedInvoice(result.data);
+    if (!parsed) {
+      res.status(422).json({ error: 'AI non ha riconosciuto una fattura valida', raw: result.text?.slice(0, 500) });
+      return;
+    }
+
+    // Dedup: stesso numero + nome fornitore per questo venue
+    const dup = await prisma.supplierInvoice.findFirst({
+      where: { venueId: user.venueId, invoiceNumber: parsed.invoiceNumber, supplierName: parsed.supplierName },
+    });
+    if (dup) {
+      res.json({ invoice: dup, supplier: dup.supplierId ? await prisma.supplier.findUnique({ where: { id: dup.supplierId } }) : null, supplierCreated: false, parsed, duplicate: true });
+      return;
+    }
+
+    // Matching fornitore: P.IVA esatta → nome normalizzato → crea nuovo
+    const suppliers = await prisma.supplier.findMany({ where: { venueId: user.venueId, active: true } });
+    const match = matchSupplier(suppliers, parsed);
+    let supplier = match?.supplier ?? null;
+    let supplierCreated = false;
+    if (!supplier) {
+      supplier = await prisma.supplier.create({
+        data: {
+          venueId: user.venueId,
+          name: parsed.supplierName,
+          vatNumber: parsed.supplierVat,
+          email: parsed.supplierEmail,
+          phone: parsed.supplierPhone,
+          notes: `Creato da scansione fattura AI${parsed.supplierAddress ? ` — ${parsed.supplierAddress}` : ''}`,
+        },
+      });
+      supplierCreated = true;
+    } else if (parsed.supplierVat && !supplier.vatNumber) {
+      // arricchisce il fornitore esistente con la P.IVA appena letta
+      supplier = await prisma.supplier.update({ where: { id: supplier.id }, data: { vatNumber: normalizeVat(parsed.supplierVat) } });
+    }
+
+    // Salva il file originale
+    const ext = body.mimeType.includes('pdf') ? 'pdf' : body.mimeType.includes('png') ? 'png' : 'jpg';
+    const invoice = await prisma.supplierInvoice.create({
+      data: {
+        venueId: user.venueId,
+        supplierId: supplier.id,
+        supplierName: parsed.supplierName,
+        supplierVat: parsed.supplierVat,
+        invoiceNumber: parsed.invoiceNumber,
+        invoiceDate: new Date(parsed.invoiceDate),
+        dueDate: parsed.dueDate ? new Date(parsed.dueDate) : null,
+        netAmountCents: parsed.netAmountCents,
+        vatRate: parsed.vatRate,
+        vatAmountCents: parsed.vatAmountCents,
+        totalAmountCents: parsed.totalAmountCents,
+        status: 'RECEIVED',
+        ocrData: { ...parsed, aiProvider: result.provider, aiModel: result.model, scannedAt: new Date().toISOString() } as unknown as Prisma.InputJsonValue,
+        note: parsed.confidence < 0.6 ? '⚠️ Scansione a bassa confidenza — verificare i dati' : null,
+      },
+    });
+    const fname = `invoice-${invoice.id}.${ext}`;
+    fs.writeFileSync(path.join(invoicesDir, fname), Buffer.from(raw, 'base64'));
+    const withFile = await prisma.supplierInvoice.update({
+      where: { id: invoice.id },
+      data: { filePath: `/invoices/${fname}`, fileMimeType: body.mimeType },
+    });
+
+    res.status(201).json({ invoice: withFile, supplier, supplierCreated, matchKind: match?.kind ?? 'created', parsed });
+  });
+
+  // Carico a magazzino delle righe fattura: l'owner mappa le righe ai prodotti.
+  app.post('/api/v1/accounting/invoices/:id/load-stock', devAuth, requireRoles(...ACCT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const invoice = await prisma.supplierInvoice.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
+    if (!invoice) { res.status(404).json({ error: 'Fattura non trovata' }); return; }
+    const body = z.object({
+      items: z.array(z.object({
+        productId: z.string(),
+        qty: z.number().positive(),
+        note: z.string().optional(),
+      })).min(1),
+    }).parse(req.body);
+
+    const ocr = (invoice.ocrData ?? {}) as Record<string, unknown>;
+    if (ocr.stockLoadedAt) { res.status(409).json({ error: 'Merce già caricata da questa fattura' }); return; }
+
+    try {
+      const results = await prisma.$transaction(async (tx) => {
+        const out: { productId: string; qtyAfter: number }[] = [];
+        for (const it of body.items) {
+          const qtyAfter = await recordMovement(tx, user.venueId, {
+            productId: it.productId,
+            type: 'RECEIPT',
+            qty: it.qty,
+            reason: `Fattura ${invoice.supplierName} n. ${invoice.invoiceNumber}${it.note ? ` — ${it.note}` : ''}`,
+            createdBy: user.userId,
+          });
+          out.push({ productId: it.productId, qtyAfter });
+        }
+        await tx.supplierInvoice.update({
+          where: { id: invoice.id },
+          data: { ocrData: { ...ocr, stockLoadedAt: new Date().toISOString(), stockItems: body.items } },
+        });
+        return out;
+      });
+      res.json({ loaded: results });
+    } catch (err) {
+      if (err instanceof InventoryError) { res.status(err.status).json({ error: err.message }); return; }
+      throw err;
+    }
+  });
+
   const invoiceSchema = z.object({
     supplierId: z.string().optional(),
     supplierName: z.string().min(1),
@@ -188,6 +328,46 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
       },
     });
     res.status(201).json(invoice);
+  });
+
+  // Corregge i dati di una fattura non ancora contabilizzata (review OCR).
+  app.patch('/api/v1/accounting/invoices/:id', devAuth, requireRoles(...ACCT_ROLES), async (req: Request, res: Response) => {
+    const user = currentUser(req);
+    const invoice = await prisma.supplierInvoice.findFirst({ where: { id: req.params.id, venueId: user.venueId } });
+    if (!invoice) { res.status(404).json({ error: 'Fattura non trovata' }); return; }
+    if (invoice.status !== 'RECEIVED') { res.status(409).json({ error: 'Fattura già contabilizzata: non modificabile' }); return; }
+    const body = z.object({
+      supplierId: z.string().nullable().optional(),
+      supplierName: z.string().min(1).optional(),
+      supplierVat: z.string().nullable().optional(),
+      invoiceNumber: z.string().min(1).optional(),
+      invoiceDate: z.string().optional(),
+      dueDate: z.string().nullable().optional(),
+      description: z.string().nullable().optional(),
+      netAmountCents: z.number().int().nonnegative().optional(),
+      vatRate: z.number().min(0).max(100).optional(),
+      note: z.string().nullable().optional(),
+    }).parse(req.body);
+
+    const data: Prisma.SupplierInvoiceUpdateInput = {};
+    if (body.supplierId !== undefined) data.supplier = body.supplierId ? { connect: { id: body.supplierId } } : { disconnect: true };
+    if (body.supplierName !== undefined) data.supplierName = body.supplierName;
+    if (body.supplierVat !== undefined) data.supplierVat = body.supplierVat;
+    if (body.invoiceNumber !== undefined) data.invoiceNumber = body.invoiceNumber;
+    if (body.invoiceDate !== undefined) data.invoiceDate = new Date(body.invoiceDate);
+    if (body.dueDate !== undefined) data.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+    if (body.description !== undefined) data.description = body.description;
+    if (body.note !== undefined) data.note = body.note;
+    if (body.netAmountCents !== undefined || body.vatRate !== undefined) {
+      const net = body.netAmountCents ?? invoice.netAmountCents;
+      const rate = body.vatRate ?? invoice.vatRate;
+      const vatCents = Math.round(net * rate / 100);
+      data.netAmountCents = net;
+      data.vatRate = rate;
+      data.vatAmountCents = vatCents;
+      data.totalAmountCents = net + vatCents;
+    }
+    res.json(await prisma.supplierInvoice.update({ where: { id: invoice.id }, data }));
   });
 
   // Upload file fattura (base64)

@@ -2,6 +2,46 @@
 
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [0.25.0] — 2026-09-27
+
+Ciclo fatture fornitori guidato dall'AI: foto → OCR vision → fornitore
+riconosciuto/creato → fattura registrata → carico magazzino → partita doppia.
+
+### Added
+- **`POST /api/v1/accounting/invoices/scan`** — foto/PDF della fattura (base64)
+  → Mistral vision estrae fornitore, P.IVA, numero, data, scadenza, imponibile,
+  IVA, totale e righe merce. Matching fornitore: P.IVA esatta → nome
+  normalizzato (tollerante a s.r.l./sas/punteggiatura) → **creazione automatica**
+  se assente. File originale salvato, fattura in stato RECEIVED, `ocrData` con
+  estrazione completa + confidenza. Idempotente (stesso numero+fornitore →
+  `duplicate: true`, nessun doppio inserimento).
+- **`PATCH /api/v1/accounting/invoices/:id`** — correzione dati pre-contabilizzazione
+  (review OCR); ricalcola IVA/totale; bloccato (409) dopo RECORDED.
+- **`POST /api/v1/accounting/invoices/:id/load-stock`** — carico merce a
+  magazzino: mappa righe fattura → prodotti, movimenti RECEIPT in transazione
+  con tracciabilità (`Fattura <fornitore> n. <num>`), idempotente (409 se già
+  caricata).
+- **`Supplier.vatNumber`** — chiave di matching affidabile per le scansioni;
+  arricchito automaticamente sui fornitori esistenti quando la P.IVA viene letta.
+- **Vision nei provider AI** — `imageDataUrl` in `CallOptions`: Mistral/OpenAI
+  (image_url) e Anthropic (image base64). Nuovo task `invoice_scan`, default
+  `mistral` (Small è multimodale, ~$0.2/M token), override `AI_ROUTE_INVOICE_SCAN`.
+- **UI owner → Contabilità → Fatture**: bottone "📷 Scansiona fattura" (foto o
+  PDF, anche da fotocamera iPad), modal revisione con dati estratti editabili,
+  badge match/creato, warning bassa confidenza, righe merce; "📦 Carica merce"
+  con mapping prodotto (suggerimento fuzzy per nome); badge 🤖/📦 sulle card.
+- `docker-compose.yml`: `env_file: apps/api/.env` — chiavi AI disponibili anche
+  nel deployment containerizzato (`environment` esplicito resta prevalente).
+
+### Verified (test E2E live)
+- Foto fattura sintetica Eurofood: P.IVA/numero/date/importi/4 righe estratti
+  corretti, fornitore auto-creato, file servito da `/invoices/*`.
+- Dedup: riscan stesso documento → `duplicate:true`, zero doppioni.
+- Load-stock: Latte 0→24, Caffè 0→6; ri-carico → 409.
+- PATCH su RECEIVED ok, su RECORDED → 409.
+- Record → journal bilanciato (DARE costo 201,60 + IVA 20,16 / AVERE fornitore
+  221,76).
+
 ## [0.24.0] — 2026-09-22
 
 Stress-test su scenari reali di bar/tavola calda (fonti: TeamSystem Horeca,

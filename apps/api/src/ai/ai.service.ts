@@ -96,7 +96,7 @@ export class AiService {
    * Applica cache (task deterministici) e budget. Lancia `AiDisabledError`
    * se nessun provider è configurato e `AiBudgetExceededError` se oltre cap.
    */
-  async run<T = unknown>(task: AiTask, input: unknown): Promise<RunResult<T>> {
+  async run<T = unknown>(task: AiTask, input: unknown, imageDataUrl?: string): Promise<RunResult<T>> {
     if (!this.isEnabled()) throw new AiDisabledError();
 
     const cacheable = CACHEABLE_TASKS.has(task);
@@ -122,7 +122,7 @@ export class AiService {
       throw new AiBudgetExceededError();
     }
 
-    const opts: CallOptions = { timeoutMs: this.cfg.timeoutMs, fetchImpl: this.fetchImpl };
+    const opts: CallOptions = { timeoutMs: this.cfg.timeoutMs, fetchImpl: this.fetchImpl, imageDataUrl };
     let lastErr: unknown = null;
 
     for (const provider of chainAll) {
@@ -177,6 +177,11 @@ export class AiService {
   /** Classificazione evento arrivo da segnale edge (solo etichette/embedding). */
   classifyArrival(input: unknown) {
     return this.run<{ arrival: boolean; partySize: number; confidence: number }>('webcam_classify', input);
+  }
+
+  /** Estrazione dati fattura fornitore da foto/PDF (vision). */
+  scanInvoice(imageDataUrl: string, hint?: string) {
+    return this.run('invoice_scan', { hint: hint ?? '' }, imageDataUrl);
   }
 }
 

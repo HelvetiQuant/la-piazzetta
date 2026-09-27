@@ -59,6 +59,12 @@ server locale + web app per dipendenti + app native owner (macOS/iPad).
 - ✅ Magazzino: giacenze, movimenti storicizzati, sottoscorta, rettifiche
 - ✅ Fornitori + ordini d'acquisto (bozza→inviato→ricevuto)
 - ✅ Contabilità italiana: piano conti, fatture, prima nota, CE, BP, IVA
+- ✅ **Fatture fornitori da foto (AI)**: scatta/carica la fattura → vision AI
+  estrae fornitore, P.IVA, numero, date, imponibile, IVA, righe merce →
+  fornitore riconosciuto per P.IVA/nome o **creato automaticamente** →
+  revisione con correzione → **carico merce a magazzino** (giacenze RECEIPT) →
+  **contabilizzazione** in partita doppia. Anti-duplicato, tracciabilità file,
+  warning su bassa confidenza (testato end-to-end)
 - ✅ Presenze/stipendi, scheduling turni, disponibilità staff
 - ✅ Chat staff, disposizioni con ack obbligatorio
 - ✅ Crediti clienti con limiti fido

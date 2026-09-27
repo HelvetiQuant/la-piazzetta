@@ -43,6 +43,7 @@ const DEFAULT_ROUTING: Record<AiTask, AiProvider> = {
   shift_suggestion: 'openai',
   webcam_classify: 'openai',
   assistant: 'openai',
+  invoice_scan: 'mistral', // vision: Mistral Small è multimodale e il più economico
 };
 
 /** Nome della variabile di routing per un task, es. AI_ROUTE_DEMAND_FORECAST. */

@@ -35,8 +35,25 @@ export interface CallOptions {
   timeoutMs: number;
   maxOutputTokens?: number;
   temperature?: number;
+  /** data URL `data:<mime>;base64,<data>` — attiva il contenuto multimodale (vision) */
+  imageDataUrl?: string;
   /** iniettabile nei test per non toccare la rete */
   fetchImpl?: typeof fetch;
+}
+
+/** User message OpenAI/Mistral-compatibile: testo + immagine opzionale. */
+function openAiUserContent(user: string, imageDataUrl?: string): unknown {
+  if (!imageDataUrl) return user;
+  return [
+    { type: 'text', text: user },
+    { type: 'image_url', image_url: { url: imageDataUrl } },
+  ];
+}
+
+/** Spezza un data URL in media_type + payload base64 (per Anthropic). */
+function splitDataUrl(dataUrl: string): { mediaType: string; data: string } | null {
+  const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
+  return m ? { mediaType: m[1], data: m[2] } : null;
 }
 
 function statusIsRetryable(status: number): boolean {
@@ -75,7 +92,7 @@ export async function callOpenAI(cfg: ProviderConfig, messages: ChatMessages, op
         model: cfg.model,
         messages: [
           { role: 'system', content: messages.system },
-          { role: 'user', content: messages.user },
+          { role: 'user', content: openAiUserContent(messages.user, opts.imageDataUrl) },
         ],
         temperature: opts.temperature ?? 0.4,
         max_tokens: opts.maxOutputTokens ?? 800,
@@ -116,7 +133,7 @@ export async function callMistral(cfg: ProviderConfig, messages: ChatMessages, o
         model: cfg.model,
         messages: [
           { role: 'system', content: messages.system },
-          { role: 'user', content: messages.user },
+          { role: 'user', content: openAiUserContent(messages.user, opts.imageDataUrl) },
         ],
         temperature: opts.temperature ?? 0.4,
         max_tokens: opts.maxOutputTokens ?? 800,
@@ -159,7 +176,17 @@ export async function callAnthropic(cfg: ProviderConfig, messages: ChatMessages,
         system: messages.system,
         max_tokens: opts.maxOutputTokens ?? 800,
         temperature: opts.temperature ?? 0.4,
-        messages: [{ role: 'user', content: messages.user }],
+        messages: [{
+          role: 'user',
+          content: (() => {
+            const img = opts.imageDataUrl ? splitDataUrl(opts.imageDataUrl) : null;
+            if (!img) return messages.user;
+            return [
+              { type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.data } },
+              { type: 'text', text: messages.user },
+            ];
+          })(),
+        }],
       }),
     });
 

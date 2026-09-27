@@ -17,7 +17,8 @@ export type AiTask =
   | 'marketing_copy'
   | 'shift_suggestion'
   | 'webcam_classify'
-  | 'assistant';
+  | 'assistant'
+  | 'invoice_scan';
 
 export const ALL_TASKS: AiTask[] = [
   'upsell',
@@ -26,6 +27,7 @@ export const ALL_TASKS: AiTask[] = [
   'shift_suggestion',
   'webcam_classify',
   'assistant',
+  'invoice_scan',
 ];
 
 /** Task le cui risposte sono deterministiche a parità di input → cacheabili. */
@@ -190,6 +192,23 @@ export function buildPrompt(task: AiTask, input: unknown): ChatMessages {
       const i = input as { system?: string; user?: string } | undefined;
       return { system: String(i?.system ?? ''), user: String(i?.user ?? payload) };
     }
+    case 'invoice_scan':
+      return {
+        system:
+          'Sei un OCR specializzato in fatture italiane (fornitori di bar/tavola calda). ' +
+          'Analizza la foto/PDF della fattura ed estrai i dati. Rispondi SOLO con JSON: ' +
+          '{"supplierName":string,"supplierVat":string|null,"supplierAddress":string|null,' +
+          '"supplierEmail":string|null,"supplierPhone":string|null,' +
+          '"invoiceNumber":string,"invoiceDate":"YYYY-MM-DD","dueDate":"YYYY-MM-DD"|null,' +
+          '"netAmountEuros":number,"vatRate":number,"vatAmountEuros":number,"totalEuros":number,' +
+          '"lineItems":[{"description":string,"qty":number,"unitPriceEuros":number,"vatRate":number|null}],' +
+          '"confidence":number(0-1)}. ' +
+          'Regole: importi in euro con punto decimale (non centesimi); partita IVA solo cifre ' +
+          '(11 caratteri, senza "IT" e senza punti/spazi); se un dato è illeggibile usa null ' +
+          'per i campi nullable, altrimenti la migliore stima e abbassa confidence. ' +
+          'lineItems: solo righe merce/prodotti, ignora sconti/spese bollo/scadenze.',
+        user: 'Estrai i dati dalla fattura nell\'immagine allegata.',
+      };
   }
 }
 

@@ -765,8 +765,25 @@ export interface SupplierInvoice {
   invoiceNumber: string; invoiceDate: string; dueDate?: string | null; description?: string | null;
   netAmountCents: number; vatRate: number; vatAmountCents: number; withholdingRate: number; withholdingCents: number;
   totalAmountCents: number; status: 'RECEIVED' | 'RECORDED' | 'PAID'; filePath?: string | null; fileMimeType?: string | null;
+  ocrData?: ScannedInvoice & { aiProvider?: string; scannedAt?: string; stockLoadedAt?: string } | null;
   recordedAt?: string | null; paidAt?: string | null; paymentMethod?: string | null; note?: string | null;
   createdAt: string;
+}
+export interface ScannedLineItem { description: string; qty: number; unitPriceCents: number; vatRate?: number | null }
+export interface ScannedInvoice {
+  supplierName: string; supplierVat?: string | null; supplierAddress?: string | null;
+  supplierEmail?: string | null; supplierPhone?: string | null;
+  invoiceNumber: string; invoiceDate: string; dueDate?: string | null;
+  netAmountCents: number; vatRate: number; vatAmountCents: number; totalAmountCents: number;
+  lineItems: ScannedLineItem[]; confidence: number;
+}
+export interface ScanInvoiceResult {
+  invoice: SupplierInvoice;
+  supplier: { id: string; name: string; vatNumber?: string | null } | null;
+  supplierCreated: boolean;
+  matchKind?: 'vat' | 'name' | 'created';
+  parsed: ScannedInvoice;
+  duplicate?: boolean;
 }
 export interface JournalEntry {
   id: string; date: string; description: string; reference?: string | null;
@@ -825,6 +842,12 @@ export const acct = {
     req<SupplierInvoice>('/accounting/invoices', { method: 'POST', body: JSON.stringify(body) }),
   uploadInvoiceFile: (id: string, base64: string, mimeType: string, filename: string) =>
     req<SupplierInvoice>(`/accounting/invoices/${id}/upload`, { method: 'POST', body: JSON.stringify({ base64, mimeType, filename }) }),
+  scanInvoice: (base64: string, mimeType: string, filename?: string) =>
+    req<ScanInvoiceResult>('/accounting/invoices/scan', { method: 'POST', body: JSON.stringify({ base64, mimeType, filename }) }),
+  updateInvoice: (id: string, body: Partial<{ supplierId: string | null; supplierName: string; supplierVat: string | null; invoiceNumber: string; invoiceDate: string; dueDate: string | null; description: string | null; netAmountCents: number; vatRate: number; note: string | null }>) =>
+    req<SupplierInvoice>(`/accounting/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  loadInvoiceStock: (id: string, items: { productId: string; qty: number; note?: string }[]) =>
+    req<{ loaded: { productId: string; qtyAfter: number }[] }>(`/accounting/invoices/${id}/load-stock`, { method: 'POST', body: JSON.stringify({ items }) }),
   recordInvoice: (id: string, expenseAccountId: string, vatAccountId: string, supplierAccountId: string) =>
     req<{ entry: JournalEntry; invoice: SupplierInvoice }>(`/accounting/invoices/${id}/record`, { method: 'POST', body: JSON.stringify({ expenseAccountId, vatAccountId, supplierAccountId }) }),
   payInvoice: (id: string, paymentMethod: string, bankAccountId?: string) =>

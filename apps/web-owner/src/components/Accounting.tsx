@@ -1,13 +1,16 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   acct,
+  menu,
   type ChartOfAccount,
   type SupplierInvoice,
+  type ScanInvoiceResult,
   type JournalEntry,
   type IncomeStatement,
   type BalanceSheet,
   type TrialBalance,
   type VatReturn,
+  type Product,
 } from '../api';
 import { uiAlert } from '@la-piazzetta/ui';
 
@@ -36,6 +39,10 @@ export default function Accounting() {
   const [showNewJournal, setShowNewJournal] = useState(false);
   const [recordInvoiceId, setRecordInvoiceId] = useState<string | null>(null);
   const [payInvoiceId, setPayInvoiceId] = useState<string | null>(null);
+  const [scanResult, setScanResult] = useState<ScanInvoiceResult | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [loadStockInvoice, setLoadStockInvoice] = useState<SupplierInvoice | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [reportFrom, setReportFrom] = useState(new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0, 10));
   const [reportTo, setReportTo] = useState(new Date().toISOString().slice(0, 10));
@@ -74,6 +81,17 @@ export default function Accounting() {
   const loadVat = useCallback(async () => {
     try { setVatReturns(await acct.vatReturns()); } catch (e) { console.error(e); }
   }, []);
+
+  const onScanFile = async (f: File) => {
+    setScanning(true);
+    try {
+      const base64 = await fileToBase64(f);
+      setScanResult(await acct.scanInvoice(base64, f.type || 'image/jpeg', f.name));
+    } catch (e) {
+      uiAlert('Scansione fallita: ' + (e as Error).message);
+    }
+    setScanning(false);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -142,7 +160,19 @@ export default function Accounting() {
                 </button>
               ))}
             </div>
-            <button onClick={() => setShowNewInvoice(true)} style={btnPrimary}>+ Nuova fattura</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                style={{ display: 'none' }}
+                onChange={e => { const f = e.target.files?.[0]; if (f) void onScanFile(f); e.target.value = ''; }}
+              />
+              <button onClick={() => fileInputRef.current?.click()} style={btnSecondary} disabled={scanning}>
+                {scanning ? '🔍 Scansione AI…' : '📷 Scansiona fattura'}
+              </button>
+              <button onClick={() => setShowNewInvoice(true)} style={btnPrimary}>+ Nuova fattura</button>
+            </div>
           </div>
 
           {invoices.length === 0 ? (
@@ -172,7 +202,12 @@ export default function Accounting() {
                       {inv.status === 'RECEIVED' ? 'Ricevuta' : inv.status === 'RECORDED' ? 'Contabilizzata' : 'Pagata'}
                     </span>
                     {inv.filePath && <span style={{ fontSize: 12, color: '#007aff' }}>📎 File allegato</span>}
+                    {inv.ocrData?.scannedAt && <span style={{ fontSize: 12, color: '#af52de' }}>🤖 Scansita AI ({Math.round((inv.ocrData.confidence ?? 0) * 100)}%)</span>}
+                    {inv.ocrData?.stockLoadedAt && <span style={{ fontSize: 12, color: '#34c759' }}>📦 Merce caricata</span>}
                     <div style={{ flex: 1 }} />
+                    {inv.status === 'RECEIVED' && inv.ocrData?.lineItems && inv.ocrData.lineItems.length > 0 && !inv.ocrData?.stockLoadedAt && (
+                      <button style={btnSmall} onClick={() => setLoadStockInvoice(inv)}>📦 Carica merce</button>
+                    )}
                     {inv.status === 'RECEIVED' && (
                       <>
                         <button style={btnSmall} onClick={() => setRecordInvoiceId(inv.id)}>Contabilizza</button>
@@ -189,6 +224,8 @@ export default function Accounting() {
           )}
 
           {showNewInvoice && <NewInvoiceModal accounts={accounts} onClose={() => setShowNewInvoice(false)} onSaved={() => { setShowNewInvoice(false); loadInvoices(); }} />}
+          {scanResult && <ScanResultModal result={scanResult} onClose={() => setScanResult(null)} onDone={() => { setScanResult(null); loadInvoices(); }} />}
+          {loadStockInvoice && <LoadStockModal invoice={loadStockInvoice} onClose={() => setLoadStockInvoice(null)} onDone={() => { setLoadStockInvoice(null); loadInvoices(); }} />}
           {recordInvoiceId && <RecordInvoiceModal invoice={invoices.find(i => i.id === recordInvoiceId)!} accounts={accounts} onClose={() => setRecordInvoiceId(null)} onDone={() => { setRecordInvoiceId(null); loadInvoices(); }} />}
           {payInvoiceId && <PayInvoiceModal invoice={invoices.find(i => i.id === payInvoiceId)!} accounts={accounts} onClose={() => setPayInvoiceId(null)} onDone={() => { setPayInvoiceId(null); loadInvoices(); }} />}
         </div>
@@ -674,6 +711,142 @@ function CalcVatButton({ onCalc }: { onCalc: () => void }) {
       <input type="month" style={inputStyle} value={period} onChange={e => setPeriod(e.target.value)} />
       <button style={btnPrimary} onClick={calc} disabled={saving}>{saving ? 'Calcolo…' : 'Calcola IVA'}</button>
     </div>
+  );
+}
+
+function ScanResultModal({ result, onClose, onDone }: { result: ScanInvoiceResult; onClose: () => void; onDone: () => void }) {
+  const inv = result.invoice;
+  const [form, setForm] = useState({
+    supplierName: inv.supplierName,
+    supplierVat: inv.supplierVat ?? '',
+    invoiceNumber: inv.invoiceNumber,
+    invoiceDate: inv.invoiceDate.slice(0, 10),
+    netEur: (inv.netAmountCents / 100).toFixed(2),
+    vatRate: String(inv.vatRate),
+  });
+  const [saving, setSaving] = useState(false);
+  const lowConf = (result.parsed?.confidence ?? 1) < 0.6;
+
+  const saveCorrections = async () => {
+    setSaving(true);
+    try {
+      await acct.updateInvoice(inv.id, {
+        supplierName: form.supplierName,
+        supplierVat: form.supplierVat || null,
+        invoiceNumber: form.invoiceNumber,
+        invoiceDate: form.invoiceDate,
+        netAmountCents: Math.round(Number(form.netEur) * 100),
+        vatRate: Number(form.vatRate),
+        note: null,
+      });
+      onDone();
+    } catch (e) { uiAlert('Errore: ' + (e as Error).message); }
+    setSaving(false);
+  };
+
+  return (
+    <Modal title={result.duplicate ? '⚠️ Fattura già presente' : '🤖 Fattura scansionata'} onClose={onClose}>
+      <div style={{ padding: 12, borderRadius: 8, marginBottom: 14, fontSize: 13, background: result.duplicate ? '#ff950015' : '#34c75912', border: `1px solid ${result.duplicate ? '#ff9500' : '#34c759'}40` }}>
+        {result.duplicate
+          ? 'Esiste già una fattura con questo numero e fornitore — nessun duplicato creato.'
+          : result.supplierCreated
+            ? `Fornitore "${result.supplier?.name}" creato automaticamente — verifica i dati in Anagrafiche → Fornitori.`
+            : `Fornitore riconosciuto: ${result.supplier?.name} (${result.matchKind === 'vat' ? 'P.IVA' : 'nome'})`}
+      </div>
+      {lowConf && (
+        <div style={{ padding: 10, borderRadius: 8, marginBottom: 14, fontSize: 13, background: '#ff3b3010', border: '1px solid #ff3b3040', color: '#ff3b30' }}>
+          ⚠️ Confidenza AI bassa ({Math.round((result.parsed.confidence) * 100)}%) — controlla bene i dati prima di contabilizzare.
+        </div>
+      )}
+      <Field label="Fornitore"><input style={inputStyle} value={form.supplierName} onChange={e => setForm({ ...form, supplierName: e.target.value })} /></Field>
+      <Field label="P.IVA"><input style={inputStyle} value={form.supplierVat} onChange={e => setForm({ ...form, supplierVat: e.target.value })} /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field label="N. fattura"><input style={inputStyle} value={form.invoiceNumber} onChange={e => setForm({ ...form, invoiceNumber: e.target.value })} /></Field>
+        <Field label="Data"><input type="date" style={inputStyle} value={form.invoiceDate} onChange={e => setForm({ ...form, invoiceDate: e.target.value })} /></Field>
+        <Field label="Imponibile (€)"><input type="number" step="0.01" style={inputStyle} value={form.netEur} onChange={e => setForm({ ...form, netEur: e.target.value })} /></Field>
+        <Field label="IVA %"><input type="number" step="0.1" style={inputStyle} value={form.vatRate} onChange={e => setForm({ ...form, vatRate: e.target.value })} /></Field>
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 600, margin: '8px 0' }}>
+        Totale: {fmt(Math.round(Number(form.netEur || 0) * 100 * (1 + Number(form.vatRate || 0) / 100)))}
+      </div>
+      {result.parsed.lineItems.length > 0 && (
+        <div style={{ marginTop: 10, fontSize: 13 }}>
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>Righe merce estratte ({result.parsed.lineItems.length})</div>
+          <div style={{ maxHeight: 140, overflow: 'auto', border: '1px solid #f0f0f2', borderRadius: 8 }}>
+            {result.parsed.lineItems.map((li, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', borderBottom: '1px solid #f5f5f7' }}>
+                <span>{li.description}</span>
+                <span style={{ color: '#86868b' }}>×{li.qty} · {fmt(li.unitPriceCents)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+        <button style={btnPrimary} onClick={saveCorrections} disabled={saving}>{saving ? 'Salvataggio…' : 'Conferma dati'}</button>
+        <button style={btnSecondary} onClick={onDone}>OK, senza modifiche</button>
+      </div>
+      <p style={{ fontSize: 12, color: '#86868b', marginTop: 10 }}>
+        Prossimi passi dalla lista fatture: 📦 <b>Carica merce</b> (giacenze) e <b>Contabilizza</b> (partita doppia).
+      </p>
+    </Modal>
+  );
+}
+
+function LoadStockModal({ invoice, onClose, onDone }: { invoice: SupplierInvoice; onClose: () => void; onDone: () => void }) {
+  const items = invoice.ocrData?.lineItems ?? [];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [rows, setRows] = useState<Array<{ description: string; qty: number; productId: string; skip: boolean }>>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    menu.list().then(ps => {
+      setProducts(ps);
+      const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      setRows(items.map(li => {
+        const ln = norm(li.description);
+        const match = ps.find(p => norm(p.name) === ln) ?? ps.find(p => {
+          const pn = norm(p.name);
+          return pn.length >= 4 && (ln.includes(pn) || pn.includes(ln));
+        });
+        return { description: li.description, qty: li.qty, productId: match?.id ?? '', skip: false };
+      }));
+    }).catch(() => setProducts([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const submit = async () => {
+    const toLoad = rows.filter(r => !r.skip && r.productId && r.qty > 0);
+    if (toLoad.length === 0) { uiAlert('Nessuna riga mappata a un prodotto'); return; }
+    setSaving(true);
+    try {
+      await acct.loadInvoiceStock(invoice.id, toLoad.map(r => ({ productId: r.productId, qty: r.qty, note: r.description })));
+      onDone();
+    } catch (e) { uiAlert('Errore: ' + (e as Error).message); }
+    setSaving(false);
+  };
+
+  return (
+    <Modal title={`📦 Carico merce — fattura ${invoice.invoiceNumber}`} onClose={onClose}>
+      <p style={{ fontSize: 13, color: '#86868b', marginTop: 0 }}>
+        Mappa ogni riga fattura a un prodotto del magazzino. Le giacenze si aggiornano come movimento RECEIPT.
+      </p>
+      {rows.map((r, i) => (
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: 'auto 2fr 1fr 80px auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+          <input type="checkbox" checked={!r.skip} onChange={e => { const n = [...rows]; n[i] = { ...n[i], skip: !e.target.checked }; setRows(n); }} />
+          <select style={inputStyle} value={r.productId} disabled={r.skip} onChange={e => { const n = [...rows]; n[i] = { ...n[i], productId: e.target.value }; setRows(n); }}>
+            <option value="">— scegli prodotto —</option>
+            {products.map(p => <option key={p.id} value={p.id}>{p.name} (giac. {p.stock?.quantity ?? 0})</option>)}
+          </select>
+          <input type="number" min={0.01} step="any" style={inputStyle} value={r.qty} disabled={r.skip} onChange={e => { const n = [...rows]; n[i] = { ...n[i], qty: Number(e.target.value) }; setRows(n); }} />
+          <span style={{ fontSize: 11, color: '#86868b' }}>{r.description.slice(0, 22)}</span>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+        <button style={btnPrimary} onClick={submit} disabled={saving}>{saving ? 'Carico…' : 'Carica in magazzino'}</button>
+        <button style={btnSecondary} onClick={onClose}>Annulla</button>
+      </div>
+    </Modal>
   );
 }
 

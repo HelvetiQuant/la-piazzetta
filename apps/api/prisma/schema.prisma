@@ -261,6 +261,7 @@ model Supplier {
   venueId    String
   venue      Venue    @relation(fields: [venueId], references: [id])
   name       String
+  vatNumber  String?  // partita IVA (per matching automatico da scan fatture)
   email      String?
   phone      String?
   notes      String?
