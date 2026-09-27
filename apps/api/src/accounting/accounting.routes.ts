@@ -189,24 +189,22 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
     const suppliers = await prisma.supplier.findMany({ where: { venueId: user.venueId, active: true } });
     const match = matchSupplier(suppliers, parsed);
     const normName = normalizeSupplierName(parsed.supplierName);
+    // Guardrail: l'AI può aver letto il DESTINATARIO (noi) come fornitore.
+    const venue = await prisma.venue.findUnique({ where: { id: user.venueId } });
+    const readBuyer = isLikelyBuyer(parsed.supplierName, venue?.name);
     const sameNumber = await prisma.supplierInvoice.findMany({
       where: { venueId: user.venueId, invoiceNumber: parsed.invoiceNumber },
     });
     const dup = sameNumber.find(c =>
+      // destinatario letto come fornitore → il fornitore estratto è inaffidabile:
+      // stesso numero documento nello stesso venue = stessa fattura rifotografata
+      readBuyer ||
       (match && c.supplierId === match.supplier.id) ||
       normalizeSupplierName(c.supplierName) === normName ||
       // stesso numero + stesso totale = stessa fattura anche se il fornitore
       // è stato letto diversamente (es. riquadro destinatario scambiato)
       (parsed.totalAmountCents > 0 && c.totalAmountCents === parsed.totalAmountCents),
     );
-    if (dup) {
-      res.json({ invoice: dup, supplier: dup.supplierId ? await prisma.supplier.findUnique({ where: { id: dup.supplierId } }) : null, supplierCreated: false, parsed, duplicate: true });
-      return;
-    }
-
-    // Guardrail: l'AI può aver letto il DESTINATARIO (noi) come fornitore.
-    const venue = await prisma.venue.findUnique({ where: { id: user.venueId } });
-    const readBuyer = isLikelyBuyer(parsed.supplierName, venue?.name);
 
     let supplier = readBuyer ? null : (match?.supplier ?? null);
     let supplierCreated = false;
