@@ -122,7 +122,13 @@ export class AiService {
       throw new AiBudgetExceededError();
     }
 
-    const opts: CallOptions = { timeoutMs: this.cfg.timeoutMs, fetchImpl: this.fetchImpl, imageDataUrl };
+    const opts: CallOptions = {
+      timeoutMs: this.cfg.timeoutMs,
+      fetchImpl: this.fetchImpl,
+      imageDataUrl,
+      // lo scan fatture produce JSON lunghi (righe merce): serve budget output ampio
+      maxOutputTokens: task === 'invoice_scan' ? 4000 : undefined,
+    };
     let lastErr: unknown = null;
 
     for (const provider of chainAll) {

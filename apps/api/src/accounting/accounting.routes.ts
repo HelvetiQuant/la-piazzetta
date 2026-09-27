@@ -44,7 +44,7 @@ import { currentUser, type RouteDeps } from '../http.js';
 import { ITALIAN_CHART_OF_ACCOUNTS } from './chart-of-accounts.js';
 import { getAiService, AiDisabledError, AiBudgetExceededError } from '../ai/ai.service.js';
 import { ProviderError } from '../ai/ai.provider.js';
-import { parseScannedInvoice, matchSupplier, normalizeVat } from './invoice-scan.logic.js';
+import { parseScannedInvoice, matchSupplier, normalizeVat, normalizeSupplierName } from './invoice-scan.logic.js';
 import { recordMovement, InventoryError } from '../inventory/inventory.service.js';
 import path from 'path';
 import fs from 'fs';
@@ -179,21 +179,32 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
       return;
     }
 
-    // Dedup: stesso numero + nome fornitore per questo venue
-    const dup = await prisma.supplierInvoice.findFirst({
-      where: { venueId: user.venueId, invoiceNumber: parsed.invoiceNumber, supplierName: parsed.supplierName },
+    // Matching fornitore PRIMA del dedup: la stessa fattura fotografata due
+    // volte può produrre nomi appena diversi ("TIMOSSI SPA" / "TIMOSSI S.P.A."),
+    // mentre supplierId resta stabile → chiave di dedup affidabile.
+    const suppliers = await prisma.supplier.findMany({ where: { venueId: user.venueId, active: true } });
+    const match = matchSupplier(suppliers, parsed);
+    const normName = normalizeSupplierName(parsed.supplierName);
+    const sameNumber = await prisma.supplierInvoice.findMany({
+      where: { venueId: user.venueId, invoiceNumber: parsed.invoiceNumber },
     });
+    const dup = sameNumber.find(c =>
+      (match && c.supplierId === match.supplier.id) ||
+      normalizeSupplierName(c.supplierName) === normName,
+    );
     if (dup) {
       res.json({ invoice: dup, supplier: dup.supplierId ? await prisma.supplier.findUnique({ where: { id: dup.supplierId } }) : null, supplierCreated: false, parsed, duplicate: true });
       return;
     }
 
-    // Matching fornitore: P.IVA esatta → nome normalizzato → crea nuovo
-    const suppliers = await prisma.supplier.findMany({ where: { venueId: user.venueId, active: true } });
-    const match = matchSupplier(suppliers, parsed);
-    let supplier = match?.supplier ?? null;
+    // Guardrail: l'AI può aver letto il DESTINATARIO (noi) come fornitore.
+    const venue = await prisma.venue.findUnique({ where: { id: user.venueId } });
+    const ownName = normalizeSupplierName(venue?.name ?? '');
+    const readBuyer = Boolean(ownName) && normName.includes(ownName);
+
+    let supplier = readBuyer ? null : (match?.supplier ?? null);
     let supplierCreated = false;
-    if (!supplier) {
+    if (!supplier && !readBuyer) {
       supplier = await prisma.supplier.create({
         data: {
           venueId: user.venueId,
@@ -205,7 +216,7 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
         },
       });
       supplierCreated = true;
-    } else if (parsed.supplierVat && !supplier.vatNumber) {
+    } else if (supplier && parsed.supplierVat && !supplier.vatNumber) {
       // arricchisce il fornitore esistente con la P.IVA appena letta
       supplier = await prisma.supplier.update({ where: { id: supplier.id }, data: { vatNumber: normalizeVat(parsed.supplierVat) } });
     }
@@ -215,7 +226,7 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
     const invoice = await prisma.supplierInvoice.create({
       data: {
         venueId: user.venueId,
-        supplierId: supplier.id,
+        supplierId: supplier?.id ?? null,
         supplierName: parsed.supplierName,
         supplierVat: parsed.supplierVat,
         invoiceNumber: parsed.invoiceNumber,
@@ -227,7 +238,9 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
         totalAmountCents: parsed.totalAmountCents,
         status: 'RECEIVED',
         ocrData: { ...parsed, aiProvider: result.provider, aiModel: result.model, scannedAt: new Date().toISOString() } as unknown as Prisma.InputJsonValue,
-        note: parsed.confidence < 0.6 ? '⚠️ Scansione a bassa confidenza — verificare i dati' : null,
+        note: readBuyer
+          ? '⚠️ L\'AI ha letto il destinatario come fornitore — correggere il nome fornitore'
+          : parsed.confidence < 0.6 ? '⚠️ Scansione a bassa confidenza — verificare i dati' : null,
       },
     });
     const fname = `invoice-${invoice.id}.${ext}`;
@@ -237,7 +250,7 @@ export function registerAccountingRoutes(app: Express, prisma: PrismaClient, dep
       data: { filePath: `/invoices/${fname}`, fileMimeType: body.mimeType },
     });
 
-    res.status(201).json({ invoice: withFile, supplier, supplierCreated, matchKind: match?.kind ?? 'created', parsed });
+    res.status(201).json({ invoice: withFile, supplier, supplierCreated, matchKind: match?.kind ?? 'created', buyerDetected: readBuyer || undefined, parsed });
   });
 
   // Carico a magazzino delle righe fattura: l'owner mappa le righe ai prodotti.

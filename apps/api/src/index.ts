@@ -46,7 +46,7 @@ type Tx = Prisma.TransactionClient;
 // In LAN sul portatile i frontend girano su origin diverse (porte Vite):
 // CORS_ORIGIN=* di default; impostare un valore esplicito in produzione.
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-app.use(express.json());
+app.use(express.json({ limit: '15mb' })); // foto fatture/media in base64 possono superare il default 100kb
 
 // Logging strutturato di ogni richiesta (salta /health e /ws).
 app.use(requestLogger(log));

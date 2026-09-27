@@ -33,10 +33,26 @@ riconosciuto/creato → fattura registrata → carico magazzino → partita dopp
 - `docker-compose.yml`: `env_file: apps/api/.env` — chiavi AI disponibili anche
   nel deployment containerizzato (`environment` esplicito resta prevalente).
 
+### Fixed (emersi da test su foto reali di fatture cartacee)
+- `express.json({ limit: '15mb' })` — le foto da smartphone superavano il
+  default 100kb → `PayloadTooLargeError` 500 su ogni upload.
+- `maxOutputTokens` 4000 per `invoice_scan` — il JSON delle righe merce veniva
+  troncato a 800 token → parse fallito sulle fatture piene.
+- Prompt vision: fornitore = emittente (intestazione), mai il riquadro
+  "Destinatario/Cliente"; P.IVA solo dell'emittente; anni '25/'26 → 2025/2026.
+- Guardrail backend: se il nome estratto coincide col venue (l'AI ha letto il
+  destinatario), il fornitore NON viene creato e la fattura è marcata "da
+  verificare" (`buyerDetected`).
+- Dedup robusto: matching fornitore PRIMA del controllo duplicati; chiave
+  `supplierId` o nome normalizzato (due foto dello stesso documento producevano
+  nomi leggermente diversi → doppio inserimento).
+
 ### Verified (test E2E live)
 - Foto fattura sintetica Eurofood: P.IVA/numero/date/importi/4 righe estratti
   corretti, fornitore auto-creato, file servito da `/invoices/*`.
-- Dedup: riscan stesso documento → `duplicate:true`, zero doppioni.
+- 5 foto reali cartacee (SAMA, Timossi DDT ×2, Acquaviva ruotata, Milfa):
+  fornitori creati/associati, righe merce estratte, DDT riconosciuto,
+  foto duplicata dello stesso documento → match P.IVA senza doppio fornitore.
 - Load-stock: Latte 0→24, Caffè 0→6; ri-carico → 409.
 - PATCH su RECEIVED ok, su RECORDED → 409.
 - Record → journal bilanciato (DARE costo 201,60 + IVA 20,16 / AVERE fornitore

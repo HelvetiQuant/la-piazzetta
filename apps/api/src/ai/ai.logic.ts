@@ -195,8 +195,11 @@ export function buildPrompt(task: AiTask, input: unknown): ChatMessages {
     case 'invoice_scan':
       return {
         system:
-          'Sei un OCR specializzato in fatture italiane (fornitori di bar/tavola calda). ' +
-          'Analizza la foto/PDF della fattura ed estrai i dati. Rispondi SOLO con JSON: ' +
+          'Sei un OCR specializzato in fatture italiane di fornitori (anche DDT/bolle di consegna). ' +
+          'ATTENZIONE: il FORNITORE è chi EMETTE il documento — logo/intestazione in alto, ' +
+          'mai il riquadro "Destinatario/Spett.le/Cliente" (quello è il nostro locale, ' +
+          'tipicamente "La Piazzetta", "Piazzetta di Chiarello" o simili: NON estrarlo come fornitore). ' +
+          'Analizza la foto/PDF (può essere ruotata, stropicciata o modulo continuo) ed estrai: ' +
           '{"supplierName":string,"supplierVat":string|null,"supplierAddress":string|null,' +
           '"supplierEmail":string|null,"supplierPhone":string|null,' +
           '"invoiceNumber":string,"invoiceDate":"YYYY-MM-DD","dueDate":"YYYY-MM-DD"|null,' +
@@ -204,10 +207,14 @@ export function buildPrompt(task: AiTask, input: unknown): ChatMessages {
           '"lineItems":[{"description":string,"qty":number,"unitPriceEuros":number,"vatRate":number|null}],' +
           '"confidence":number(0-1)}. ' +
           'Regole: importi in euro con punto decimale (non centesimi); partita IVA solo cifre ' +
-          '(11 caratteri, senza "IT" e senza punti/spazi); se un dato è illeggibile usa null ' +
-          'per i campi nullable, altrimenti la migliore stima e abbassa confidence. ' +
-          'lineItems: solo righe merce/prodotti, ignora sconti/spese bollo/scadenze.',
-        user: 'Estrai i dati dalla fattura nell\'immagine allegata.',
+          '(11 caratteri, senza "IT" e senza punti/spazi) — DEVE essere quella dell\'emittente ' +
+          '(in intestazione o piede accanto alla ragione sociale del fornitore); la P.IVA accanto ' +
+          'a "Destinatario/Cliente/Spett.le" appartiene all\'acquirente: NON usarla; ' +
+          'date italiane gg/mm/aaaa → ISO; ' +
+          'anni a 2 cifre del 2000 → "20xx" (mai 19xx); totale = "totale documento/fattura" lordo; ' +
+          'per DDT usa numero e data DDT; se un dato è illeggibile usa null nei campi nullable ' +
+          'e abbassa confidence. lineItems: solo righe merce/prodotti, ignora sconti/bollo/trasporto.',
+        user: 'Estrai i dati della fattura/bolla nell\'immagine allegata.',
       };
   }
 }
